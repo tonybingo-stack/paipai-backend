@@ -14,6 +14,12 @@ namespace SignalRHubs.Interfaces.Services
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        Task<string> CreateCommunity(Community community);
+        Task<string> CreateCommunity(Community entity);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        Task<string> CreateChannel(Channel entity);
     }
 }

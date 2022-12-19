@@ -86,6 +86,12 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:SignalRHubs.Controllers.HomeController.CreateChannel(SignalRHubs.Entities.Channel)">
+            <summary>
+            Create New Channels
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:SignalRHubs.Controllers.UserController.CreateUser(SignalRHubs.Entities.UserCredential)">
             <summary>
             Create New User
@@ -151,6 +157,13 @@
             <typeparam name="T"></typeparam>
         </member>
         <member name="M:SignalRHubs.Interfaces.Services.IHomeService.CreateCommunity(SignalRHubs.Entities.Community)">
+            <summary>
+            
+            </summary>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Interfaces.Services.IHomeService.CreateChannel(SignalRHubs.Entities.Channel)">
             <summary>
             
             </summary>

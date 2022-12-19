@@ -20,19 +20,33 @@ namespace SignalRHubs.Services
             _connection = dapperService.Connection;
         }
 
+        public async Task<string> CreateChannel(Channel entity)
+        {
+            var query = $"INSERT INTO Channel VALUES(" +
+                $"'{entity.ChannelId}', " +
+                $"'{entity.ChannelName}', " +
+                $"'{entity.ChannelDescription}', " +
+                $"'{entity.ChannelCommunityId}' " +
+                $")";
+
+            await _service.GetDataAsync(query);
+
+            return "Sucessfully created new channel!";
+        }
+
         /// <summary>
         /// Create new community
         /// </summary>
         /// <param name="community"></param>
         /// <returns></returns>
-        public async Task<string> CreateCommunity(Community community)
+        public async Task<string> CreateCommunity(Community entity)
         {
             var query = $"INSERT INTO Community VALUES(" +
-                $"{community.CommunityId}, " +
-                $"'{community.CommunityName}', " +
-                $"'{community.CommunityDescription}', " +
-                $"{community.CommunityOwnerId}, " +
-                $"'{community.CommunityType}'" +
+                $"'{entity.CommunityId}', " +
+                $"'{entity.CommunityName}', " +
+                $"'{entity.CommunityDescription}', " +
+                $"'{entity.CommunityOwnerId}', " +
+                $"'{entity.CommunityType}'" +
                 $")";
 
             await _service.GetDataAsync(query);
