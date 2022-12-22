@@ -11,8 +11,13 @@ namespace SignalRHubs.Profiles
             CreateMap<User, ReadUserSummaryModel>();
             CreateMap<MessageBindingModel, Message>();
             CreateMap<Message, MessageViewModel>();
-            CreateMap<ChatRoom, ChatRoomViewModel>();
+            CreateMap<MessageViewModel, Message>();
+            CreateMap<ChatRoom, ChatChannelViewModel>();
 
+            CreateMap<UserModel, LoginCredential > ();
+            CreateMap<CreateUserModel, UserCredential>();
+            CreateMap<CommunityModel, Community>();
+            CreateMap<ChannelModel, Channel>();
         }
     }
 }

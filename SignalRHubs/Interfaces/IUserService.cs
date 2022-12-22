@@ -9,6 +9,7 @@ namespace SignalRHubs.Interfaces.Services
     /// <typeparam name="T"></typeparam>
     public interface IUserService
     {
+        Task<Guid> GetIdByUserName(string name);
         string Authenticate(UserModel entity);
 
         /// <summary>
@@ -29,7 +30,7 @@ namespace SignalRHubs.Interfaces.Services
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        Task<User> GetUser(Guid userId);
+        Task<User> GetUserByID(Guid userId);
 
         /// <summary>
         /// Get all users

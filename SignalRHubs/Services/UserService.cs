@@ -29,7 +29,15 @@ namespace SignalRHubs.Services
             _connection = dapperService.Connection;
             this.iconfiguration = iconfiguration;
         }
+        public async Task<Guid> GetIdByUserName(string name)
+        {
+            var query = $"SELECT dbo.Users.ID " +
+                $"FROM dbo.Users " +
+                $"WHERE dbo.Users.UserName = @UserName";
+            var response = await _userService.GetDataAsync(query, new { UserName = name });
 
+            return response[0].Id;
+        }
         public string Authenticate(UserModel entity)
         {
             var issuer = iconfiguration["Jwt:Issuer"];
@@ -72,19 +80,6 @@ namespace SignalRHubs.Services
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            //var query = $"INSERT INTO Users VALUES(" +
-            //    $"'{ entity.Id.ToString() }', " +
-            //    $"'{ entity.FirstName }', " +
-            //    $"'{ entity.LastName }', " +
-            //    $"'{ entity.UserName }', " +
-            //    $"'{ entity.Password }', " +
-            //    $"'{ entity.NickName }', " +
-            //    $"'{ entity.Phone }', " +
-            //    $"'{ entity.Email }', " +
-            //    $"'{ entity.Gender }', " +
-            //    $"'{ entity.RegisterTime }'" +
-            //    $"'{ entity.EntityState }'" +
-            //    $")";
             var query = $"Insert into Users Values(" +
                 $"'{ entity.Id }', " +
                 $"'{ entity.FirstName }', " +
@@ -130,7 +125,7 @@ namespace SignalRHubs.Services
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task<User> GetUser(Guid userId)
+        public async Task<User> GetUserByID(Guid userId)
         {
             var query = $"SELECT * FROM Users WHERE Id='{userId}'";
             return await _userService.GetFirstOrDefaultAsync<User>(query);

@@ -5,11 +5,14 @@ namespace SignalRHubs.Interfaces.Services
 {
     public interface IChatService
     {
-        Task<List<ChatRoomViewModel>> GetChatRoomsByUserId(Guid userId);
-        Task<Tuple<Guid?, IEnumerable<string>>> GetChatRoomByUserIds(IEnumerable<string> userIds);
-        Task<List<MessageViewModel>> GetMessageByRoomId(Guid roomId);
-        Task<Message> GetMessage(Guid id);
+        Task<List<ChatChannelViewModel>> GetChatChannelsByUserId(Guid userId);
+        Task<List<MessageViewModel>> GetMessageByChannelId(Guid channelId);
+        Task<MessageViewModel> GetMessage(Guid id);
         Task SaveMessage(Message chatMessage);
-        Task SaveRoom(ChatRoom room);
+        Task PutMessage(Guid id, Message chatMessage);
+        Task DeleteMessage(Guid id);
+        Task SaveChannel(Channel _channel);
+        Task<Tuple<Guid?, IEnumerable<string>>> GetChatChannelByUserIds(IEnumerable<string> userIds);
+        Task<List<ChatCardModel>> GetChatListByID(Guid userId);
     }
 }

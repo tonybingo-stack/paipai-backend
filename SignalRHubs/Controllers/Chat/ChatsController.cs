@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
@@ -13,9 +12,7 @@ namespace SignalRHubs.Controllers.Chat
     /// <summary>
     /// 
     /// </summary>
-    [Authorize]
-    [Route("[controller]")]
-    [ApiController]
+
     public class ChatsController : ApiBaseController
     {
         private readonly IChatService _service;
@@ -43,28 +40,28 @@ namespace SignalRHubs.Controllers.Chat
             }
 
         /// <summary>
-        /// Get all chat rooms for user
+        /// Get all chat channels for user
         /// </summary>
         /// <returns></returns>
-        [ProducesResponseType(typeof(List<ChatRoomViewModel>), 200)]
+        [ProducesResponseType(typeof(List<ChatChannelViewModel>), 200)]
         [ProducesResponseType(500)]
-        [HttpGet("/users/{userId}/rooms")]
-        public async Task<IActionResult> GetChatRooms([FromRoute] string userId)
+        [HttpGet("/users/{userId}/channels")]
+        public async Task<IActionResult> GetChatChannels([FromRoute] string userId)
         {
-            return Ok(await _service.GetChatRoomsByUserId(Guid.Parse(userId)));            
+            return Ok(await _service.GetChatChannelsByUserId(Guid.Parse(userId)));            
         }
 
         /// <summary>
-        /// Get messages of a room by Id
+        /// Get messages of a channel by Id
         /// </summary>
-        /// <param name="roomId">Chat Room Id</param>
+        /// <param name="channelId">Chat Channel Id</param>
         /// <returns>List of chat messages.</returns>
         [ProducesResponseType(typeof(List<MessageViewModel>), 200)]
         [ProducesResponseType(500)]
-        [HttpGet("/rooms/{roomId}")]
-        public async Task<IActionResult> GetMessagesByRoomId(string roomId)
+        [HttpGet("/message/{channelId}")]
+        public async Task<IActionResult> GetMessagesByRoomId(string channelId)
         {
-            return Ok(await _service.GetMessageByRoomId(Guid.Parse(roomId)));
+            return Ok(await _service.GetMessageByChannelId(Guid.Parse(channelId)));
         }
 
         /// <summary>
@@ -72,7 +69,7 @@ namespace SignalRHubs.Controllers.Chat
         /// </summary>
         /// <param name="id"></param>
         /// <returns>Return message details</returns>
-        [ProducesResponseType(typeof(Message), 200)]
+        [ProducesResponseType(typeof(MessageViewModel), 200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
         [HttpGet("/messages/{id}")]
@@ -82,55 +79,69 @@ namespace SignalRHubs.Controllers.Chat
         }
 
         /// <summary>
-        /// Save new message (with room generation)
+        /// Save new message (with channel generation)
         /// </summary>
         /// <returns></returns>
-        [ProducesResponseType(typeof(Message), 200)]
+        [ProducesResponseType(typeof(MessageViewModel), 200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
-        [HttpPost("/messages")]
+        [HttpPost("/create-new-message")]
         public async Task<IActionResult> CreateMessage([FromForm] MessageBindingModel model)
         {
-            // Get Room Id
+            // Get UserID from Username
 
-            if (model.RoomId == null)
+            Guid UserId = await _userService.GetIdByUserName(UserName);
+
+            // Get Channel Id
+
+            if (model.ChannelId == null)
             {
-                var (roomId, userNames) = await _service.GetChatRoomByUserIds(new List<string> { UserId.ToString(), model.ReceiverId.ToString() });
-                
-                if(roomId == null)
+                //if (model.CommunityId == null) return BadRequest("ChannelID and CommunityID can not be null at the same time!");
+
+                var (channelId, userNames) = await _service.GetChatChannelByUserIds(new List<string> { UserId.ToString(), model.ReceiverId.ToString() });
+
+                if (channelId == null)
                 {
-                    roomId = Guid.NewGuid();
-                    ChatRoom room = new()
+                    channelId = Guid.NewGuid();
+                    Channel _channel = new()
                     {
-                        Id = roomId.Value,
-                        Name = string.Join("_", userNames),
-                        IsGroupChat = false
+                        ChannelId = channelId.Value,
+                        ChannelName = String.Join("_", userNames),
+                        ChannelDescription = "This is new generated channel by new message",
+                        //ChannelCommunityId = model.CommunityId.Value,
                     };
+                    //ChatRoom room = new()
+                    //{
+                    //    Id = channelId.Value,
+                    //    Name = string.Join("_", userNames),
+                    //    IsGroupChat = false
+                    //};
 
-                    room.Details = new List<ChatRoomDetail>
-                    {
-                        new ChatRoomDetail
-                        {
-                            UserId = UserId,
-                            RoomId = roomId.Value,
-                        },
-                        new ChatRoomDetail
-                        {
-                            UserId = model.ReceiverId,
-                            RoomId = roomId.Value,
-                        }
-                    };
+                    //room.Details = new List<ChatRoomDetail>
+                    //{
+                    //    new ChatRoomDetail
+                    //    {
+                    //        UserId = UserId,
+                    //        RoomId = channelId.Value,
+                    //    },
+                    //    new ChatRoomDetail
+                    //    {
+                    //        UserId = model.ReceiverId,
+                    //        RoomId = channelId.Value,
+                    //    }
+                    //};
 
-                    await _service.SaveRoom(room);
+                    await _service.SaveChannel(_channel);
                 }
-                model.RoomId = roomId.Value;
-            }
 
+                model.ChannelId = channelId.Value;
+            }
 
             Message message = _mapper.Map<Message>(model);
             message.Id = Guid.NewGuid();
-            message.RoomId = model.RoomId.Value;
+            message.ChannelId = model.ChannelId.Value;
             message.SenderId = UserId;
+
             await _service.SaveMessage(message);
 
             // For now 1x1 chat
@@ -138,6 +149,7 @@ namespace SignalRHubs.Controllers.Chat
             await _hubContext.Clients.User(model.ReceiverId.ToString()).SendAsync("notifyMessage", messageVm);
             // await _hubContext.Clients.All.SendAsync("notifyMessage", messageVm);
 
+            //return Ok(UserId);
             return StatusCode(StatusCodes.Status201Created);
         }
 
@@ -151,25 +163,26 @@ namespace SignalRHubs.Controllers.Chat
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
         [HttpPut("/messages/{id}")]
-        public async Task<IActionResult> Put(string id, [FromForm] MessageBindingModel model)
+        public async Task<IActionResult> Put(string id, [FromForm] MessageUpdateModel model)
         {
             Guid messageId = Guid.Parse(id);
-            if (model.RoomId == null) return BadRequest("RoomId is required.");
+            //if (model.ChannelId == null) return BadRequest("Channel ID is required.");
 
-            Message message = await _service.GetMessage(messageId);
+            Message message = _mapper.Map<Message>(await _service.GetMessage(messageId));
             if (message == null) return BadRequest("Message does not exists.");
 
             message.Content = model.Content;
             message.UpdatedAt = DateTime.Now;
             message.EntityState = DbHelper.Enums.EntityState.Modified;
-            await _service.SaveMessage(message);
+            //await _service.SaveMessage(message);
+            await _service.PutMessage(messageId, message);
 
             // For now 1x1 chat
             MessageViewModel messageVm = _mapper.Map<MessageViewModel>(message);
-            message.EntityState = DbHelper.Enums.EntityState.Modified;
+            //message.EntityState = DbHelper.Enums.EntityState.Modified;
             await _hubContext.Clients.All.SendAsync("notifyMessage", messageVm);
 
-            return Ok();
+            return Ok(message);
         }
 
         /// <summary>
@@ -183,16 +196,20 @@ namespace SignalRHubs.Controllers.Chat
         [HttpDelete("/messages/{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            Message message = await _service.GetMessage(Guid.Parse(id));
+            //Get Userid from UserName
+            Guid UserId = await _userService.GetIdByUserName(UserName);
+
+            Message message = _mapper.Map<Message>(await _service.GetMessage(Guid.Parse(id)));
             if (message == null) return BadRequest("Message does not exists.");
 
             message.EntityState = DbHelper.Enums.EntityState.Deleted;
-            await _service.SaveMessage(message);
+            //await _service.SaveMessage(message);
+            await _service.DeleteMessage(Guid.Parse(id));
 
             MessageViewModel messageVm = _mapper.Map<MessageViewModel>(message);
             await _hubContext.Clients.User(UserId.ToString()).SendAsync("notifyDeleteMessage", messageVm);
 
-            return Ok();
+            return Ok(message);
         }
 
 
@@ -208,6 +225,33 @@ namespace SignalRHubs.Controllers.Chat
             var users = await _userService.GetUsers();
             var usersSummary = _mapper.Map<IEnumerable<ReadUserSummaryModel>>(users);
             return Ok(usersSummary);
+        }
+        /// <summary>
+        /// Get User by ID
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("/user/{id}")]
+        [ProducesResponseType(typeof(ReadUserSummaryModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ReadUserSummaryModel>> GetCustomerSummaryById([FromRoute] string id)
+        {
+            var user = await _userService.GetUserByID(Guid.Parse(id));
+            var userSummary = _mapper.Map<ReadUserSummaryModel>(user);
+            return Ok(userSummary);
+        }
+        /// <summary>
+        /// Get All Chat Records
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("/allRecords")]
+        [ProducesResponseType(typeof(ChatCardModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<ChatCardModel>>> GetAllRecords()
+        {
+            Guid UserId = await _userService.GetIdByUserName(UserName);
+
+            var res = await _service.GetChatListByID(UserId);
+            return Ok(res);
         }
     }
 }

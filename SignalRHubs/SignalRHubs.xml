@@ -9,7 +9,7 @@
             
             </summary>
         </member>
-        <member name="P:SignalRHubs.Controllers.ApiBaseController.UserId">
+        <member name="P:SignalRHubs.Controllers.ApiBaseController.UserName">
             <summary>
             
             </summary>
@@ -33,17 +33,17 @@
             <param name="mapper"></param>
             <param name="userService"></param>
         </member>
-        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetChatRooms(System.String)">
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetChatChannels(System.String)">
             <summary>
-            Get all chat rooms for user
+            Get all chat channels for user
             </summary>
             <returns></returns>
         </member>
         <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetMessagesByRoomId(System.String)">
             <summary>
-            Get messages of a room by Id
+            Get messages of a channel by Id
             </summary>
-            <param name="roomId">Chat Room Id</param>
+            <param name="channelId">Chat Channel Id</param>
             <returns>List of chat messages.</returns>
         </member>
         <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetMessageById(System.String)">
@@ -55,11 +55,11 @@
         </member>
         <member name="M:SignalRHubs.Controllers.Chat.ChatsController.CreateMessage(SignalRHubs.Models.MessageBindingModel)">
             <summary>
-            Save new message (with room generation)
+            Save new message (with channel generation)
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.Put(System.String,SignalRHubs.Models.MessageBindingModel)">
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.Put(System.String,SignalRHubs.Models.MessageUpdateModel)">
             <summary>
             Update a message by Id
             </summary>
@@ -80,25 +80,37 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.HomeController.CreateCommunity(SignalRHubs.Entities.Community)">
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetCustomerSummaryById(System.String)">
+            <summary>
+            Get User by ID
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetAllRecords">
+            <summary>
+            Get All Chat Records
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.HomeController.CreateCommunity(SignalRHubs.Models.CommunityModel)">
             <summary>
             Create New Community
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.HomeController.CreateChannel(SignalRHubs.Entities.Channel)">
+        <member name="M:SignalRHubs.Controllers.HomeController.CreateChannel(SignalRHubs.Models.ChannelModel)">
             <summary>
             Create New Channels
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.UserController.CreateUser(SignalRHubs.Entities.UserCredential)">
+        <member name="M:SignalRHubs.Controllers.UserController.CreateUser(SignalRHubs.Models.CreateUserModel)">
             <summary>
             Create New User
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.UserController.Login(SignalRHubs.Entities.LoginCredential)">
+        <member name="M:SignalRHubs.Controllers.UserController.Login(SignalRHubs.Models.UserModel)">
             <summary>
             User Login
             </summary>
@@ -116,7 +128,7 @@
             <param name="identity"></param>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Extensions.ClaimsExtensionMethods.GetUserId(System.Security.Principal.IIdentity)">
+        <member name="M:SignalRHubs.Extensions.ClaimsExtensionMethods.GetUserName(System.Security.Principal.IIdentity)">
             <summary>
             Returns the GUID on claims, returns Guid.Empty if claims not found
             </summary>
@@ -190,7 +202,7 @@
             <param name="entity"></param>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Interfaces.Services.IUserService.GetUser(System.Guid)">
+        <member name="M:SignalRHubs.Interfaces.Services.IUserService.GetUserByID(System.Guid)">
             <summary>
             Get user by ID
             </summary>
@@ -203,15 +215,6 @@
             </summary>
             <param name="userId"></param>
             <returns></returns>
-        </member>
-        <member name="P:SignalRHubs.Models.MessageBindingModel.RoomId">
-            <summary>
-            Room Id 
-            <list type="bullet">
-            <item>Null when new chat is starting.</item>
-            <item>RoomId for existing chat.</item>
-            </list>
-            </summary>
         </member>
         <member name="M:SignalRHubs.Services.HomeService.#ctor(DbHelper.Interfaces.Services.IDapperService{SignalRHubs.Entities.Community})">
             <summary>
@@ -246,7 +249,7 @@
             <param name="entity"></param>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Services.UserService.GetUser(System.Guid)">
+        <member name="M:SignalRHubs.Services.UserService.GetUserByID(System.Guid)">
             <summary>
             Get User by ID
             </summary>

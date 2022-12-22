@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SignalRHubs.Extensions;
+using SignalRHubs.Interfaces.Services;
 using System.Security.Claims;
 
 namespace SignalRHubs.Controllers
@@ -7,16 +9,20 @@ namespace SignalRHubs.Controllers
     /// <summary>
     /// 
     /// </summary>
+    [Authorize]
+    [Route("[controller]")]
     [ApiController]
     public abstract class ApiBaseController : ControllerBase
     {
         /// <summary>
         /// 
         /// </summary>
-        protected Guid UserId => User.Identity.GetUserId();
+        protected string UserName => User.Identity.GetUserName();
+
         /// <summary>
         /// 
         /// </summary>
         protected string UserEmail => User.Identity.GetUserEmail();
+
     }
 }

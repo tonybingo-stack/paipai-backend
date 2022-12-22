@@ -30,7 +30,7 @@ namespace SignalRHubs.Extensions
         /// </summary>
         /// <param name="identity"></param>
         /// <returns></returns>
-        public static Guid GetUserId(this IIdentity identity)
+        public static String GetUserName(this IIdentity identity)
         {
             var claimsIdentity = (ClaimsIdentity)identity;
             IEnumerable<Claim> claims = claimsIdentity.Claims;
@@ -38,10 +38,12 @@ namespace SignalRHubs.Extensions
 
             if (claim == null)
             {
-                return Guid.Empty;
+                //return Guid.Empty;
+                return "";
             }
-
-            return Guid.Parse(claim.Value);
+            
+            return claim.Value.ToString();
+            //return Guid.Parse(claim.Value);
         }
 
         /// <summary>

@@ -11,10 +11,12 @@ namespace SignalRHubs.Controllers
 
     public class UserController : Controller
     {
+        private readonly IMapper _mapper;
         private readonly IUserService _userService;
-        public UserController(IUserService service)
+        public UserController(IUserService service, IMapper mapper)
         {
             this._userService = service;
+            _mapper = mapper;
         }
         /// <summary>
         /// Create New User
@@ -22,9 +24,10 @@ namespace SignalRHubs.Controllers
         /// <returns></returns>
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        [HttpPost("/createuser")]
-        public async Task<IActionResult> CreateUser(UserCredential user)
+        [HttpPost("/signup")]
+        public async Task<IActionResult> CreateUser(CreateUserModel model)
         {
+            UserCredential user = _mapper.Map<UserCredential>(model);
             return Ok(await _userService.CreateUser(user));
             //return Ok(myuser);
         }
@@ -35,9 +38,10 @@ namespace SignalRHubs.Controllers
         /// <returns></returns>
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        [HttpPost("/login")]
-        public async Task<IActionResult> Login(LoginCredential user)
+        [HttpPost("/signin")]
+        public async Task<IActionResult> Login(UserModel model)
         {
+            LoginCredential user = _mapper.Map<LoginCredential>(model);
             return Ok(await _userService.LoginUser(user));
         }
     }
