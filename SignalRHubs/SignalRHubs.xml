@@ -53,7 +53,7 @@
             <param name="id"></param>
             <returns>Return message details</returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.CreateMessage(SignalRHubs.Models.MessageBindingModel)">
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.SendMessage(SignalRHubs.Models.MessageBindingModel)">
             <summary>
             Save new message (with channel generation)
             </summary>
@@ -88,7 +88,19 @@
         </member>
         <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetAllRecords">
             <summary>
-            Get All Chat Records
+            Get All Chat cards
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.DeleteAllRecords">
+            <summary>
+            Delete All chat cards
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.DeleteAllRecords(System.String)">
+            <summary>
+            Delete chat card By ID
             </summary>
             <returns></returns>
         </member>
@@ -142,24 +154,10 @@
             <param name="identity"></param>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Hubs.ChatHub.OnConnectedAsync">
+        <member name="M:SignalRHubs.Hubs.ChatHub.BroadcastMessage(System.String)">
             <summary>
             
             </summary>
-            <returns></returns>
-        </member>
-        <member name="M:SignalRHubs.Hubs.ChatHub.OnDisconnectedAsync(System.Exception)">
-            <summary>
-            
-            </summary>
-            <param name="exception"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SignalRHubs.Hubs.ChatHub.SendAsync(SignalRHubs.Entities.Message)">
-            <summary>
-            Send message to connected users
-            </summary>
-            <param name="message"></param>
             <returns></returns>
         </member>
         <member name="T:SignalRHubs.Interfaces.Services.IHomeService">

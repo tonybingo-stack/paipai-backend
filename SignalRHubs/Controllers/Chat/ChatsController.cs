@@ -85,15 +85,14 @@ namespace SignalRHubs.Controllers.Chat
         [ProducesResponseType(typeof(MessageViewModel), 200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
-        [HttpPost("/create-new-message")]
-        public async Task<IActionResult> CreateMessage([FromForm] MessageBindingModel model)
+        [HttpPost("/send-message")]
+        public async Task<IActionResult> SendMessage([FromForm] MessageBindingModel model)
         {
             // Get UserID from Username
 
             Guid UserId = await _userService.GetIdByUserName(UserName);
 
             // Get Channel Id
-
             if (model.ChannelId == null)
             {
                 //if (model.CommunityId == null) return BadRequest("ChannelID and CommunityID can not be null at the same time!");
@@ -240,7 +239,7 @@ namespace SignalRHubs.Controllers.Chat
             return Ok(userSummary);
         }
         /// <summary>
-        /// Get All Chat Records
+        /// Get All Chat cards
         /// </summary>
         /// <returns></returns>
         [HttpGet("/allRecords")]
@@ -252,6 +251,34 @@ namespace SignalRHubs.Controllers.Chat
 
             var res = await _service.GetChatListByID(UserId);
             return Ok(res);
+        }
+        /// <summary>
+        /// Delete All chat cards
+        /// </summary>
+        /// <returns></returns>
+        [HttpDelete("/allRecords")]
+        [ProducesResponseType(typeof(ChatCardModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<string>> DeleteAllRecords()
+        {
+            Guid UserId = await _userService.GetIdByUserName(UserName);
+
+            var res = await _service.DeleteAllChatList(UserId);
+            return Ok(res);
+        }
+        /// <summary>
+        /// Delete chat card By ID
+        /// </summary>
+        /// <returns></returns>
+        [HttpDelete("/Card/{id}")]
+        [ProducesResponseType(typeof(ChatCardModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<string>> DeleteAllRecords([FromRoute] string id)
+        {
+            Guid chatListID = Guid.Parse(id);
+
+            var res = await _service.DeleteChatListByID(chatListID);
+            return Ok("success");
         }
     }
 }

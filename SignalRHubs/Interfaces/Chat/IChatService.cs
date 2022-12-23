@@ -14,5 +14,7 @@ namespace SignalRHubs.Interfaces.Services
         Task SaveChannel(Channel _channel);
         Task<Tuple<Guid?, IEnumerable<string>>> GetChatChannelByUserIds(IEnumerable<string> userIds);
         Task<List<ChatCardModel>> GetChatListByID(Guid userId);
+        Task<string> DeleteAllChatList(Guid userId); 
+        Task<string> DeleteChatListByID(Guid chatListID); 
     }
 }

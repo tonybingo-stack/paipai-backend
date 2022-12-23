@@ -158,5 +158,17 @@ namespace SignalRHubs.Services
             var response = await _service.GetDataAsync<ChatCardModel>(query, new { UserId = userId });
             return response.ToList();
         }
+        public async Task<string> DeleteAllChatList(Guid userId)
+        {
+            var query = $"DELETE FROM dbo.ChatList WHERE dbo.ChatList.UserID =@UserId;";
+            var response = await _service.GetDataAsync(query, new { UserId = userId });
+            return response.ToString();
+        }
+        public async Task<string> DeleteChatListByID(Guid chatListID)
+        {
+            var query = $"DELETE FROM dbo.ChatList WHERE dbo.ChatList.ID =@ID;";
+            var response = await _service.GetDataAsync(query, new { ID = chatListID });
+            return response.ToString();
+        }
     }
 }
