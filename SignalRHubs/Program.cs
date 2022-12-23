@@ -20,7 +20,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddSignalR().AddAzureSignalR("Endpoint=https://paipaisignalr.service.signalr.net/;AccessKey=xvCB88J0XjYLkhO1oQ6yO9j5nGnSXWb/kysDihoDB4I=;Version=1.0;");
+builder.Services.AddSignalR(
+        hubOptions => {
+            hubOptions.EnableDetailedErrors = true;
+            hubOptions.KeepAliveInterval = TimeSpan.FromMinutes(2);
+            hubOptions.ClientTimeoutInterval = TimeSpan.FromMinutes(2);
+        }
+    ).AddAzureSignalR("Endpoint=https://paipaisignalr.service.signalr.net/;AccessKey=xvCB88J0XjYLkhO1oQ6yO9j5nGnSXWb/kysDihoDB4I=;Version=1.0;");
 
 // Configure Dapper Service
 builder.Services.ConfigureDbHelper(connectionStrName: "DbConnection");
