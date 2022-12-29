@@ -9,13 +9,15 @@
         timeout: 100000
     })
     .configureLogging(signalR.LogLevel.Information)
-    .withHubProtocol(new signalR.protocols.msgpack.MessagePackHubProtocol())
+    //.withHubProtocol(new signalR.protocols.msgpack.MessagePackHubProtocol())
     .build();
 
 connection.serverTimeoutInMilliseconds = 30000;
 connection.keepAliveIntervalInMilliseconds = 15000;
 
 connection.on("ReceiveMessage", (message) => {
+    //var res = JSON.parse(message);
+    console.log("#######BINGO#########: ", message);
     $('#signalr-message-panel').prepend($('<div />').text(message));
 });
 

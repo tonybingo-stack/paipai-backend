@@ -12,11 +12,11 @@
         <member name="P:SignalRHubs.Controllers.ApiBaseController.UserName">
             <summary>
             
-            </summary>
+            </summary> 
         </member>
-        <member name="P:SignalRHubs.Controllers.ApiBaseController.UserEmail">
+        <member name="P:SignalRHubs.Controllers.ApiBaseController.UserId">
             <summary>
-            
+            Get User ID
             </summary>
         </member>
         <member name="T:SignalRHubs.Controllers.Chat.ChatsController">
@@ -92,13 +92,13 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.DeleteAllRecords">
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.DeleteAllChathistory">
             <summary>
             Delete All chat cards
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.DeleteAllRecords(System.String)">
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.DeleteChatHistoryByID(System.String)">
             <summary>
             Delete chat card By ID
             </summary>
@@ -113,6 +113,12 @@
         <member name="M:SignalRHubs.Controllers.HomeController.CreateChannel(SignalRHubs.Models.ChannelModel)">
             <summary>
             Create New Channels
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.HomeController.Test">
+            <summary>
+            Test Controller
             </summary>
             <returns></returns>
         </member>
@@ -211,7 +217,15 @@
             <summary>
             Get all users
             </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Interfaces.Services.IUserService.UpdateHubConnectionID(System.Guid,System.String)">
+            <summary>
+            Update Hub connectionID of the user
+            </summary>
             <param name="userId"></param>
+            <param name="connectionID"></param>
             <returns></returns>
         </member>
         <member name="M:SignalRHubs.Services.HomeService.#ctor(DbHelper.Interfaces.Services.IDapperService{SignalRHubs.Entities.Community})">

@@ -7,6 +7,8 @@ using System.Data.SqlClient;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using SignalRHubs.Hubs;
+using Microsoft.AspNet.SignalR;
 
 namespace SignalRHubs.Services
 {
@@ -95,6 +97,13 @@ namespace SignalRHubs.Services
                 $")";
             await _userService.GetDataAsync(query);
 
+            query = $"Insert into HubUsers Values(" +
+                $"'NEWID()', " +
+                $"'{ entity.Id }', " +
+                $"null" +
+                $")";
+            await _userService.GetDataAsync(query);
+
             return "success";
         }
         /// <summary>
@@ -112,7 +121,7 @@ namespace SignalRHubs.Services
             var query = $"SELECT * FROM Users Where username='{ entity.UserName }'";
             var response = await _userService01.GetDataAsync(query);
 
-            if(response.Count == 0) return "User Not Found";
+            if (response.Count == 0) return "User Not Found";
 
             if (response.FirstOrDefault().Password == entity.Password)
             {
@@ -139,6 +148,15 @@ namespace SignalRHubs.Services
 
             return response.ToList();
         }
+        public async Task UpdateHubConnectionID(Guid UserID, string connectionID)
+        {
+            var query = $"UPDATE dbo.HubUsers " +
+                $"SET ConnectionID = { connectionID } " +
+                $"WHERE dbo.HubUsers.UserID = { UserID }";
+
+            await _userService.GetDataAsync(query);
+        }
+
 
     }
 }

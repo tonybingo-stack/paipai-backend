@@ -35,8 +35,16 @@ namespace SignalRHubs.Interfaces.Services
         /// <summary>
         /// Get all users
         /// </summary>
-        /// <param name="userId"></param>
+        /// <param name=""></param>
         /// <returns></returns>
         Task<List<User>> GetUsers();
+
+        /// <summary>
+        /// Update Hub connectionID of the user
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="connectionID"></param>
+        /// <returns></returns>
+        Task UpdateHubConnectionID(Guid UserID, string connectionID);
     }
 }

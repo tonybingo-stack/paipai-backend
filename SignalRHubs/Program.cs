@@ -9,9 +9,10 @@ using SignalRHubs.Interfaces.Services;
 using SignalRHubs.Services;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNet.SignalR;
 
+//GlobalHost.DependencyResolver.Register(typeof(IUserIdProvider), () => new MyIdProvider());
 var builder = WebApplication.CreateBuilder(args);
-
 // Add services to the container.
 //builder.Services.AddSignalR().AddAzureSignalR("Endpoint=https://paipaisignalr.service.signalr.net/;AccessKey=xvCB88J0XjYLkhO1oQ6yO9j5nGnSXWb/kysDihoDB4I=;Version=1.0;");
 builder.Services.AddControllersWithViews();
@@ -51,16 +52,16 @@ builder.Services.AddSignalR(hubOptions =>
     options.PayloadSerializerOptions.WriteIndented = true;
 
     Console.WriteLine($"Number of default JSON converters: {options.PayloadSerializerOptions.Converters.Count}");
-})
-.AddMessagePackProtocol(options =>
-{
-    options.SerializerOptions = MessagePackSerializerOptions.Standard
-        .WithSecurity(MessagePackSecurity.UntrustedData)
-        .WithCompression(MessagePackCompression.Lz4Block)
-        .WithAllowAssemblyVersionMismatch(true)
-        .WithOldSpec()
-        .WithOmitAssemblyVersion(true);
 });
+//.AddMessagePackProtocol(options =>
+//{
+//    options.SerializerOptions = MessagePackSerializerOptions.Standard
+//        .WithSecurity(MessagePackSecurity.UntrustedData)
+//        .WithCompression(MessagePackCompression.Lz4Block)
+//        .WithAllowAssemblyVersionMismatch(true)
+//        .WithOldSpec()
+//        .WithOmitAssemblyVersion(true);
+//});
 
 builder.Services.AddRazorPages();
 
@@ -142,7 +143,6 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
 
 //// Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())

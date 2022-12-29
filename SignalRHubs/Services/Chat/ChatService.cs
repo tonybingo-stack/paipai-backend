@@ -149,24 +149,42 @@ namespace SignalRHubs.Services
 
             return new Tuple<Guid?, IEnumerable<string>>(channelId, userNames);
         }
-        public async Task<List<ChatCardModel>> GetChatListByID(Guid userId)
+        public async Task CreateOrUpdateChatHistory(ChatHistoryModel history)
+        {
+            var query = $"BEGIN TRAN " +
+                $"IF EXISTS (SELECT* FROM dbo.ChatHistory " +
+                $"WITH(updlock, serializable) " +
+                $"WHERE UserID = '{ history.UserID }') " +
+                $"BEGIN UPDATE dbo.ChatHistory " +
+                $"SET MessageID = '{ history.MessageID }' " +
+                $"WHERE UserID = '{ history.UserID }' " +
+                $"END " +
+                $"ELSE BEGIN INSERT INTO dbo.ChatHistory " +
+                $"VALUES('{ history.ID }', '{ history.UserID }', '{ history.MessageID }') " +
+                $"END " +
+                $"COMMIT TRAN";
+
+            await _service.GetDataAsync(query);
+
+        }
+        public async Task<List<ChatCardModel>> GetChatHistoryByID(Guid userId)
         {
             var query = $"SELECT dbo.Message.ReceiverID,dbo.Message.Content,dbo.Message.SenderID " +
-                $"FROM dbo.ChatList INNER JOIN dbo.Message ON dbo.ChatList.MessageID =dbo.Message.ID " +
-                $"WHERE dbo.ChatList.UserID =@UserId";
+                $"FROM dbo.ChatHistory INNER JOIN dbo.Message ON dbo.ChatHistory.MessageID =dbo.Message.ID " +
+                $"WHERE dbo.ChatHistory.UserID =@UserId";
 
             var response = await _service.GetDataAsync<ChatCardModel>(query, new { UserId = userId });
             return response.ToList();
         }
         public async Task<string> DeleteAllChatList(Guid userId)
         {
-            var query = $"DELETE FROM dbo.ChatList WHERE dbo.ChatList.UserID =@UserId;";
+            var query = $"DELETE FROM dbo.ChatHistory WHERE dbo.ChatHistory.UserID =@UserId;";
             var response = await _service.GetDataAsync(query, new { UserId = userId });
             return response.ToString();
         }
         public async Task<string> DeleteChatListByID(Guid chatListID)
         {
-            var query = $"DELETE FROM dbo.ChatList WHERE dbo.ChatList.ID =@ID;";
+            var query = $"DELETE FROM dbo.ChatHistory WHERE dbo.ChatHistory.ID =@ID;";
             var response = await _service.GetDataAsync(query, new { ID = chatListID });
             return response.ToString();
         }

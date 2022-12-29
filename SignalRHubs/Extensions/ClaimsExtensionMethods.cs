@@ -13,7 +13,6 @@ namespace SignalRHubs.Extensions
         /// <returns></returns>
         public static Guid? GetCustomerId(this ClaimsIdentity identity)
         {
-            ;
             IEnumerable<Claim> claims = identity.Claims;
             var claim = claims.FirstOrDefault(x => x.Type.Equals(ClaimTypes.NameIdentifier));
 
@@ -43,7 +42,6 @@ namespace SignalRHubs.Extensions
             }
             
             return claim.Value.ToString();
-            //return Guid.Parse(claim.Value);
         }
 
         /// <summary>

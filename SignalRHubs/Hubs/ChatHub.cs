@@ -1,18 +1,12 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using SignalRHubs.Entities;
-using SignalRHubs.Extensions;
-using SignalRHubs.Interfaces.Services;
 using System.Runtime.CompilerServices;
 
 namespace SignalRHubs.Hubs
 {
     public class ChatHub : Hub<IChatHubClient>
     {
-        private readonly IUserService _userService;
-
-        public ChatHub(IUserService service)
+        public ChatHub()
         {
-            _userService = service;
         }
         /// <summary>
         /// 
@@ -20,10 +14,8 @@ namespace SignalRHubs.Hubs
         /// <returns></returns>
         //public override async Task OnConnectedAsync()
         //{
-        //    //Guid UserId = await _userService.GetIdByUserName(Context.User.Identity.GetUserName());
-
-        //    //await Groups.AddToGroupAsync(Context.ConnectionId, UserId.ToString());
-        //    //await base.OnConnectedAsync();
+        //    await Groups.AddToGroupAsync(Context.ConnectionId, Context.User.Identity.GetUserId().ToString());
+        //    await base.OnConnectedAsync();
         //}
 
         ///// <summary>
@@ -33,10 +25,8 @@ namespace SignalRHubs.Hubs
         ///// <returns></returns>
         //public override async Task OnDisconnectedAsync(Exception? exception)
         //{
-        //    //Guid UserId = await _userService.GetIdByUserName(Context.User.Identity.GetUserName());
-
-        //    //await Groups.RemoveFromGroupAsync(Context.ConnectionId, UserId.ToString());
-        //    //await base.OnDisconnectedAsync(exception);
+        //    await Groups.RemoveFromGroupAsync(Context.ConnectionId, Context.User.Identity.GetUserId().ToString());
+        //    await base.OnDisconnectedAsync(exception);
         //}
 
         ///// <summary>
@@ -80,14 +70,12 @@ namespace SignalRHubs.Hubs
             await Clients.Caller.ReceiveMessage($"Current user added to {groupName} group");
             await Clients.Others.ReceiveMessage($"User {Context.ConnectionId} added to {groupName} group");
         }
-
         public async Task RemoveUserFromGroup(string groupName)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
             await Clients.Caller.ReceiveMessage($"Current user removed from {groupName} group");
             await Clients.Others.ReceiveMessage($"User {Context.ConnectionId} removed from {groupName} group");
         }
-
         public async Task BroadcastStream(IAsyncEnumerable<string> stream)
         {
             await foreach (var item in stream)
@@ -112,6 +100,7 @@ namespace SignalRHubs.Hubs
         public override async Task OnConnectedAsync()
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, "HubUsers");
+
             await base.OnConnectedAsync();
         }
 
@@ -121,9 +110,13 @@ namespace SignalRHubs.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
-        private string GetMessageToSend(string originalMessage)
+        public string GetMessageToSend(string originalMessage)
         {
-            return $"User connection id: {Context.ConnectionId}. Message: {originalMessage}";
+            return $"UserName: {Context.User.Identity.Name} User connection id: {Context.ConnectionId}. Message: {originalMessage}";
+        }
+        public string GetConnectionID()
+        {
+            return Context.ConnectionId;
         }
     }
 }

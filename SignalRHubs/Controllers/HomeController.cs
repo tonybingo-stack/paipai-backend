@@ -10,9 +10,11 @@ namespace SignalRHubs.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IHomeService _homeService;
-        public HomeController(IHomeService service, IMapper mapper)
+        private readonly IUserService _userService;
+        public HomeController(IHomeService service, IUserService userService, IMapper mapper): base(userService)
         {
-            this._homeService = service;
+            _homeService = service;
+            _userService = userService;
             _mapper = mapper;
         }
         /// <summary>
@@ -22,9 +24,13 @@ namespace SignalRHubs.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [HttpPost("/create-new-community")]
-        public async Task<IActionResult> CreateCommunity(CommunityModel model)
+        public async Task<IActionResult> CreateCommunity([FromForm] CommunityModel model)
         {
+            //Guid UserId = await _userService.GetIdByUserName(UserName);
+
             Community entity = _mapper.Map<Community>(model);
+            entity.CommunityOwnerId = await UserId;
+
             return Ok(await _homeService.CreateCommunity(entity));
             //return Ok(myuser);
         }
@@ -36,11 +42,23 @@ namespace SignalRHubs.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [HttpPost("/create-new-channel")]
-        public async Task<IActionResult> CreateChannel(ChannelModel model)
+        public async Task<IActionResult> CreateChannel([FromForm] ChannelModel model)
         {
             Channel entity = _mapper.Map<Channel>(model);
             return Ok(await _homeService.CreateChannel(entity));
             //return Ok(myuser);
+        }
+
+        /// <summary>
+        /// Test Controller
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [HttpGet("/test")]
+        public async Task<Guid> Test()
+        {
+            return await UserId;
         }
     }
 }

@@ -4,7 +4,7 @@
     "anonymousAuthentication": true,
     "iisExpress": {
       "applicationUrl": "http://localhost:5822",
-      "sslPort": 44307
+      "sslPort": 0
     }
   },
   "profiles": {
@@ -14,45 +14,17 @@
       "launchBrowser": true,
       "applicationUrl": "https://localhost:7022;http://localhost:5022",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.Azure.SignalR"
       }
     },
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.Azure.SignalR"
       }
     }
   }
 }
-
-//{
-//  "iisSettings": {
-//    "windowsAuthentication": false,
-//    "anonymousAuthentication": true,
-//    "iisExpress": {
-//      "applicationUrl": "http://localhost:26247",
-//      "sslPort": 0
-//    }
-//  },
-//  "profiles": {
-//    "SignalRHubs": {
-//      "commandName": "Project",
-//      "launchBrowser": true,
-//      "applicationUrl": "https://localhost:7070;http://localhost:5246",
-//      "environmentVariables": {
-//        "ASPNETCORE_ENVIRONMENT": "Development",
-//        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.Azure.SignalR"
-//      }  
-//    },
-//    "IIS Express": {
-//      "commandName": "IISExpress",
-//      "launchBrowser": true,
-//      "environmentVariables": {
-//        "ASPNETCORE_ENVIRONMENT": "Development",
-//        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.Azure.SignalR"
-//      }
-//    }
-//  }
-//}

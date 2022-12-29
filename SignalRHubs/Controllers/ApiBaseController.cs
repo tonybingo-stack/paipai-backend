@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SignalRHubs.Extensions;
 using SignalRHubs.Interfaces.Services;
-using System.Security.Claims;
 
 namespace SignalRHubs.Controllers
 {
@@ -14,15 +13,31 @@ namespace SignalRHubs.Controllers
     [ApiController]
     public abstract class ApiBaseController : ControllerBase
     {
+        protected IUserService UserService;
+        public ApiBaseController(IUserService userService)
+        {
+            UserService = userService;
+        }
         /// <summary>
         /// 
-        /// </summary>
-        protected string UserName => User.Identity.GetUserName();
+        /// </summary> 
+        protected string UserName
+        {
+            get
+            {
+                return User.Identity.GetUserName();
+            }
+        }
 
         /// <summary>
-        /// 
+        /// Get User ID
         /// </summary>
-        protected string UserEmail => User.Identity.GetUserEmail();
-
+        protected Task<Guid> UserId
+        {
+            get
+            {
+                return UserService.GetIdByUserName(User.Identity.GetUserName());
+            }
+        }
     }
 }

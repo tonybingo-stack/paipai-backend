@@ -30,7 +30,7 @@ namespace SignalRHubs.Controllers.Chat
         public ChatsController(IChatService service, IHubContext<ChatHub> hubContext
             , IMapper mapper
             , IUserService userService
-            )
+            ):base(userService)
         {
             _service = service;
             _hubContext = hubContext;
@@ -88,9 +88,6 @@ namespace SignalRHubs.Controllers.Chat
         [HttpPost("/send-message")]
         public async Task<IActionResult> SendMessage([FromForm] MessageBindingModel model)
         {
-            // Get UserID from Username
-
-            Guid UserId = await _userService.GetIdByUserName(UserName);
 
             // Get Channel Id
             if (model.ChannelId == null)
@@ -139,13 +136,25 @@ namespace SignalRHubs.Controllers.Chat
             Message message = _mapper.Map<Message>(model);
             message.Id = Guid.NewGuid();
             message.ChannelId = model.ChannelId.Value;
-            message.SenderId = UserId;
+            message.SenderId = await UserId;
 
             await _service.SaveMessage(message);
+            // Update ChatHistory table by sender and receiver.
+            ChatHistoryModel chatHistoryModel = new ChatHistoryModel();
+            chatHistoryModel.ID = Guid.NewGuid();
+            chatHistoryModel.UserID = message.SenderId;
+            chatHistoryModel.MessageID = message.Id;
+            await _service.CreateOrUpdateChatHistory(chatHistoryModel);
+
+            chatHistoryModel.ID = Guid.NewGuid();
+            chatHistoryModel.UserID = message.ReceiverId;
+            chatHistoryModel.MessageID = message.Id;
+            await _service.CreateOrUpdateChatHistory(chatHistoryModel);
 
             // For now 1x1 chat
             MessageViewModel messageVm = _mapper.Map<MessageViewModel>(message);
             await _hubContext.Clients.User(model.ReceiverId.ToString()).SendAsync("notifyMessage", messageVm);
+            //await _hubContext.Clients.All.SendAsync("ReceiveMessage", model.Content);
             // await _hubContext.Clients.All.SendAsync("notifyMessage", messageVm);
 
             //return Ok(UserId);
@@ -196,7 +205,7 @@ namespace SignalRHubs.Controllers.Chat
         public async Task<IActionResult> Delete(string id)
         {
             //Get Userid from UserName
-            Guid UserId = await _userService.GetIdByUserName(UserName);
+            //Guid UserId = await _userService.GetIdByUserName(UserName);
 
             Message message = _mapper.Map<Message>(await _service.GetMessage(Guid.Parse(id)));
             if (message == null) return BadRequest("Message does not exists.");
@@ -242,24 +251,22 @@ namespace SignalRHubs.Controllers.Chat
         /// Get All Chat cards
         /// </summary>
         /// <returns></returns>
-        [HttpGet("/allRecords")]
+        [HttpGet("/chathistory")]
         [ProducesResponseType(typeof(ChatCardModel), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<ChatCardModel>>> GetAllRecords()
         {
-            Guid UserId = await _userService.GetIdByUserName(UserName);
-
-            var res = await _service.GetChatListByID(UserId);
+            var res = await _service.GetChatHistoryByID(await UserId);
             return Ok(res);
         }
         /// <summary>
         /// Delete All chat cards
         /// </summary>
         /// <returns></returns>
-        [HttpDelete("/allRecords")]
+        [HttpDelete("/clear-chat-history")]
         [ProducesResponseType(typeof(ChatCardModel), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<string>> DeleteAllRecords()
+        public async Task<ActionResult<string>> DeleteAllChathistory()
         {
             Guid UserId = await _userService.GetIdByUserName(UserName);
 
@@ -270,10 +277,10 @@ namespace SignalRHubs.Controllers.Chat
         /// Delete chat card By ID
         /// </summary>
         /// <returns></returns>
-        [HttpDelete("/Card/{id}")]
+        [HttpDelete("/chathistory/{id}")]
         [ProducesResponseType(typeof(ChatCardModel), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<string>> DeleteAllRecords([FromRoute] string id)
+        public async Task<ActionResult<string>> DeleteChatHistoryByID([FromRoute] string id)
         {
             Guid chatListID = Guid.Parse(id);
 
