@@ -160,7 +160,7 @@
             <param name="identity"></param>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Hubs.ChatHub.BroadcastMessage(System.String)">
+        <member name="M:SignalRHubs.Hubs.ChatHub.BroadcastMessage(System.String,System.String)">
             <summary>
             
             </summary>
