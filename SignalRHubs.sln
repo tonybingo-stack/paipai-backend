@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.0.32014.148
+VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalRHubs", "SignalRHubs.csproj", "{23F409BE-87BE-42EA-B22E-9C2EAB0DF954}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalRHubs", "SignalRHubs\SignalRHubs.csproj", "{CF423FCA-6A87-42EC-987F-F3F0B1D0272F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{23F409BE-87BE-42EA-B22E-9C2EAB0DF954}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{23F409BE-87BE-42EA-B22E-9C2EAB0DF954}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{23F409BE-87BE-42EA-B22E-9C2EAB0DF954}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{23F409BE-87BE-42EA-B22E-9C2EAB0DF954}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF423FCA-6A87-42EC-987F-F3F0B1D0272F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF423FCA-6A87-42EC-987F-F3F0B1D0272F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF423FCA-6A87-42EC-987F-F3F0B1D0272F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF423FCA-6A87-42EC-987F-F3F0B1D0272F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {7CFCF7AF-EA77-4E27-B165-CD4662BB80E7}
+		SolutionGuid = {8D7ED1A7-C274-46B9-A4EB-685E40FA5140}
 	EndGlobalSection
 EndGlobal

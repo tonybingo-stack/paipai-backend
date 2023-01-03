@@ -1,0 +1,272 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SignalRHubs</name>
+    </assembly>
+    <members>
+        <member name="T:SignalRHubs.Controllers.ApiBaseController">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:SignalRHubs.Controllers.ApiBaseController.UserName">
+            <summary>
+            
+            </summary> 
+        </member>
+        <member name="P:SignalRHubs.Controllers.ApiBaseController.UserId">
+            <summary>
+            Get User ID
+            </summary>
+        </member>
+        <member name="T:SignalRHubs.Controllers.Chat.ChatsController">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.#ctor(SignalRHubs.Interfaces.Services.IChatService,Microsoft.AspNetCore.SignalR.IHubContext{SignalRHubs.Hubs.ChatHub},AutoMapper.IMapper,SignalRHubs.Interfaces.Services.IUserService)">
+            <summary>
+            
+            </summary>
+            <param name="service"></param>
+            <param name="hubContext"></param>
+            <param name="mapper"></param>
+            <param name="userService"></param>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetChatChannels(System.String)">
+            <summary>
+            Get all chat channels for user
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetMessagesByRoomId(System.String)">
+            <summary>
+            Get messages of a channel by Id
+            </summary>
+            <param name="channelId">Chat Channel Id</param>
+            <returns>List of chat messages.</returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetMessageById(System.String)">
+            <summary>
+            Get details of a message by Id
+            </summary>
+            <param name="id"></param>
+            <returns>Return message details</returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.SendMessage(SignalRHubs.Models.MessageBindingModel)">
+            <summary>
+            Save new message (with channel generation)
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.Put(System.String,SignalRHubs.Models.MessageUpdateModel)">
+            <summary>
+            Update a message by Id
+            </summary>
+            <param name="id"></param>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.Delete(System.String)">
+            <summary>
+            Delete a message by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetCustomersSummary">
+            <summary>
+            Get all available users for chat
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetCustomerSummaryById(System.String)">
+            <summary>
+            Get User by ID
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetAllRecords">
+            <summary>
+            Get All Chat cards
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.DeleteAllChathistory">
+            <summary>
+            Delete All chat cards
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.DeleteChatHistoryByID(System.String)">
+            <summary>
+            Delete chat card By ID
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.HomeController.CreateCommunity(SignalRHubs.Models.CommunityModel)">
+            <summary>
+            Create New Community
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.HomeController.CreateChannel(SignalRHubs.Models.ChannelModel)">
+            <summary>
+            Create New Channels
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.HomeController.Test">
+            <summary>
+            Test Controller
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.UserController.CreateUser(SignalRHubs.Models.CreateUserModel)">
+            <summary>
+            Create New User
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.UserController.Login(SignalRHubs.Models.UserModel)">
+            <summary>
+            User Login
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:SignalRHubs.Entities.Message.FilePath">
+            <summary>
+            Store the file azure and store your file path when necessary.
+            </summary>
+        </member>
+        <member name="M:SignalRHubs.Extensions.ClaimsExtensionMethods.GetCustomerId(System.Security.Claims.ClaimsIdentity)">
+            <summary>
+            
+            </summary>
+            <param name="identity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Extensions.ClaimsExtensionMethods.GetUserName(System.Security.Principal.IIdentity)">
+            <summary>
+            Returns the GUID on claims, returns Guid.Empty if claims not found
+            </summary>
+            <param name="identity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Extensions.ClaimsExtensionMethods.GetUserEmail(System.Security.Principal.IIdentity)">
+            <summary>
+            
+            </summary>
+            <param name="identity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Hubs.ChatHub.BroadcastMessage(System.String,System.String)">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:SignalRHubs.Interfaces.Services.IHomeService">
+            <summary>
+            
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:SignalRHubs.Interfaces.Services.IHomeService.CreateCommunity(SignalRHubs.Entities.Community)">
+            <summary>
+            
+            </summary>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Interfaces.Services.IHomeService.CreateChannel(SignalRHubs.Entities.Channel)">
+            <summary>
+            
+            </summary>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SignalRHubs.Interfaces.Services.IUserService">
+            <summary>
+            
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:SignalRHubs.Interfaces.Services.IUserService.CreateUser(SignalRHubs.Entities.UserCredential)">
+            <summary>
+            
+            </summary>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Interfaces.Services.IUserService.LoginUser(SignalRHubs.Entities.LoginCredential)">
+            <summary>
+            
+            </summary>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Interfaces.Services.IUserService.GetUserByID(System.Guid)">
+            <summary>
+            Get user by ID
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Interfaces.Services.IUserService.GetUsers">
+            <summary>
+            Get all users
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Interfaces.Services.IUserService.UpdateHubConnectionID(System.Guid,System.String)">
+            <summary>
+            Update Hub connectionID of the user
+            </summary>
+            <param name="userId"></param>
+            <param name="connectionID"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Services.HomeService.#ctor(DbHelper.Interfaces.Services.IDapperService{SignalRHubs.Entities.Community})">
+            <summary>
+            
+            </summary>
+            <param name="repository"></param>
+        </member>
+        <member name="M:SignalRHubs.Services.HomeService.CreateCommunity(SignalRHubs.Entities.Community)">
+            <summary>
+            Create new community
+            </summary>
+            <param name="community"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Services.UserService.#ctor(DbHelper.Interfaces.Services.IDapperService{SignalRHubs.Entities.User},DbHelper.Interfaces.Services.IDapperService{SignalRHubs.Entities.UserCredential},Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            
+            </summary>
+            <param name="repository"></param>
+        </member>
+        <member name="M:SignalRHubs.Services.UserService.CreateUser(SignalRHubs.Entities.UserCredential)">
+            <summary>
+            Add a new customer
+            </summary>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Services.UserService.LoginUser(SignalRHubs.Entities.LoginCredential)">
+            <summary>
+            Login User
+            </summary>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Services.UserService.GetUserByID(System.Guid)">
+            <summary>
+            Get User by ID
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
