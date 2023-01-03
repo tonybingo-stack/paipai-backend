@@ -31,7 +31,17 @@ namespace SignalRHubs
 
         public void ConfigureServices(IServiceCollection services)
         {
-
+            //services.AddCors(option =>
+            //{
+            //    option.AddPolicy("AutomationCors", builder =>
+            //    {
+            //        builder.AllowAnyMethod()
+            //            .AllowAnyHeader()
+            //            .WithOrigins("http://localhost:5000/",
+            //                         "http://localhost:5000/")
+            //            .AllowCredentials();
+            //    });
+            //});
             services.AddAuthorization(option =>
             {
                 option.AddPolicy("ClaimBasedAuth", policy =>
@@ -88,10 +98,12 @@ namespace SignalRHubs
             app.UseRouting();
             app.UseFileServer();
             app.UseAuthorization();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapHub<ChatJwtSampleHub>("/chatjwt");
+                endpoints.MapHub<ChatBase>("/chathub");
+                //endpoints.MapHub<ChatJwtSampleHub>("/chat");
                 //endpoints.MapHub<ChatCookieSampleHub>("/chatcookie");
             });
         }

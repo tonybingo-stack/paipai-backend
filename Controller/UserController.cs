@@ -29,30 +29,6 @@ namespace SignalRHubs
             this.iconfiguration = iconfiguration;
         }
 
-        [HttpGet("users")]
-        public async Task<IEnumerable<User>> GetUsers()
-        {
-            var users = new List<User>();
-            using (var connection = new SqlConnection(iconfiguration.GetConnectionString("DbConnection")))
-            {
-                var query = "SELECT * FROM Users";
-                connection.Open();
-                using SqlCommand command = new SqlCommand(query, connection);
-                using SqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    var user = new User()
-                    {
-                        Id = Guid.Parse(reader["Id"].ToString()),
-                        Username = reader["username"].ToString(),
-                        Password = reader["password"].ToString()
-                    };
-                    users.Add(user);
-                }
-            }
-            return users;
-        }
-
         [HttpGet("login")]
         public IActionResult Login([FromQuery] string username, [FromQuery] string role)
         {
@@ -89,6 +65,29 @@ namespace SignalRHubs
         {
             return true;
             //return username.StartsWith("jwt");
+        }
+        [HttpGet("users")]
+        public async Task<IEnumerable<User>> GetUsers()
+        {
+            var users = new List<User>();
+            using (var connection = new SqlConnection(iconfiguration.GetConnectionString("DbConnection")))
+            {
+                var query = "SELECT * FROM Users";
+                connection.Open();
+                using SqlCommand command = new SqlCommand(query, connection);
+                using SqlDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    var user = new User()
+                    {
+                        Id = Guid.Parse(reader["Id"].ToString()),
+                        Username = reader["username"].ToString(),
+                        Password = reader["password"].ToString()
+                    };
+                    users.Add(user);
+                }
+            }
+            return users;
         }
     }
 }

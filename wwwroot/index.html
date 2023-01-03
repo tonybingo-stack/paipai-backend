@@ -270,7 +270,7 @@
 
             var jwtToken = '';
             var connection = new signalR.HubConnectionBuilder()
-                .withUrl(`/chat${authType}?username=${username}`,
+                .withUrl(`/chathub?username=${username}`,
                     {
                         accessTokenFactory: () => jwtToken
                     })
