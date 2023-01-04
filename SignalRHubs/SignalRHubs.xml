@@ -128,7 +128,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.UserController.Login(SignalRHubs.Models.UserModel)">
+        <member name="M:SignalRHubs.Controllers.UserController.Login(System.String,System.String)">
             <summary>
             User Login
             </summary>

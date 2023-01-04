@@ -90,6 +90,7 @@
             var username = generateRandomName();
             var promptMessage = `Enter your name:`;
             var role = "Admin";
+            var password = '';
             //var promptRoleMessage = 'Enter your role (Only Admin can get auth)';
             do {
                 username = prompt(promptMessage, username);
@@ -97,9 +98,9 @@
                     username = '';
                     promptMessage = 'Invalid input. Enter your name:';
                 } else {
-                    //role = prompt(promptRoleMessage, role);
+                    password = prompt("Enter your password", password);
                 }
-            } while (!username && !role)
+            } while (!username && !password)
 
             // Set initial focus to message input box.
             var messageInput = document.getElementById('message');
@@ -273,7 +274,7 @@
                     })
                 .build();
 
-            var url = `/login?username=${username}`;
+            var url = `/signin?username=${username}&password=${password}`;
 
             get(url).then((token) => {
                     jwtToken = token;

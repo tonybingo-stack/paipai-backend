@@ -125,7 +125,7 @@ namespace SignalRHubs.Services
 
             if (response.FirstOrDefault().Password == entity.Password)
             {
-                return Authenticate(new UserModel { UserName = entity.UserName,Password = entity.Password});
+                return "success";
             }
             else return "Incorrect Password";
         }
