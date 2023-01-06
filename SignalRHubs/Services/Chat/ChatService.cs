@@ -149,42 +149,55 @@ namespace SignalRHubs.Services
 
             return new Tuple<Guid?, IEnumerable<string>>(channelId, userNames);
         }
-        public async Task CreateOrUpdateChatHistory(ChatHistoryModel history)
+        public async Task CreateOrUpdateChatCards(ChatCardModel model)
         {
-            var query = $"BEGIN TRAN " +
-                $"IF EXISTS (SELECT* FROM dbo.ChatHistory " +
-                $"WITH(updlock, serializable) " +
-                $"WHERE UserID = '{ history.UserID }') " +
-                $"BEGIN UPDATE dbo.ChatHistory " +
-                $"SET MessageID = '{ history.MessageID }' " +
-                $"WHERE UserID = '{ history.UserID }' " +
+            var query = $"BEGIN " +
+                $"DECLARE " +
+                $"@i INT; " +
+                $"SELECT " +
+                $"@i = COUNT(* ) " +
+                $"FROM " +
+                $"dbo.ChatCard " +
+                $"WHERE " +
+                $"dbo.ChatCard.UserID = '{model.UserID}' " +
+                $"AND dbo.ChatCard.ReceiverID = '{model.ReceiverId}' " +
+                $"SELECT @i; " +
+                $"IF " +
+                $"@i > 0 BEGIN " +
+                $"UPDATE dbo.ChatCard SET Content = '{model.Content}', isSend = '{model.isSend}', isDeleted = '{model.isDeleted}' WHERE UserID = '{model.UserID}' AND ReceiverID = '{model.ReceiverId}';" +
+                $"END ELSE BEGIN " +
+                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), '{model.UserID}', '{model.ReceiverId}', '{model.Content}', '{model.isSend}', '{model.isDeleted}');" +
                 $"END " +
-                $"ELSE BEGIN INSERT INTO dbo.ChatHistory " +
-                $"VALUES('{ history.ID }', '{ history.UserID }', '{ history.MessageID }') " +
-                $"END " +
-                $"COMMIT TRAN";
+                $"END";
 
             await _service.GetDataAsync(query);
-
+         
         }
-        public async Task<List<ChatCardModel>> GetChatHistoryByID(Guid userId)
+        public async Task<List<ChatCardModel>> GetChatCards(Guid userId)
         {
-            var query = $"SELECT dbo.Message.ReceiverID,dbo.Message.Content,dbo.Message.SenderID " +
-                $"FROM dbo.ChatHistory INNER JOIN dbo.Message ON dbo.ChatHistory.MessageID =dbo.Message.ID " +
-                $"WHERE dbo.ChatHistory.UserID =@UserId";
+            var query = $"SELECT * FROM dbo.ChatCard WHERE UserID = '{userId}' AND isDeleted = 0";
+            var result = await _service.GetDataAsync<ChatCardModel>(query);
+            return result;
+        }
+        public async Task<List<ChatModel>> GetChatHistory(ChatHistoryBindingModel model)
+        {
+            var query = $"SELECT TOP 10 dbo.Message.SenderID, dbo.Message.Content, dbo.Message.CreatedAt FROM dbo.Message " +
+                $"WHERE (dbo.Message.SenderID ='{model.SenderID}' AND dbo.Message.ReceiverID ='{model.ReceiverID}') OR" +
+                $" (dbo.Message.SenderID ='{model.ReceiverID}' AND dbo.Message.ReceiverID ='{model.SenderID}')" +
+                $"ORDER BY dbo.Message.CreatedAt DESC;";
 
-            var response = await _service.GetDataAsync<ChatCardModel>(query, new { UserId = userId });
+            var response = await _service.GetDataAsync<ChatModel>(query);
             return response.ToList();
         }
-        public async Task<string> DeleteAllChatList(Guid userId)
+        public async Task<string> DeleteAllChatCards(Guid userId)
         {
-            var query = $"DELETE FROM dbo.ChatHistory WHERE dbo.ChatHistory.UserID =@UserId;";
+            var query = $"UPDATE dbo.ChatCard SET isDeleted = 'TRUE'  WHERE dbo.ChatCard.UserID =@UserId;";
             var response = await _service.GetDataAsync(query, new { UserId = userId });
             return response.ToString();
         }
-        public async Task<string> DeleteChatListByID(Guid chatListID)
+        public async Task<string> DeleteChatCardByID(Guid chatListID)
         {
-            var query = $"DELETE FROM dbo.ChatHistory WHERE dbo.ChatHistory.ID =@ID;";
+            var query = $"UPDATE dbo.ChatCard SET isDeleted = 'TRUE'  WHERE dbo.ChatCard.ID =@ID;";
             var response = await _service.GetDataAsync(query, new { ID = chatListID });
             return response.ToString();
         }

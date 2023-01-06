@@ -1,4 +1,5 @@
 ﻿using SignalRHubs.Entities;
+using SignalRHubs.Models;
 
 namespace SignalRHubs.Interfaces.Services
 {
@@ -9,17 +10,9 @@ namespace SignalRHubs.Interfaces.Services
     public interface IHomeService
     {
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
+
         Task<string> CreateCommunity(Community entity);
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
+        Task<IEnumerable<CommunityViewModel>> GetCommunity(Guid id);
         Task<string> CreateChannel(Channel entity);
     }
 }

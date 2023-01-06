@@ -1,6 +1,7 @@
 ﻿using DbHelper.Interfaces.Services;
 using SignalRHubs.Entities;
 using SignalRHubs.Interfaces.Services;
+using SignalRHubs.Models;
 using System.Data.SqlClient;
 
 namespace SignalRHubs.Services
@@ -42,16 +43,27 @@ namespace SignalRHubs.Services
         public async Task<string> CreateCommunity(Community entity)
         {
             var query = $"INSERT INTO Community VALUES(" +
-                $"'{entity.CommunityId}', " +
+                $"'{entity.Id}', " +
                 $"'{entity.CommunityName}', " +
                 $"'{entity.CommunityDescription}', " +
                 $"'{entity.CommunityOwnerId}', " +
                 $"'{entity.CommunityType}'" +
+                $"'{entity.CreatedAt}'" +
+                $"'{entity.UpdatedAt}'" +
                 $")";
 
             await _service.GetDataAsync(query);
 
             return "Sucessfully created new community!";
+        }
+
+        public async Task<IEnumerable<CommunityViewModel>> GetCommunity(Guid id)
+        {
+            var query = $"SELECT * FROM dbo.Community WHERE dbo.Community.CommunityOwnerId ='{id}'";
+
+            var response = await _service.GetDataAsync<CommunityViewModel>(query);
+            
+            return response.ToList();
         }
     }
 }

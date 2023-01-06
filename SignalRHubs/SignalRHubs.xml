@@ -86,7 +86,19 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetAllRecords">
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetUserIDByName(System.String)">
+            <summary>
+            Get UserID by username
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetChatHistory(System.Guid)">
+            <summary>
+            Get Chat History of user
+            </summary>
+            <returns></returns>  
+        </member>
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetAllChatCards">
             <summary>
             Get All Chat cards
             </summary>
@@ -98,27 +110,27 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.DeleteChatHistoryByID(System.String)">
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.DeleteChatCardByID(System.String)">
             <summary>
             Delete chat card By ID
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.HomeController.CreateCommunity(SignalRHubs.Models.CommunityModel)">
+        <member name="M:SignalRHubs.Controllers.CommunityController.CreateCommunity(SignalRHubs.Models.CommunityModel)">
             <summary>
             Create New Community
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.HomeController.CreateChannel(SignalRHubs.Models.ChannelModel)">
+        <member name="M:SignalRHubs.Controllers.CommunityController.GetAllCommunity">
             <summary>
-            Create New Channels
+            Get all communities
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.HomeController.Test">
-            <summary>
-            Test Controller
+        <member name="M:SignalRHubs.Controllers.CommunityController.CreateChannel(SignalRHubs.Models.ChannelModel)">
+            <summary> 
+            Create New Channels
             </summary>
             <returns></returns>
         </member>
@@ -171,20 +183,6 @@
             
             </summary>
             <typeparam name="T"></typeparam>
-        </member>
-        <member name="M:SignalRHubs.Interfaces.Services.IHomeService.CreateCommunity(SignalRHubs.Entities.Community)">
-            <summary>
-            
-            </summary>
-            <param name="entity"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SignalRHubs.Interfaces.Services.IHomeService.CreateChannel(SignalRHubs.Entities.Channel)">
-            <summary>
-            
-            </summary>
-            <param name="entity"></param>
-            <returns></returns>
         </member>
         <member name="T:SignalRHubs.Interfaces.Services.IUserService">
             <summary>
