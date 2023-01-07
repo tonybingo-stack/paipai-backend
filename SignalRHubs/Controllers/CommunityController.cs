@@ -30,7 +30,6 @@ namespace SignalRHubs.Controllers
             entity.CommunityOwnerId = await UserId;
 
             return Ok(await _homeService.CreateCommunity(entity));
-            //return Ok(myuser);
         }
         /// <summary>
         /// Get all communities

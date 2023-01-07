@@ -8,5 +8,8 @@
         public string CommunityType { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public string ForegroundImage { get; set; }
+        public string BackgroundImage { get; set; }
+
     }
 }

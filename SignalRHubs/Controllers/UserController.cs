@@ -41,37 +41,25 @@ namespace SignalRHubs.Controllers
         /// User Login
         /// </summary>
         /// <returns></returns>
-        //[ProducesResponseType(200)]
-        //[ProducesResponseType(400)]
-        //[HttpPost("/signin")]
-        //public async Task<IActionResult> SignIn(UserModel model)
-        //{
-        //    LoginCredential user = _mapper.Map<LoginCredential>(model);
-        //    return Ok(await _userService.LoginUser(user));
-        //}
-
-        /// <summary>
-        /// User Login
-        /// </summary>
-        /// <returns></returns>
-        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(UserLoginModel) ,200)]
         [ProducesResponseType(400)]
-        [HttpGet("/signin")]
-        public async Task<IActionResult> Login([FromQuery] string username, [FromQuery] string password)
+        [HttpPost("/signin")]
+        //public async Task<IActionResult> Login([FromQuery] string username, [FromQuery] string password)
+        public async Task<IActionResult> Login([FromForm] UserModel user)
         {
-            if (string.IsNullOrEmpty(username))
+            if (string.IsNullOrEmpty(user.UserName))
             {
                 return BadRequest("Username is required.");
             }
 
-            if (!await IsExistingUser(username, password))
+            if (!await IsExistingUser(user.UserName, user.Password))
             {
                 return Unauthorized();
             }
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, username),
+                new Claim(ClaimTypes.NameIdentifier, user.UserName),
                 new Claim(ClaimTypes.Role, "admin")
             };
             SecurityKey SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(iconfiguration["Jwt:Key"]));
@@ -86,8 +74,15 @@ namespace SignalRHubs.Controllers
                 expires: DateTime.UtcNow.AddDays(1),
                 signingCredentials: SigningCreds
             );
+            JwtTokenHandler.WriteToken(token);
 
-            return Ok(JwtTokenHandler.WriteToken(token));
+
+            var response =await _userService.GetUserByUserName(user.UserName);
+
+            UserLoginModel res = _mapper.Map<UserLoginModel>(response);
+            res.Token = JwtTokenHandler.WriteToken(token);
+
+            return Ok(res);
         }
 
         private async Task<bool> IsExistingUser(string username, string password)

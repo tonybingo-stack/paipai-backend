@@ -51,7 +51,9 @@ namespace SignalRHubs.Services
                 $"'{entity.CommunityOwnerId}', " +
                 $"'{entity.CommunityType}'," +
                 $"CURRENT_TIMESTAMP," +
-                $"'{entity.UpdatedAt}'" +
+                $"'{entity.UpdatedAt}'," +
+                $"'{entity.ForegroundImage}'," +
+                $"'{entity.BackgroundImage}'" +
                 $")";
 
             await _service.GetDataAsync(query);
@@ -82,8 +84,7 @@ namespace SignalRHubs.Services
 
         public async Task<IEnumerable<CommunityViewModel>> GetCommunity(Guid id)
         {
-            var query = $"SELECT * FROM dbo.Community WHERE dbo.Community.CommunityOwnerId ='{id}'";
-
+            var query = $"SELECT dbo.Community.ID,dbo.Community.CommunityName,dbo.Community.CommunityDescription,dbo.Community.CommunityType,dbo.Community.CreatedAt,dbo.Community.UpdatedAt,dbo.Community.ForegroundImage,dbo.Community.BackgroundImage FROM dbo.Community WHERE dbo.Community.CommunityOwnerId ='{id}'";
             var response = await _service.GetDataAsync<CommunityViewModel>(query);
             
             return response.ToList();
@@ -102,7 +103,7 @@ namespace SignalRHubs.Services
         public async Task<Guid> UpdateCommunity(Community entity)
         {
             var query = $"UPDATE dbo.Community " +
-                $"SET CommunityName='{entity.CommunityName}',CommunityDescription = '{entity.CommunityDescription}', CommunityType = '{entity.CommunityType}', UpdatedAt = CURRENT_TIMESTAMP " +
+                $"SET CommunityName='{entity.CommunityName}',CommunityDescription = '{entity.CommunityDescription}', CommunityType = '{entity.CommunityType}', UpdatedAt = CURRENT_TIMESTAMP, ForegroundImage = '{entity.ForegroundImage}', BackgroundImage = '{entity.BackgroundImage}' " +
                 $"WHERE dbo.Community.ID = '{entity.Id}'; ";
 
             await _service.GetDataAsync(query);

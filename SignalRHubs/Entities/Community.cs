@@ -12,6 +12,8 @@ namespace SignalRHubs.Entities
         public string CommunityDescription { get; set; }
         public Guid CommunityOwnerId { get; set; }
         public string CommunityType { get; set; }
+        public string ForegroundImage { get; set; }
+        public string BackgroundImage { get; set; }
 
     }
 }

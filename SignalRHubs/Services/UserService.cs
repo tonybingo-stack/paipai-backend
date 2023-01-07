@@ -17,19 +17,15 @@ namespace SignalRHubs.Services
 
         private readonly IDapperService<User> _userService;
         private readonly IDapperService<UserCredential> _userService01;
-        private readonly SqlConnection _connection;
-        private readonly IConfiguration iconfiguration;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="repository"></param>
-        public UserService(IDapperService<User> dapperService, IDapperService<UserCredential> testService, IConfiguration iconfiguration)
+        public UserService(IDapperService<User> dapperService, IDapperService<UserCredential> testService)
         {
             _userService = dapperService;
             _userService01 = testService;
-            _connection = dapperService.Connection;
-            this.iconfiguration = iconfiguration;
         }
         public async Task<Guid> GetIdByUserName(string name)
         {
@@ -39,36 +35,7 @@ namespace SignalRHubs.Services
             var response = await _userService.GetDataAsync(query, new { UserName = name });
 
             return response[0].Id;
-        }
-        public string Authenticate(UserModel entity)
-        {
-            var issuer = iconfiguration["Jwt:Issuer"];
-            var audience = iconfiguration["Jwt:Audience"];
-            var key = Encoding.ASCII.GetBytes(iconfiguration["Jwt:Key"]);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
-                {
-                new Claim("Id", Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Sub, entity.UserName),
-                new Claim(JwtRegisteredClaimNames.Email, entity.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
-             }),
-                Expires = DateTime.UtcNow.AddMinutes(5),
-                Issuer = issuer,
-                Audience = audience,
-                SigningCredentials = new SigningCredentials
-                (new SymmetricSecurityKey(key),
-                SecurityAlgorithms.HmacSha512Signature)
-            };
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            var jwtToken = tokenHandler.WriteToken(token);
-            var stringToken = tokenHandler.WriteToken(token);
-
-            return stringToken;
-        }
-    
+        }    
 
         /// <summary>
         /// Add a new customer
@@ -93,13 +60,6 @@ namespace SignalRHubs.Services
                 $"'{ entity.Phone }', " +
                 $"{ entity.Gender }, " +
                 $"CURRENT_TIMESTAMP, " +
-                $"null" +
-                $")";
-            await _userService.GetDataAsync(query);
-
-            query = $"Insert into HubUsers Values(" +
-                $"'NEWID()', " +
-                $"'{ entity.Id }', " +
                 $"null" +
                 $")";
             await _userService.GetDataAsync(query);
@@ -139,7 +99,10 @@ namespace SignalRHubs.Services
             var query = $"SELECT * FROM Users WHERE Id='{userId}'";
             return await _userService.GetFirstOrDefaultAsync<User>(query);
         }
-
+        public async Task<User> GetUserByUserName(string name)
+        {
+            return await GetUserByID(await GetIdByUserName(name));
+        }
         public async Task<List<User>> GetUsers()
         {
             var query = $"SELECT * FROM Users";
@@ -148,15 +111,5 @@ namespace SignalRHubs.Services
 
             return response.ToList();
         }
-        public async Task UpdateHubConnectionID(Guid UserID, string connectionID)
-        {
-            var query = $"UPDATE dbo.HubUsers " +
-                $"SET ConnectionID = { connectionID } " +
-                $"WHERE dbo.HubUsers.UserID = { UserID }";
-
-            await _userService.GetDataAsync(query);
-        }
-
-
     }
 }

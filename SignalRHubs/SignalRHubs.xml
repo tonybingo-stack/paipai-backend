@@ -170,7 +170,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.UserController.Login(System.String,System.String)">
+        <member name="M:SignalRHubs.Controllers.UserController.Login(SignalRHubs.Models.UserModel)">
             <summary>
             User Login
             </summary>
@@ -214,48 +214,6 @@
             </summary>
             <typeparam name="T"></typeparam>
         </member>
-        <member name="T:SignalRHubs.Interfaces.Services.IUserService">
-            <summary>
-            
-            </summary>
-            <typeparam name="T"></typeparam>
-        </member>
-        <member name="M:SignalRHubs.Interfaces.Services.IUserService.CreateUser(SignalRHubs.Entities.UserCredential)">
-            <summary>
-            
-            </summary>
-            <param name="entity"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SignalRHubs.Interfaces.Services.IUserService.LoginUser(SignalRHubs.Entities.LoginCredential)">
-            <summary>
-            
-            </summary>
-            <param name="entity"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SignalRHubs.Interfaces.Services.IUserService.GetUserByID(System.Guid)">
-            <summary>
-            Get user by ID
-            </summary>
-            <param name="userId"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SignalRHubs.Interfaces.Services.IUserService.GetUsers">
-            <summary>
-            Get all users
-            </summary>
-            <param name=""></param>
-            <returns></returns>
-        </member>
-        <member name="M:SignalRHubs.Interfaces.Services.IUserService.UpdateHubConnectionID(System.Guid,System.String)">
-            <summary>
-            Update Hub connectionID of the user
-            </summary>
-            <param name="userId"></param>
-            <param name="connectionID"></param>
-            <returns></returns>
-        </member>
         <member name="M:SignalRHubs.Services.HomeService.#ctor(DbHelper.Interfaces.Services.IDapperService{SignalRHubs.Entities.Community})">
             <summary>
             
@@ -269,7 +227,7 @@
             <param name="community"></param>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Services.UserService.#ctor(DbHelper.Interfaces.Services.IDapperService{SignalRHubs.Entities.User},DbHelper.Interfaces.Services.IDapperService{SignalRHubs.Entities.UserCredential},Microsoft.Extensions.Configuration.IConfiguration)">
+        <member name="M:SignalRHubs.Services.UserService.#ctor(DbHelper.Interfaces.Services.IDapperService{SignalRHubs.Entities.User},DbHelper.Interfaces.Services.IDapperService{SignalRHubs.Entities.UserCredential})">
             <summary>
             
             </summary>
