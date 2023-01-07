@@ -128,9 +128,39 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.UpdateCommunity(SignalRHubs.Models.CommunityUpdateModel)">
+            <summary>
+            Update Community
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.DeleteCommunity(System.Guid)">
+            <summary>
+            Delete Community
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:SignalRHubs.Controllers.CommunityController.CreateChannel(SignalRHubs.Models.ChannelModel)">
             <summary> 
             Create New Channels
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.GetAllChannels(System.Guid)">
+            <summary> 
+            Get channels of Community
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.UpdateChannel(SignalRHubs.Models.ChannelUpdateModel)">
+            <summary> 
+            Update channel
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.DeleteChannel(System.Guid)">
+            <summary>
+            Delete Channel
             </summary>
             <returns></returns>
         </member>

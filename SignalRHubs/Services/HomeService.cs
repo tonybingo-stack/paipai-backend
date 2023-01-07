@@ -21,18 +21,20 @@ namespace SignalRHubs.Services
             _connection = dapperService.Connection;
         }
 
-        public async Task<string> CreateChannel(Channel entity)
+        public async Task<Guid> CreateChannel(Channel entity)
         {
             var query = $"INSERT INTO Channel VALUES(" +
                 $"'{entity.ChannelId}', " +
                 $"'{entity.ChannelName}', " +
                 $"'{entity.ChannelDescription}', " +
-                $"'{entity.ChannelCommunityId}' " +
+                $"'{entity.ChannelCommunityId}', " +
+                $"CURRENT_TIMESTAMP," +
+                $"null" +
                 $")";
 
             await _service.GetDataAsync(query);
 
-            return "Sucessfully created new channel!";
+            return entity.ChannelId;
         }
 
         /// <summary>
@@ -40,21 +42,42 @@ namespace SignalRHubs.Services
         /// </summary>
         /// <param name="community"></param>
         /// <returns></returns>
-        public async Task<string> CreateCommunity(Community entity)
+        public async Task<Guid> CreateCommunity(Community entity)
         {
             var query = $"INSERT INTO Community VALUES(" +
                 $"'{entity.Id}', " +
                 $"'{entity.CommunityName}', " +
                 $"'{entity.CommunityDescription}', " +
                 $"'{entity.CommunityOwnerId}', " +
-                $"'{entity.CommunityType}'" +
-                $"'{entity.CreatedAt}'" +
+                $"'{entity.CommunityType}'," +
+                $"CURRENT_TIMESTAMP," +
                 $"'{entity.UpdatedAt}'" +
                 $")";
 
             await _service.GetDataAsync(query);
 
-            return "Sucessfully created new community!";
+            return entity.Id;
+        }
+
+        public async Task<Guid> DeleteChannel(Guid id)
+        {
+            var query = $"DELETE FROM dbo.Channel WHERE ChannelId = '{id}';";
+            await _service.GetDataAsync(query);
+            return id;
+        }
+
+        public async Task<Guid> DeleteCommunity(Guid id)
+        {
+            var query = $"DELETE FROM dbo.Community WHERE ID = '{id}';";
+            await _service.GetDataAsync(query);
+            return id;
+        }
+
+        public async Task<IEnumerable<ChannelViewModel>> GetAllChannels(Guid communityID)
+        {
+            var query = $"SELECT * FROM dbo.Channel WHERE ChannelCommunityId = '{communityID}';";
+            var response = await _service.GetDataAsync<ChannelViewModel>(query);
+            return response.ToList();
         }
 
         public async Task<IEnumerable<CommunityViewModel>> GetCommunity(Guid id)
@@ -64,6 +87,27 @@ namespace SignalRHubs.Services
             var response = await _service.GetDataAsync<CommunityViewModel>(query);
             
             return response.ToList();
+        }
+
+        public async Task<Guid> UpdateChannel(ChannelUpdateModel model)
+        {
+            var query = $"UPDATE dbo.Channel " +
+                $"SET ChannelName='{model.ChannelName}',ChannelDescription = '{model.ChannelDescription}', ChannelCommunityId = '{model.ChannelCommunityId}', UpdatedAt = CURRENT_TIMESTAMP " +
+                $"WHERE dbo.Channel.ChannelId = '{model.ChannelId}'; ";
+
+            var response = await _service.GetDataAsync(query);
+            return model.ChannelId;
+        }
+
+        public async Task<Guid> UpdateCommunity(Community entity)
+        {
+            var query = $"UPDATE dbo.Community " +
+                $"SET CommunityName='{entity.CommunityName}',CommunityDescription = '{entity.CommunityDescription}', CommunityType = '{entity.CommunityType}', UpdatedAt = CURRENT_TIMESTAMP " +
+                $"WHERE dbo.Community.ID = '{entity.Id}'; ";
+
+            await _service.GetDataAsync(query);
+
+            return entity.Id;
         }
     }
 }

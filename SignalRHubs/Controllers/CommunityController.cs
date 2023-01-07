@@ -21,7 +21,7 @@ namespace SignalRHubs.Controllers
         /// Create New Community
         /// </summary>
         /// <returns></returns>
-        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(Guid), 200)]
         [ProducesResponseType(typeof(NotFoundResult), 400)]
         [HttpPost("/create-new-community")]
         public async Task<IActionResult> CreateCommunity([FromForm] CommunityModel model)
@@ -43,20 +43,75 @@ namespace SignalRHubs.Controllers
         {
             return Ok(await _homeService.GetCommunity(await UserId));
         }
-
+        /// <summary>
+        /// Update Community
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(Guid), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpPut("/community")]
+        public async Task<IActionResult> UpdateCommunity([FromForm] CommunityUpdateModel model)
+        {
+            Community entity = _mapper.Map<Community>(model);
+            entity.CommunityOwnerId = await UserId;
+            entity.UpdatedAt = DateTime.Now;
+            return Ok(await _homeService.UpdateCommunity(entity));
+        }
+        /// <summary>
+        /// Delete Community
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(Guid), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpDelete("/community")]
+        public async Task<IActionResult> DeleteCommunity(Guid id)
+        {
+            return Ok(await _homeService.DeleteCommunity(id));
+        }
         /// <summary> 
         /// Create New Channels
         /// </summary>
         /// <returns></returns>
-        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(Guid),200)]
         [ProducesResponseType(typeof(NotFoundResult), 400)]
         [HttpPost("/create-new-channel")]
         public async Task<IActionResult> CreateChannel([FromForm] ChannelModel model)
         {
             Channel entity = _mapper.Map<Channel>(model);
             return Ok(await _homeService.CreateChannel(entity));
-            //return Ok(myuser);
         }
-
+        /// <summary> 
+        /// Get channels of Community
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(ChannelViewModel),200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpPost("/channels")]
+        public async Task<IActionResult> GetAllChannels([FromForm] Guid communityID)
+        {
+            return Ok(await _homeService.GetAllChannels(communityID));
+        }
+        /// <summary> 
+        /// Update channel
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(Guid), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpPut("/channel")]
+        public async Task<IActionResult> UpdateChannel([FromForm] ChannelUpdateModel model)
+        {
+            return Ok(await _homeService.UpdateChannel(model));
+        }
+        /// <summary>
+        /// Delete Channel
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(Guid), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpDelete("/channel")]
+        public async Task<IActionResult> DeleteChannel(Guid channelId)
+        {
+            return Ok(await _homeService.DeleteChannel(channelId));
+        }
     }
 }
