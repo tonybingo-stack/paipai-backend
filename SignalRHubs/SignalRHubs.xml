@@ -164,6 +164,24 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:SignalRHubs.Controllers.ImageController.CreateUserAvatar(System.String)">
+            <summary>
+            Create or Update User Avatar
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.ImageController.CommunityAvatar(System.Guid,System.String)">
+            <summary>
+            Create or Update Community Avatar
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.ImageController.CommunityBkGround(System.Guid,System.String)">
+            <summary>
+            Create or Update Community Background Image
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:SignalRHubs.Controllers.UserController.CreateUser(SignalRHubs.Models.CreateUserModel)">
             <summary>
             Create New User

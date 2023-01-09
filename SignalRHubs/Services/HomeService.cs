@@ -61,6 +61,20 @@ namespace SignalRHubs.Services
             return entity.Id;
         }
 
+        public async Task<string> CreateOrUpdateCommunityAvatar(Guid id, string url)
+        {
+            var query = $"UPDATE [dbo].[Community] SET ForegroundImage = '{url}' WHERE ID = '{id}'";
+            await _service.GetDataAsync(query);
+            return "Successfully updated community avatar!";
+        }
+
+        public async Task<string> CreateOrUpdateCommunityBackGround(Guid id, string url)
+        {
+            var query = $"UPDATE [dbo].[Community] SET BackgroundImage = '{url}' WHERE ID = '{id}'";
+            await _service.GetDataAsync(query);
+            return "Successfully updated community background!";
+        }
+
         public async Task<Guid> DeleteChannel(Guid id)
         {
             var query = $"DELETE FROM dbo.Channel WHERE ChannelId = '{id}';";

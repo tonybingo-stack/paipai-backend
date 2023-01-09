@@ -111,5 +111,12 @@ namespace SignalRHubs.Services
 
             return response.ToList();
         }
+
+        public async Task<string> CreateOrUpdateUserAvatar(string url, Guid id)
+        {
+            var query = $"UPDATE [dbo].[Users] SET Avatar = '{url}' WHERE ID = '{id}'";
+            await _userService.GetDataAsync(query);
+            return "Successfully updated user avatar!";
+        }
     }
 }
