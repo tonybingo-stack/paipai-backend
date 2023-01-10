@@ -164,22 +164,22 @@ namespace SignalRHubs.Services
                 $"SELECT @i; " +
                 $"IF " +
                 $"@i > 0 BEGIN " +
-                $"UPDATE dbo.ChatCard SET Content = '{model.Content}', isSend = '{model.isSend}', isDeleted = '{model.isDeleted}' WHERE UserID = '{model.UserID}' AND ReceiverID = '{model.ReceiverId}';" +
+                $"UPDATE dbo.ChatCard SET Content = '{model.Content}', isSend = '{model.isSend}', isDeleted = '{model.isDeleted}', NickName = '{model.NickName}', Avatar = '{model.Avatar}' WHERE UserID = '{model.UserID}' AND ReceiverID = '{model.ReceiverId}';" +
                 $"END ELSE BEGIN " +
-                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), '{model.UserID}', '{model.ReceiverId}', '{model.Content}', '{model.isSend}', '{model.isDeleted}');" +
+                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), '{model.UserID}', '{model.ReceiverId}', '{model.Content}', '{model.isSend}', '{model.isDeleted}', '{model.NickName}', '{model.Avatar}');" +
                 $"END " +
                 $"END";
 
             await _service.GetDataAsync(query);
          
         }
-        public async Task<List<ChatCardModel>> GetChatCards(Guid userId)
+        public async Task<IEnumerable<ChatCardModel>> GetChatCards(Guid userId)
         {
             var query = $"SELECT * FROM dbo.ChatCard WHERE UserID = '{userId}' AND isDeleted = 0";
             var result = await _service.GetDataAsync<ChatCardModel>(query);
-            return result;
+            return result.ToList();
         }
-        public async Task<List<ChatModel>> GetChatHistory(ChatHistoryBindingModel model)
+        public async Task<IEnumerable<ChatModel>> GetChatHistory(ChatHistoryBindingModel model)
         {
             var query = $"SELECT TOP 10 dbo.Message.SenderID, dbo.Message.Content, dbo.Message.CreatedAt FROM dbo.Message " +
                 $"WHERE (dbo.Message.SenderID ='{model.SenderID}' AND dbo.Message.ReceiverID ='{model.ReceiverID}') OR" +

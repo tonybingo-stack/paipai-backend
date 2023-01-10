@@ -220,12 +220,6 @@
             <param name="identity"></param>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Hubs.ChatHub.BroadcastMessage(System.String,System.String)">
-            <summary>
-            
-            </summary>
-            <returns></returns>
-        </member>
         <member name="T:SignalRHubs.Interfaces.Services.IHomeService">
             <summary>
             

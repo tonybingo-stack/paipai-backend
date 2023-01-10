@@ -11,7 +11,7 @@ namespace SignalRHubs.Entities
         public Guid SenderId { get; set; }
         public Guid ReceiverId { get; set; }
         public string Content { get; set; }
-        public Guid ChannelId { get; set; }
+        public Guid? ChannelId { get; set; }
 
         /// <summary>
         /// Store the file azure and store your file path when necessary.

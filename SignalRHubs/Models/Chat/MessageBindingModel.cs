@@ -7,6 +7,6 @@ namespace SignalRHubs.Models
         public Guid ReceiverId { get; set; }
         public string Content { get; set; }
         public Guid? ChannelId { get; set; }
-        public IFormFile? File { get; set; }
+        public string? FilePath { get; set; }
     }
 }

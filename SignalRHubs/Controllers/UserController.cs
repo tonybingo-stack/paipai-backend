@@ -44,6 +44,7 @@ namespace SignalRHubs.Controllers
         [ProducesResponseType(typeof(UserLoginModel) ,200)]
         [ProducesResponseType(400)]
         [HttpPost("/signin")]
+        //[HttpGet("/signin")]
         //public async Task<IActionResult> Login([FromQuery] string username, [FromQuery] string password)
         public async Task<IActionResult> Login([FromForm] UserModel user)
         {
@@ -75,7 +76,6 @@ namespace SignalRHubs.Controllers
                 signingCredentials: SigningCreds
             );
             JwtTokenHandler.WriteToken(token);
-
 
             var response =await _userService.GetUserByUserName(user.UserName);
 
