@@ -63,7 +63,7 @@ namespace SignalRHubs.Services
         public async Task SaveMessage(Message entity)
         {
             var query = $"INSERT INTO [dbo].[Message] " +
-                $"VALUES (NEWID(),'{entity.SenderUserName}','{entity.ReceiverUserName}','{entity.Content}.',NULL,NULL,CURRENT_TIMESTAMP,NULL)";
+                $"VALUES (NEWID(),'{entity.SenderUserName}','{entity.ReceiverUserName}','{entity.Content}',NULL,NULL,CURRENT_TIMESTAMP,NULL)";
 
             await _service.GetDataAsync(query);
         }
@@ -168,9 +168,9 @@ namespace SignalRHubs.Services
         }
         public async Task<IEnumerable<ChatModel>> GetChatHistory(ChatHistoryBindingModel model)
         {
-            var query = $"SELECT TOP 10 dbo.Message.SenderUserName, dbo.Message.Content, dbo.Message.CreatedAt FROM dbo.Message " +
+            var query = $"SELECT dbo.Message.SenderUserName, dbo.Message.Content, dbo.Message.CreatedAt FROM dbo.Message " +
                 $"WHERE (dbo.Message.SenderUserName ='{model.SenderUserName}' AND dbo.Message.ReceiverUserName ='{model.ReceiverUserName}') OR" +
-                $" (dbo.Message.SenderUserName ='{model.ReceiverUserName}' AND dbo.Message.ReceiverUserName ='{model.SenderUserName}')" +
+                $" (dbo.Message.SenderUserName ='{model.ReceiverUserName}' AND dbo.Message.ReceiverUserName ='{model.SenderUserName}') " +
                 $"ORDER BY dbo.Message.CreatedAt DESC;";
 
             var response = await _service.GetDataAsync<ChatModel>(query);
