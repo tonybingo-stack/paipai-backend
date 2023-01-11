@@ -86,6 +86,7 @@ namespace SignalRHubs.Controllers.Chat
             // Save message
             Message message = _mapper.Map<Message>(model);
             message.SenderUserName = UserName;
+            message.Content = content;
             message.ChannelId = null;
             message.FilePath = null;
             await _service.SaveMessage(message);
