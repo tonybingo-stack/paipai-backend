@@ -185,18 +185,18 @@ namespace SignalRHubs.Controllers.Chat
             return Ok(userSummary);
         }
         /// <summary>
-        /// Get Chat History of user
+        /// Get Chat History of user skip latest offset*10 messages
         /// </summary>
         /// <returns></returns>  
         [HttpPost("/chathistory")]
         [ProducesResponseType(typeof(ChatModel), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<IEnumerable<ChatModel>>> GetChatHistory([FromForm] string receivername)
+        public async Task<ActionResult<IEnumerable<ChatModel>>> GetChatHistory([FromForm] string receivername, [FromForm] int offset)
         {
             ChatHistoryBindingModel model = new ChatHistoryBindingModel();
             model.ReceiverUserName = receivername;
             model.SenderUserName = UserName;
-            return Ok(await _service.GetChatHistory(model));
+            return Ok(await _service.GetChatHistory(model, offset));
         }
         /// <summary>
         /// Get All Chat cards

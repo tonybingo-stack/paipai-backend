@@ -80,9 +80,9 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetChatHistory(System.String)">
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetChatHistory(System.String,System.Int32)">
             <summary>
-            Get Chat History of user
+            Get Chat History of user skip latest offset*10 messages
             </summary>
             <returns></returns>  
         </member>

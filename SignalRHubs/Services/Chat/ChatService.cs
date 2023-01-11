@@ -166,12 +166,13 @@ namespace SignalRHubs.Services
             var result = await _service.GetDataAsync<ChatCardModel>(query);
             return result.ToList();
         }
-        public async Task<IEnumerable<ChatModel>> GetChatHistory(ChatHistoryBindingModel model)
+        public async Task<IEnumerable<ChatModel>> GetChatHistory(ChatHistoryBindingModel model, int offset)
         {
             var query = $"SELECT dbo.Message.SenderUserName, dbo.Message.Content, dbo.Message.CreatedAt FROM dbo.Message " +
                 $"WHERE (dbo.Message.SenderUserName ='{model.SenderUserName}' AND dbo.Message.ReceiverUserName ='{model.ReceiverUserName}') OR" +
                 $" (dbo.Message.SenderUserName ='{model.ReceiverUserName}' AND dbo.Message.ReceiverUserName ='{model.SenderUserName}') " +
-                $"ORDER BY dbo.Message.CreatedAt DESC;";
+                $"ORDER BY dbo.Message.CreatedAt DESC " +
+                $"OFFSET {10*offset} ROWS FETCH NEXT 10 ROWS ONLY; ; ";
 
             var response = await _service.GetDataAsync<ChatModel>(query);
             return response.ToList();
