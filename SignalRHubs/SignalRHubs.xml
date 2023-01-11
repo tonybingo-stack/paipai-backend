@@ -33,13 +33,7 @@
             <param name="mapper"></param>
             <param name="userService"></param>
         </member>
-        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetChatChannels(System.String)">
-            <summary>
-            Get all chat channels for user
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetMessagesByRoomId(System.String)">
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetMessagesByChannelId(System.String)">
             <summary>
             Get messages of a channel by Id
             </summary>
@@ -55,11 +49,11 @@
         </member>
         <member name="M:SignalRHubs.Controllers.Chat.ChatsController.SendMessage(SignalRHubs.Models.MessageBindingModel)">
             <summary>
-            Save new message (with channel generation)
+            Send message 
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.Put(System.String,SignalRHubs.Models.MessageUpdateModel)">
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.Put(SignalRHubs.Models.MessageUpdateModel)">
             <summary>
             Update a message by Id
             </summary>
@@ -82,17 +76,11 @@
         </member>
         <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetCustomerSummaryById(System.String)">
             <summary>
-            Get User by ID
+            Get User by UserName
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetUserIDByName(System.String)">
-            <summary>
-            Get UserID by username
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetChatHistory(System.Guid)">
+        <member name="M:SignalRHubs.Controllers.Chat.ChatsController.GetChatHistory(System.String)">
             <summary>
             Get Chat History of user
             </summary>
@@ -164,7 +152,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.ImageController.CreateUserAvatar(System.String)">
+        <member name="M:SignalRHubs.Controllers.ImageController.UpdateUserAvatar(System.String)">
             <summary>
             Create or Update User Avatar
             </summary>
@@ -239,29 +227,29 @@
             <param name="community"></param>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Services.UserService.#ctor(DbHelper.Interfaces.Services.IDapperService{SignalRHubs.Entities.User},DbHelper.Interfaces.Services.IDapperService{SignalRHubs.Entities.UserCredential})">
+        <member name="M:SignalRHubs.Services.UserService.#ctor(DbHelper.Interfaces.Services.IDapperService{SignalRHubs.Entities.User})">
             <summary>
             
             </summary>
             <param name="repository"></param>
         </member>
-        <member name="M:SignalRHubs.Services.UserService.CreateUser(SignalRHubs.Entities.UserCredential)">
+        <member name="M:SignalRHubs.Services.UserService.CreateUser(SignalRHubs.Entities.User)">
             <summary>
             Add a new customer
             </summary>
             <param name="entity"></param>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Services.UserService.LoginUser(SignalRHubs.Entities.LoginCredential)">
+        <member name="M:SignalRHubs.Services.UserService.LoginUser(SignalRHubs.Models.UserModel)">
             <summary>
             Login User
             </summary>
             <param name="entity"></param>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Services.UserService.GetUserByID(System.Guid)">
+        <member name="M:SignalRHubs.Services.UserService.GetUserByUserName(System.String)">
             <summary>
-            Get User by ID
+            Get User by UserName
             </summary>
             <param name="userId"></param>
             <returns></returns>

@@ -12,15 +12,15 @@ namespace SignalRHubs.Interfaces.Services
 
 
         Task<Guid> CreateCommunity(Community entity);
-        Task<IEnumerable<CommunityViewModel>> GetCommunity(Guid id);
+        Task<IEnumerable<CommunityViewModel>> GetCommunity(string username);
         Task<Guid> UpdateCommunity(Community entity);
         Task<Guid> DeleteCommunity(Guid id);
         Task<Guid> CreateChannel(Channel entity);
         Task<IEnumerable<ChannelViewModel>> GetAllChannels(Guid communityID);
         Task<Guid> UpdateChannel(ChannelUpdateModel model);
         Task<Guid> DeleteChannel(Guid id);
-        Task<String> CreateOrUpdateCommunityAvatar(Guid id, string url);
-        Task<String> CreateOrUpdateCommunityBackGround(Guid id, string url);
+        Task<String> UpdateCommunityAvatar(Guid id, string url);
+        Task<String> UpdateCommunityBackGround(Guid id, string url);
 
     }
 }

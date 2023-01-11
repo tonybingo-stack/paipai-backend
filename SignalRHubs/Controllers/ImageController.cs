@@ -20,10 +20,10 @@ namespace SignalRHubs.Controllers
         [ProducesResponseType(typeof(string), 200)]
         [ProducesResponseType(typeof(string), 400)]
         [HttpPost("/user/avatar")]
-        public async Task<IActionResult> CreateUserAvatar([FromForm] string url)
+        public async Task<IActionResult> UpdateUserAvatar([FromForm] string url)
         {
             //if (CheckURLValid(url)) return BadRequest("Invalid url");
-            return Ok(await _userService.CreateOrUpdateUserAvatar(url, await UserId));
+            return Ok(await _userService.UpdateUserAvatar(url, UserName));
         }
         //public static bool CheckURLValid(string strURL)
         //{
@@ -40,7 +40,7 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> CommunityAvatar([FromForm] Guid communityid, [FromForm] string url)
         {
             //if (CheckURLValid(url)) return BadRequest("Invalid url");
-            return Ok(await _homeService.CreateOrUpdateCommunityAvatar(communityid, url));
+            return Ok(await _homeService.UpdateCommunityAvatar(communityid, url));
         }
         /// <summary>
         /// Create or Update Community Background Image
@@ -52,7 +52,7 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> CommunityBkGround([FromForm] Guid communityid, [FromForm] string url)
         {
             //if (CheckURLValid(url)) return BadRequest("Invalid url");
-            return Ok(await _homeService.CreateOrUpdateCommunityBackGround(communityid, url));
+            return Ok(await _homeService.UpdateCommunityBackGround(communityid, url));
         }
     }
 }

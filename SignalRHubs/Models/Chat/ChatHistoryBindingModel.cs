@@ -2,7 +2,7 @@
 {
     public class ChatHistoryBindingModel
     {
-        public Guid SenderID { get; set; }
-        public Guid ReceiverID { get; set; }
+        public string SenderUserName { get; set; }
+        public string ReceiverUserName { get; set; }
     }
 }

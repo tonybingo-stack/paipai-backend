@@ -16,16 +16,14 @@ namespace SignalRHubs.Services
     {
 
         private readonly IDapperService<User> _userService;
-        private readonly IDapperService<UserCredential> _userService01;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="repository"></param>
-        public UserService(IDapperService<User> dapperService, IDapperService<UserCredential> testService)
+        public UserService(IDapperService<User> dapperService)
         {
             _userService = dapperService;
-            _userService01 = testService;
         }
         public async Task<Guid> GetIdByUserName(string name)
         {
@@ -42,7 +40,7 @@ namespace SignalRHubs.Services
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public async Task<string> CreateUser(UserCredential entity)
+        public async Task<string> CreateUser(User entity)
         {
             if (entity == null)
             {
@@ -60,7 +58,7 @@ namespace SignalRHubs.Services
                 $"'{ entity.Phone }', " +
                 $"{ entity.Gender }, " +
                 $"CURRENT_TIMESTAMP, " +
-                $"null" +
+                $"'{entity.Avatar}'" +
                 $")";
             await _userService.GetDataAsync(query);
 
@@ -71,37 +69,29 @@ namespace SignalRHubs.Services
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public async Task<string> LoginUser(LoginCredential entity)
+        public async Task<string> LoginUser(UserModel model)
         {
-            if (entity == null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
 
-            var query = $"SELECT * FROM Users Where username='{ entity.UserName }'";
-            var response = await _userService01.GetDataAsync(query);
+            var query = $"SELECT * FROM Users Where username='{ model.UserName }'";
+            var response = await _userService.GetDataAsync(query);
 
             if (response.Count == 0) return "User Not Found";
 
-            if (response.FirstOrDefault().Password == entity.Password)
+            if (response.FirstOrDefault().Password == model.Password)
             {
                 return "success";
             }
             else return "Incorrect Password";
         }
         /// <summary>
-        /// Get User by ID
+        /// Get User by UserName
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task<User> GetUserByID(Guid userId)
-        {
-            var query = $"SELECT * FROM Users WHERE Id='{userId}'";
-            return await _userService.GetFirstOrDefaultAsync<User>(query);
-        }
         public async Task<User> GetUserByUserName(string name)
         {
-            return await GetUserByID(await GetIdByUserName(name));
+            var query = $"SELECT * FROM Users WHERE UserName='{name}'";
+            return await _userService.GetFirstOrDefaultAsync<User>(query);
         }
         public async Task<List<User>> GetUsers()
         {
@@ -112,9 +102,9 @@ namespace SignalRHubs.Services
             return response.ToList();
         }
 
-        public async Task<string> CreateOrUpdateUserAvatar(string url, Guid id)
+        public async Task<string> UpdateUserAvatar(string url, string username)
         {
-            var query = $"UPDATE [dbo].[Users] SET Avatar = '{url}' WHERE ID = '{id}'";
+            var query = $"UPDATE [dbo].[Users] SET Avatar = '{url}' WHERE UserName = '{username}'";
             await _userService.GetDataAsync(query);
             return "Successfully updated user avatar!";
         }

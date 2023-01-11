@@ -33,7 +33,7 @@ namespace SignalRHubs.Controllers
         [HttpPost("/signup")]
         public async Task<IActionResult> CreateUser(CreateUserModel model)
         {
-            UserCredential user = _mapper.Map<UserCredential>(model);
+            User user = _mapper.Map<User>(model);
             return Ok(await _userService.CreateUser(user));
         }
 
@@ -87,7 +87,7 @@ namespace SignalRHubs.Controllers
 
         private async Task<bool> IsExistingUser(string username, string password)
         {
-            LoginCredential user = new LoginCredential();
+            UserModel user = new UserModel();
             user.UserName = username;
             user.Password = password;
             var res = await _userService.LoginUser(user);

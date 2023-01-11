@@ -48,10 +48,10 @@ namespace SignalRHubs.Services
                 $"'{entity.Id}', " +
                 $"'{entity.CommunityName}', " +
                 $"'{entity.CommunityDescription}', " +
-                $"'{entity.CommunityOwnerId}', " +
+                $"'{entity.CommunityOwnerName}', " +
                 $"'{entity.CommunityType}'," +
                 $"CURRENT_TIMESTAMP," +
-                $"'{entity.UpdatedAt}'," +
+                $"NULL," +
                 $"'{entity.ForegroundImage}'," +
                 $"'{entity.BackgroundImage}'" +
                 $")";
@@ -61,14 +61,14 @@ namespace SignalRHubs.Services
             return entity.Id;
         }
 
-        public async Task<string> CreateOrUpdateCommunityAvatar(Guid id, string url)
+        public async Task<string> UpdateCommunityAvatar(Guid id, string url)
         {
             var query = $"UPDATE [dbo].[Community] SET ForegroundImage = '{url}' WHERE ID = '{id}'";
             await _service.GetDataAsync(query);
             return "Successfully updated community avatar!";
         }
 
-        public async Task<string> CreateOrUpdateCommunityBackGround(Guid id, string url)
+        public async Task<string> UpdateCommunityBackGround(Guid id, string url)
         {
             var query = $"UPDATE [dbo].[Community] SET BackgroundImage = '{url}' WHERE ID = '{id}'";
             await _service.GetDataAsync(query);
@@ -96,9 +96,9 @@ namespace SignalRHubs.Services
             return response.ToList();
         }
 
-        public async Task<IEnumerable<CommunityViewModel>> GetCommunity(Guid id)
+        public async Task<IEnumerable<CommunityViewModel>> GetCommunity(string username)
         {
-            var query = $"SELECT dbo.Community.ID,dbo.Community.CommunityName,dbo.Community.CommunityDescription,dbo.Community.CommunityType,dbo.Community.CreatedAt,dbo.Community.UpdatedAt,dbo.Community.ForegroundImage,dbo.Community.BackgroundImage FROM dbo.Community WHERE dbo.Community.CommunityOwnerId ='{id}'";
+            var query = $"SELECT * FROM dbo.Community WHERE dbo.Community.CommunityOwnerName ='{username}'";
             var response = await _service.GetDataAsync<CommunityViewModel>(query);
             
             return response.ToList();
@@ -107,7 +107,7 @@ namespace SignalRHubs.Services
         public async Task<Guid> UpdateChannel(ChannelUpdateModel model)
         {
             var query = $"UPDATE dbo.Channel " +
-                $"SET ChannelName='{model.ChannelName}',ChannelDescription = '{model.ChannelDescription}', ChannelCommunityId = '{model.ChannelCommunityId}', UpdatedAt = CURRENT_TIMESTAMP " +
+                $"SET ChannelName='{model.ChannelName}',ChannelDescription = '{model.ChannelDescription}', UpdatedAt = CURRENT_TIMESTAMP " +
                 $"WHERE dbo.Channel.ChannelId = '{model.ChannelId}'; ";
 
             var response = await _service.GetDataAsync(query);

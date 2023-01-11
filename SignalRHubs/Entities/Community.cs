@@ -10,7 +10,7 @@ namespace SignalRHubs.Entities
         public override Guid Id { get; set; }
         public string CommunityName { get; set; }
         public string CommunityDescription { get; set; }
-        public Guid CommunityOwnerId { get; set; }
+        public string CommunityOwnerName { get; set; }
         public string CommunityType { get; set; }
         public string ForegroundImage { get; set; }
         public string BackgroundImage { get; set; }

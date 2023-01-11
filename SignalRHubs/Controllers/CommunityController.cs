@@ -27,7 +27,7 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> CreateCommunity([FromForm] CommunityModel model)
         {
             Community entity = _mapper.Map<Community>(model);
-            entity.CommunityOwnerId = await UserId;
+            entity.CommunityOwnerName = UserName;
 
             return Ok(await _homeService.CreateCommunity(entity));
         }
@@ -40,7 +40,7 @@ namespace SignalRHubs.Controllers
         [HttpGet("/community")]
         public async Task<IActionResult> GetAllCommunity()
         {
-            return Ok(await _homeService.GetCommunity(await UserId));
+            return Ok(await _homeService.GetCommunity(UserName));
         }
         /// <summary>
         /// Update Community
@@ -52,7 +52,7 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> UpdateCommunity([FromForm] CommunityUpdateModel model)
         {
             Community entity = _mapper.Map<Community>(model);
-            entity.CommunityOwnerId = await UserId;
+            entity.CommunityOwnerName = UserName;
             entity.UpdatedAt = DateTime.Now;
             return Ok(await _homeService.UpdateCommunity(entity));
         }
