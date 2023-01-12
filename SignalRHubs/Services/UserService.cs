@@ -108,5 +108,14 @@ namespace SignalRHubs.Services
             await _userService.GetDataAsync(query);
             return "Successfully updated user avatar!";
         }
+
+        public async Task<bool> IsValidUserName(string userName)
+        {
+            var query = $"SELECT * FROM dbo.Users WHERE UserName = '{userName}'";
+            var result = await _userService.GetDataAsync(query);
+
+            if (result.Count == 0) return true;
+            else return false;
+        }
     }
 }

@@ -186,7 +186,7 @@ namespace SignalRHubs.Controllers.Chat
             return Ok(userSummary);
         }
         /// <summary>
-        /// Get Chat History of user skip latest offset*10 messages
+        /// Get Chat History of user between offset*10 ~ (offset+1)*10 messages
         /// </summary>
         /// <returns></returns>  
         [HttpPost("/chathistory")]

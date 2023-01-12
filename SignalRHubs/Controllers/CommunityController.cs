@@ -10,11 +10,9 @@ namespace SignalRHubs.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IHomeService _homeService;
-        private readonly IUserService _userService;
         public CommunityController(IHomeService service, IUserService userService, IMapper mapper): base(userService)
         {
             _homeService = service;
-            _userService = userService;
             _mapper = mapper;
         }
         /// <summary>
@@ -28,6 +26,7 @@ namespace SignalRHubs.Controllers
         {
             Community entity = _mapper.Map<Community>(model);
             entity.CommunityOwnerName = UserName;
+            entity.CommunityDescription = entity.CommunityDescription.Replace("'", "''");
 
             return Ok(await _homeService.CreateCommunity(entity));
         }
@@ -52,6 +51,7 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> UpdateCommunity([FromForm] CommunityUpdateModel model)
         {
             Community entity = _mapper.Map<Community>(model);
+            entity.CommunityDescription = entity.CommunityDescription.Replace("'", "''");
             entity.CommunityOwnerName = UserName;
             entity.UpdatedAt = DateTime.Now;
             return Ok(await _homeService.UpdateCommunity(entity));
@@ -77,6 +77,7 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> CreateChannel([FromForm] ChannelModel model)
         {
             Channel entity = _mapper.Map<Channel>(model);
+            entity.ChannelDescription = entity.ChannelDescription.Replace("'", "''");
             return Ok(await _homeService.CreateChannel(entity));
         }
         /// <summary> 
@@ -99,6 +100,7 @@ namespace SignalRHubs.Controllers
         [HttpPut("/channel")]
         public async Task<IActionResult> UpdateChannel([FromForm] ChannelUpdateModel model)
         {
+            model.ChannelDescription = model.ChannelDescription.Replace("'", "''");
             return Ok(await _homeService.UpdateChannel(model));
         }
         /// <summary>

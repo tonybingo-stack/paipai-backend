@@ -94,5 +94,19 @@ namespace SignalRHubs.Controllers
 
             return res == "success";
         }
+        /// <summary>
+        /// UserName Validation Check
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(bool), 200)]
+        [ProducesResponseType(400)]
+        [HttpGet("/check/username/{username}")]
+        public async Task<IActionResult> UserNameValidationCheck([FromRoute] string username)
+        {
+            var result = await _userService.IsValidUserName(username);
+
+            return Ok(result);
+
+        }
     }
 }

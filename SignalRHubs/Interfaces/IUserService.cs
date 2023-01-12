@@ -11,5 +11,6 @@ namespace SignalRHubs.Interfaces.Services
         Task<string> LoginUser(UserModel model);
         Task<User> GetUserByUserName(string name);
         Task<List<User>> GetUsers();
+        Task<bool> IsValidUserName(string userName);
     }
 }
