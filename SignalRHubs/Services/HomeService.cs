@@ -106,9 +106,11 @@ namespace SignalRHubs.Services
 
         public async Task<Guid> UpdateChannel(ChannelUpdateModel model)
         {
-            var query = $"UPDATE dbo.Channel " +
-                $"SET ChannelName='{model.ChannelName}',ChannelDescription = '{model.ChannelDescription}', UpdatedAt = CURRENT_TIMESTAMP " +
-                $"WHERE dbo.Channel.ChannelId = '{model.ChannelId}'; ";
+            var query = $"UPDATE dbo.Channel SET ";
+            if (model.ChannelName != null) query += $"ChannelName='{model.ChannelName}'";
+            if (model.ChannelDescription != null) query += $",ChannelDescription = '{model.ChannelDescription}'";
+
+            query += $", UpdatedAt = CURRENT_TIMESTAMP WHERE dbo.Channel.ChannelId = '{model.ChannelId}';";
 
             var response = await _service.GetDataAsync(query);
             return model.ChannelId;
@@ -116,9 +118,14 @@ namespace SignalRHubs.Services
 
         public async Task<Guid> UpdateCommunity(Community entity)
         {
-            var query = $"UPDATE dbo.Community " +
-                $"SET CommunityName='{entity.CommunityName}',CommunityDescription = '{entity.CommunityDescription}', CommunityType = '{entity.CommunityType}', UpdatedAt = CURRENT_TIMESTAMP, ForegroundImage = '{entity.ForegroundImage}', BackgroundImage = '{entity.BackgroundImage}' " +
-                $"WHERE dbo.Community.ID = '{entity.Id}'; ";
+            var query = $"UPDATE dbo.Community SET ";
+            if (entity.CommunityName != null) query += $"CommunityName='{entity.CommunityName}'";
+            if (entity.CommunityDescription != null) query += $",CommunityDescription = '{entity.CommunityDescription}'";
+            if (entity.CommunityType != null) query += $", CommunityType = '{entity.CommunityType}'";
+            query += $", UpdatedAt = CURRENT_TIMESTAMP";
+            if (entity.ForegroundImage != null) query += $", ForegroundImage = '{entity.ForegroundImage}'";
+            if (entity.BackgroundImage != null) query += $", BackgroundImage = '{entity.BackgroundImage}'";
+            query += $" WHERE dbo.Community.ID = '{entity.Id}'; ";
 
             await _service.GetDataAsync(query);
 

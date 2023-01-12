@@ -50,8 +50,11 @@ namespace SignalRHubs.Controllers
         [HttpPut("/community")]
         public async Task<IActionResult> UpdateCommunity([FromForm] CommunityUpdateModel model)
         {
+            if (model.Id == null) return BadRequest("Community ID is required!");
+            if (model.CommunityName == null && model.CommunityDescription == null && model.CommunityType == null && model.ForegroundImage == null && model.BackgroundImage == null) return BadRequest("At least one field is required!");
+            
             Community entity = _mapper.Map<Community>(model);
-            entity.CommunityDescription = entity.CommunityDescription.Replace("'", "''");
+            if (entity.CommunityDescription != null) entity.CommunityDescription = entity.CommunityDescription.Replace("'", "''");
             entity.CommunityOwnerName = UserName;
             entity.UpdatedAt = DateTime.Now;
             return Ok(await _homeService.UpdateCommunity(entity));
@@ -100,7 +103,10 @@ namespace SignalRHubs.Controllers
         [HttpPut("/channel")]
         public async Task<IActionResult> UpdateChannel([FromForm] ChannelUpdateModel model)
         {
-            model.ChannelDescription = model.ChannelDescription.Replace("'", "''");
+            if (model.ChannelId == null) return BadRequest("ChannelID is required!");
+            if (model.ChannelName == null && model.ChannelDescription == null) return BadRequest("Name or Description is required!");
+
+            if (model.ChannelDescription != null) model.ChannelDescription = model.ChannelDescription.Replace("'", "''");
             return Ok(await _homeService.UpdateChannel(model));
         }
         /// <summary>
