@@ -112,7 +112,7 @@
         </member>
         <member name="M:SignalRHubs.Controllers.CommunityController.GetAllCommunity">
             <summary>
-            Get all communities
+            Get all communities user created
             </summary>
             <returns></returns>
         </member>
@@ -173,6 +173,24 @@
         <member name="M:SignalRHubs.Controllers.CommunityController.DeletePost(System.Guid)">
             <summary>
             Delete Post
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.GetAllJoinedCommunity">
+            <summary>
+            Get all communities user joined
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.JoinCommunity(System.Guid)">
+            <summary>
+            Join a community
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.ExitCommunity(System.Guid)">
+            <summary>
+            Exit from community
             </summary>
             <returns></returns>
         </member>

@@ -9,8 +9,6 @@ namespace SignalRHubs.Interfaces.Services
     /// <typeparam name="T"></typeparam>
     public interface IHomeService
     {
-
-
         Task<Guid> CreateCommunity(Community entity);
         Task<IEnumerable<CommunityViewModel>> GetCommunity(string username);
         Task<Guid> UpdateCommunity(Community entity);
@@ -25,6 +23,10 @@ namespace SignalRHubs.Interfaces.Services
         Task<IEnumerable<PostViewModel>> GetPosts(Guid communityID, string username);
         Task<Guid> UpdatePost(PostUpdateModel model);
         Task<Guid> DeletePost(Guid postId);
+        Task<IEnumerable<CommunityViewModel>> GetJoinedCommunity(string username);
+        Task<string> JoinCommunity(string username,Guid communityId);
+        Task<string> ExitCommunity(string username, Guid communityId);
+
 
     }
 }

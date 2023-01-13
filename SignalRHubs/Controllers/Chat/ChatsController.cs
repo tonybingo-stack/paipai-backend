@@ -6,6 +6,7 @@ using SignalRHubs.Entities;
 using SignalRHubs.Hubs;
 using SignalRHubs.Interfaces.Services;
 using SignalRHubs.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace SignalRHubs.Controllers.Chat
 {
@@ -149,7 +150,7 @@ namespace SignalRHubs.Controllers.Chat
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
         [HttpDelete("/messages")]
-        public async Task<IActionResult> Delete([FromForm] string id)
+        public async Task<IActionResult> Delete([FromForm][Required] string id)
         {
             Message message = _mapper.Map<Message>(await _service.GetMessage(Guid.Parse(id)));
             if (message == null) return BadRequest("Message does not exists.");
@@ -198,7 +199,7 @@ namespace SignalRHubs.Controllers.Chat
         [HttpPost("/chathistory")]
         [ProducesResponseType(typeof(ChatModel), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<IEnumerable<ChatModel>>> GetChatHistory([FromForm] string receivername, [FromForm] int offset)
+        public async Task<ActionResult<IEnumerable<ChatModel>>> GetChatHistory([FromForm][Required] string receivername, [FromForm][Required] int offset)
         {
             ChatHistoryBindingModel model = new ChatHistoryBindingModel();
             model.ReceiverUserName = receivername;

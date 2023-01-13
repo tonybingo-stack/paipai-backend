@@ -2,6 +2,7 @@
 using SignalRHubs.Entities;
 using SignalRHubs.Interfaces.Services;
 using SignalRHubs.Models;
+using System.ComponentModel.DataAnnotations;
 using System.Data.SqlClient;
 
 namespace SignalRHubs.Services
@@ -68,7 +69,10 @@ namespace SignalRHubs.Services
 
             query += $"0, 0, 0);";
 
-            Console.WriteLine("HERE: "+query);
+            await _service.GetDataAsync(query);
+
+            // Update CommunityMember Table
+            query = $"INSERT INTO dbo.CommunityMember VALUES(NEWID(), '{entity.CommunityOwnerName}','{entity.Id}','TRUE');";
             await _service.GetDataAsync(query);
 
             return entity.Id;
@@ -99,6 +103,11 @@ namespace SignalRHubs.Services
         {
             var query = $"DELETE FROM dbo.Community WHERE ID = '{id}';";
             await _service.GetDataAsync(query);
+
+            // Update CommunityMember Table
+            query = $"DELETE FROM dbo.CommunityMember WHERE CommunityID='{id}'";
+            await _service.GetDataAsync(query);
+
             return id;
         }
 
@@ -186,7 +195,7 @@ namespace SignalRHubs.Services
 
         public async Task<IEnumerable<PostViewModel>> GetPosts(Guid communityID, string username)
         {
-            var query = $"SELECT dbo.Posts.ID,dbo.Posts.Title,dbo.Posts.Contents,dbo.Posts.Price,dbo.Posts.Category,dbo.Posts.CreatedAt,dbo.Posts.UpdatedAt FROM dbo.Posts WHERE dbo.Posts.UserName ='{username}' AND dbo.Posts.CommunityID ='{communityID}' AND dbo.Posts.isDeleted =0";
+            var query = $"SELECT dbo.Posts.ID,dbo.Posts.Title,dbo.Posts.Contents,dbo.Posts.Price,dbo.Posts.Category,dbo.Posts.CreatedAt,dbo.Posts.UpdatedAt FROM dbo.Posts WHERE dbo.Posts.UserName ='{username}' AND dbo.Posts.CommunityID ='{communityID}' AND dbo.Posts.isDeleted =0 ORDER BY dbo.Posts.CreatedAt DESC";
             var response = await _service.GetDataAsync<PostViewModel>(query);
 
             return response.ToList();
@@ -230,6 +239,27 @@ namespace SignalRHubs.Services
             var query = $"UPDATE dbo.Posts SET isDeleted=1 WHERE ID='{postId}';";
             await _service.GetDataAsync(query);
             return postId;
+        }
+
+        public async Task<IEnumerable<CommunityViewModel>> GetJoinedCommunity(string username)
+        {
+            var query = $"SELECT * FROM dbo.CommunityMember INNER JOIN dbo.Community ON dbo.CommunityMember.CommunityID =dbo.Community.ID WHERE dbo.CommunityMember.UserName ='{username}'";
+            var response = await _service.GetDataAsync<CommunityViewModel>(query);
+            return response.ToList();
+        }
+
+        public async Task<string> JoinCommunity(string username, Guid communityId)
+        {
+            var query = $"INSERT INTO dbo.CommunityMember VALUES(NEWID(), '{username}','{communityId}','FALSE');";
+            await _service.GetDataAsync(query);
+            return $"'{username}' Joined Community.";
+        }
+
+        public async Task<string> ExitCommunity(string username, Guid communityId)
+        {
+            var query = $"DELETE FROM dbo.CommunityMember WHERE UserName='{username} AND CommunityID='{communityId}';";
+            await _service.GetDataAsync(query);
+            return $"'{username}' exited from Community.";
         }
     }
 }

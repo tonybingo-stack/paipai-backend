@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SignalRHubs.Entities;
 using SignalRHubs.Interfaces.Services;
 using SignalRHubs.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace SignalRHubs.Controllers
 {
@@ -31,7 +32,7 @@ namespace SignalRHubs.Controllers
             return Ok(await _homeService.CreateCommunity(entity));
         }
         /// <summary>
-        /// Get all communities
+        /// Get all communities user created
         /// </summary>
         /// <returns></returns>
         [ProducesResponseType(typeof(List<CommunityViewModel>), 200)]
@@ -66,7 +67,7 @@ namespace SignalRHubs.Controllers
         [ProducesResponseType(typeof(Guid), 200)]
         [ProducesResponseType(typeof(NotFoundResult), 400)]
         [HttpDelete("/community")]
-        public async Task<IActionResult> DeleteCommunity(Guid id)
+        public async Task<IActionResult> DeleteCommunity([Required] Guid id)
         {
             return Ok(await _homeService.DeleteCommunity(id));
         }
@@ -90,7 +91,7 @@ namespace SignalRHubs.Controllers
         [ProducesResponseType(typeof(ChannelViewModel),200)]
         [ProducesResponseType(typeof(NotFoundResult), 400)]
         [HttpPost("/channels")]
-        public async Task<IActionResult> GetAllChannels([FromForm] Guid communityID)
+        public async Task<IActionResult> GetAllChannels([FromForm][Required] Guid communityID)
         {
             return Ok(await _homeService.GetAllChannels(communityID));
         }
@@ -116,7 +117,7 @@ namespace SignalRHubs.Controllers
         [ProducesResponseType(typeof(Guid), 200)]
         [ProducesResponseType(typeof(NotFoundResult), 400)]
         [HttpDelete("/channel")]
-        public async Task<IActionResult> DeleteChannel(Guid channelId)
+        public async Task<IActionResult> DeleteChannel([Required] Guid channelId)
         {
             return Ok(await _homeService.DeleteChannel(channelId));
         }
@@ -160,7 +161,6 @@ namespace SignalRHubs.Controllers
         [HttpPut("/post")]
         public async Task<IActionResult> UpdatePost([FromForm] PostUpdateModel model)
         {
-            if (model.Id == null) return BadRequest("Post ID is required!");
             if (model.Title == null && model.Contents == null && model.Price == null && model.Category == null) return BadRequest("At lease one field is required!");
 
             if (model.Title != null) model.Title = model.Title.Replace("'", "''");
@@ -177,9 +177,42 @@ namespace SignalRHubs.Controllers
         [ProducesResponseType(typeof(Guid), 200)]
         [ProducesResponseType(typeof(NotFoundResult), 400)]
         [HttpDelete("/post")]
-        public async Task<IActionResult> DeletePost(Guid postId)
+        public async Task<IActionResult> DeletePost([Required] Guid postId)
         {
             return Ok(await _homeService.DeletePost(postId));
+        }
+        /// <summary>
+        /// Get all communities user joined
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(List<CommunityViewModel>), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpGet("/joined-community")]
+        public async Task<IActionResult> GetAllJoinedCommunity()
+        {
+            return Ok(await _homeService.GetJoinedCommunity(UserName));
+        }
+        /// <summary>
+        /// Join a community
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(string), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpPost("/community/join")]
+        public async Task<IActionResult> JoinCommunity([FromForm][Required] Guid communityId)
+        {
+            return Ok(await _homeService.JoinCommunity(UserName, communityId));
+        }
+        /// <summary>
+        /// Exit from community
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(string), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpPost("/community/exit")]
+        public async Task<IActionResult> ExitCommunity([FromForm][Required] Guid communityId)
+        {
+            return Ok(await _homeService.ExitCommunity(UserName, communityId));
         }
     }
 }
