@@ -68,7 +68,7 @@ namespace SignalRHubs.Services
             else query += $", NULL";
             if (entity.FilePath != null) query += $", '{entity.FilePath}'";
             else query += $", NULL";
-            query += $", CURRENT_TIMESTAMP, NULL)";
+            query += $", CURRENT_TIMESTAMP, NULL, 'FALSE')";
 
             await _service.GetDataAsync(query);
         }
@@ -82,8 +82,9 @@ namespace SignalRHubs.Services
         }
         public async Task DeleteMessage(Guid id)
         {
-            var query = $"DELETE FROM dbo.Message " +
-                $"WHERE dbo.Message.ID = @Id;";
+            var query = $"UPDATE dbo.Message " +
+                $"SET UpdatedAt = CURRENT_TIMESTAMP, isDeleted='TRUE' " +
+                $"WHERE dbo.Message.ID = @Id; ";
 
             var response = await _service.GetDataAsync(query, new { Id = id });
         }

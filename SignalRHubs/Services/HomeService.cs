@@ -44,18 +44,28 @@ namespace SignalRHubs.Services
         /// <returns></returns>
         public async Task<Guid> CreateCommunity(Community entity)
         {
-            var query = $"INSERT INTO Community VALUES(" +
+            var query = $"INSERT INTO Community VALUES( " +
                 $"'{entity.Id}', " +
-                $"'{entity.CommunityName}', " +
-                $"'{entity.CommunityDescription}', " +
-                $"'{entity.CommunityOwnerName}', " +
-                $"'{entity.CommunityType}'," +
-                $"CURRENT_TIMESTAMP," +
-                $"NULL," +
-                $"'{entity.ForegroundImage}'," +
-                $"'{entity.BackgroundImage}'" +
-                $")";
+                $"'{entity.CommunityName}', ";
+            if (entity.CommunityDescription == null) query += $"NULL, ";
+            else query += $"'{entity.CommunityDescription}', ";
 
+            query += $"'{entity.CommunityOwnerName}', ";
+
+            if (entity.CommunityType == null) query += $"NULL, ";
+            else query += $"'{entity.CommunityType}', ";
+
+            query += $"CURRENT_TIMESTAMP, " + $"NULL,";
+
+            if (entity.ForegroundImage == null) query += $"NULL, ";
+            else query += $"'{entity.ForegroundImage}', ";
+
+            if (entity.BackgroundImage == null) query += $"NULL, ";
+            else query += $"'{entity.BackgroundImage}', ";
+
+            query += $"0, 0, 0);";
+
+            Console.WriteLine("HERE: "+query);
             await _service.GetDataAsync(query);
 
             return entity.Id;

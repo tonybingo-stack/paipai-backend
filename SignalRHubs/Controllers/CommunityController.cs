@@ -25,8 +25,13 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> CreateCommunity([FromForm] CommunityModel model)
         {
             Community entity = _mapper.Map<Community>(model);
+            //Community entity = new Community();
+            //entity.CommunityName = model.CommunityName;
+            //entity.CommunityDescription= model.CommunityDescription;
+            //entity.CommunityType = model.CommunityType;
+            //entity.ForegroundImage = model.ForegroundImage;
             entity.CommunityOwnerName = UserName;
-            entity.CommunityDescription = entity.CommunityDescription.Replace("'", "''");
+            if(entity.CommunityDescription!=null) entity.CommunityDescription = entity.CommunityDescription.Replace("'", "''");
 
             return Ok(await _homeService.CreateCommunity(entity));
         }

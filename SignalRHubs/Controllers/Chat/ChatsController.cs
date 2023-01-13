@@ -127,18 +127,18 @@ namespace SignalRHubs.Controllers.Chat
             Message message = _mapper.Map<Message>(await _service.GetMessage(model.Id));
             if (message == null) return BadRequest("Message does not exists.");
 
-            message.Id= model.Id;
             message.Content = model.Content;
             message.FilePath = model.FilePath;
             message.UpdatedAt = DateTime.Now;
             message.EntityState = DbHelper.Enums.EntityState.Modified;
 
             await _service.PutMessage(message);
+            //update chat card
 
             //await _hubContext.Clients.All.SendAsync("notifyMessage", messageVm);
 
             return Ok(message);
-        }
+        }   
 
         /// <summary>
         /// Delete a message by Id
@@ -155,7 +155,11 @@ namespace SignalRHubs.Controllers.Chat
             if (message == null) return BadRequest("Message does not exists.");
             message.Id = Guid.Parse(id);
             message.EntityState = DbHelper.Enums.EntityState.Deleted;
+            
             await _service.DeleteMessage(Guid.Parse(id));
+
+            //update chatcard too
+
             //await _hubContext.Clients.User(UserId.ToString()).SendAsync("notifyDeleteMessage", messageVm);
             return Ok(message);
         }
