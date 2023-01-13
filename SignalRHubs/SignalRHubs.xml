@@ -19,11 +19,6 @@
             Get User ID
             </summary>
         </member>
-        <member name="T:SignalRHubs.Controllers.Chat.ChatsController">
-            <summary>
-            
-            </summary>
-        </member>
         <member name="M:SignalRHubs.Controllers.Chat.ChatsController.#ctor(SignalRHubs.Interfaces.Services.IChatService,Microsoft.AspNetCore.SignalR.IHubContext{SignalRHubs.Hubs.ChatHub},AutoMapper.IMapper,SignalRHubs.Interfaces.Services.IUserService)">
             <summary>
             

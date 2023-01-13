@@ -27,6 +27,7 @@ namespace SignalRHubs.Services
         public async Task<MessageViewModel> GetMessage(Guid Id)
         {
             var query = $"SELECT " +
+                $"dbo.Message.ID, " +
                 $"dbo.Message.SenderUserName," +
                 $"dbo.Message.ReceiverUserName," +
                 $"dbo.Message.Content," +
@@ -194,6 +195,21 @@ namespace SignalRHubs.Services
             var query = $"UPDATE dbo.ChatCard SET isDeleted = 'TRUE'  WHERE dbo.ChatCard.ID =@ID;";
             await _service.GetDataAsync(query, new { ID = chatCardID });
             return "Deleted chat card";
+        }
+
+        public async Task RefreshChatCard(string sender, string receiver)
+        {
+            var query = $"SELECT TOP 1 * FROM dbo.Message " +
+                $"WHERE dbo.Message.SenderUserName ='{sender}' AND " +
+                $"dbo.Message.ReceiverUserName ='{receiver}' AND " +
+                $"dbo.Message.isDeleted =0 " +
+                $"ORDER BY dbo.Message.CreatedAt DESC";
+
+            var response = await _service.GetDataAsync(query);
+            if (response == null) return;
+            query = $"UPDATE dbo.ChatCard SET Content='{response[0].Content.Replace("'","''")}' WHERE (SenderUserName='{sender}' AND ReceiverUserName='{receiver}') OR (SenderUserName='{receiver}' AND ReceiverUserName='{sender}')";
+
+            await _service.GetDataAsync(query);
         }
     }
 }

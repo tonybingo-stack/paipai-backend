@@ -3,6 +3,7 @@ namespace SignalRHubs.Models
 {
     public class MessageViewModel
     {
+        public Guid Id { get; set; }
         public string SenderUserName { get; set; }
         public string ReceiverUserName { get; set; }
         public string Content { get; set; }

@@ -10,10 +10,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SignalRHubs.Controllers.Chat
 {
-    /// <summary>
-    /// 
-    /// </summary>
-
     public class ChatsController : ApiBaseController
     {
         private readonly IChatService _service;
@@ -128,15 +124,16 @@ namespace SignalRHubs.Controllers.Chat
             Message message = _mapper.Map<Message>(await _service.GetMessage(model.Id));
             if (message == null) return BadRequest("Message does not exists.");
 
-            message.Content = model.Content;
+            if (model.Content != null) message.Content = model.Content.Replace("'", "''");
             message.FilePath = model.FilePath;
             message.UpdatedAt = DateTime.Now;
             message.EntityState = DbHelper.Enums.EntityState.Modified;
 
             await _service.PutMessage(message);
             //update chat card
-
+            await _service.RefreshChatCard(message.SenderUserName, message.ReceiverUserName);
             //await _hubContext.Clients.All.SendAsync("notifyMessage", messageVm);
+            message.Content = model.Content;
 
             return Ok(message);
         }   
@@ -159,8 +156,8 @@ namespace SignalRHubs.Controllers.Chat
             
             await _service.DeleteMessage(Guid.Parse(id));
 
-            //update chatcard too
-
+            //update chat card
+            await _service.RefreshChatCard(message.SenderUserName, message.ReceiverUserName);
             //await _hubContext.Clients.User(UserId.ToString()).SendAsync("notifyDeleteMessage", messageVm);
             return Ok(message);
         }
