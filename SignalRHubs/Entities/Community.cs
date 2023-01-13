@@ -14,6 +14,9 @@ namespace SignalRHubs.Entities
         public string? CommunityType { get; set; }
         public string? ForegroundImage { get; set; }
         public string? BackgroundImage { get; set; }
+        public int? NumberOfUsers { get; set; }
+        public int? NumberOfPosts { get; set; }
+        public int? NumberOfActiveUsers { get; set; }
 
     }
 }

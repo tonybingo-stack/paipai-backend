@@ -24,17 +24,20 @@ namespace SignalRHubs.Services
         public async Task<Guid> CreateChannel(Channel entity)
         {
             var query = $"INSERT INTO Channel VALUES(" +
-                $"'{entity.ChannelId}', " +
-                $"'{entity.ChannelName}', " +
-                $"'{entity.ChannelDescription}', " +
-                $"'{entity.ChannelCommunityId}', " +
+                $"'{entity.Id}', " +
+                $"'{entity.ChannelName}', ";
+
+            if (entity.ChannelDescription != null) query += $"'{entity.ChannelDescription}', ";
+            else query += $"NULL, ";
+
+            query+= $"'{entity.ChannelCommunityId}', " +
                 $"CURRENT_TIMESTAMP," +
-                $"null" +
+                $"NULL" +
                 $")";
 
             await _service.GetDataAsync(query);
 
-            return entity.ChannelId;
+            return entity.Id;
         }
 
         /// <summary>
@@ -128,18 +131,105 @@ namespace SignalRHubs.Services
 
         public async Task<Guid> UpdateCommunity(Community entity)
         {
+            bool flag = false;
             var query = $"UPDATE dbo.Community SET ";
-            if (entity.CommunityName != null) query += $"CommunityName='{entity.CommunityName}'";
-            if (entity.CommunityDescription != null) query += $",CommunityDescription = '{entity.CommunityDescription}'";
-            if (entity.CommunityType != null) query += $", CommunityType = '{entity.CommunityType}'";
-            query += $", UpdatedAt = CURRENT_TIMESTAMP";
+            if (entity.CommunityName != null)
+            {
+                query += $"CommunityName='{entity.CommunityName}'";
+                flag = true;
+            }
+            if (entity.CommunityDescription != null)
+            {
+                if (flag) query += $", ";
+                query += $"CommunityDescription = '{entity.CommunityDescription}'";
+                flag = true;
+            }
+            if (entity.CommunityType != null)
+            {
+                if (flag) query += $", ";
+                query += $" CommunityType = '{entity.CommunityType}'";
+                flag = true;
+            }
+            if (flag) query += $", ";
+            query += $" UpdatedAt = CURRENT_TIMESTAMP";
+
             if (entity.ForegroundImage != null) query += $", ForegroundImage = '{entity.ForegroundImage}'";
             if (entity.BackgroundImage != null) query += $", BackgroundImage = '{entity.BackgroundImage}'";
+            if (entity.NumberOfUsers != null) query += $", NumberOfUsers = '{entity.NumberOfUsers}'";
+            if (entity.NumberOfPosts != null) query += $", NumberOfPosts = '{entity.NumberOfPosts}'";
+            if (entity.NumberOfActiveUsers != null) query += $", NumberOfActiveUsers = '{entity.NumberOfActiveUsers}'";
             query += $" WHERE dbo.Community.ID = '{entity.Id}'; ";
 
-            await _service.GetDataAsync(query);
+            await _service.GetDataAsync(query);  
 
             return entity.Id;
+        }
+
+        public async Task<Guid> CreatePost(Post entity)
+        {
+            var query = $"INSERT INTO dbo.Posts OUTPUT Inserted.ID Values(NEWID(), '{entity.UserName}', '{entity.CommunityID}', '{entity.Title}', ";
+            if (entity.Contents != null) query += $"'{entity.Contents}',";
+            else query += $"NULL, ";
+
+            if (entity.Price != null) query += $"'{entity.Price}',";
+            else query += $"NULL, ";
+
+            if (entity.Category != null) query += $"'{entity.Category}',";
+            else query += $"NULL, ";
+
+            query += $"'{entity.CreatedAt}', NULL, 'FALSE')";
+
+            var response = await _service.GetDataAsync<Post>(query);
+
+            return response[0].Id;
+        }
+
+        public async Task<IEnumerable<PostViewModel>> GetPosts(Guid communityID, string username)
+        {
+            var query = $"SELECT dbo.Posts.ID,dbo.Posts.Title,dbo.Posts.Contents,dbo.Posts.Price,dbo.Posts.Category,dbo.Posts.CreatedAt,dbo.Posts.UpdatedAt FROM dbo.Posts WHERE dbo.Posts.UserName ='{username}' AND dbo.Posts.CommunityID ='{communityID}' AND dbo.Posts.isDeleted =0";
+            var response = await _service.GetDataAsync<PostViewModel>(query);
+
+            return response.ToList();
+        }
+
+        public async Task<Guid> UpdatePost(PostUpdateModel model)
+        {
+            bool flag=false;
+            var query = $"UPDATE dbo.Posts SET ";
+            if (model.Title != null)
+            {
+                query += $"Title='{model.Title}'";
+                flag = true;
+            }
+            if (model.Contents != null)
+            {
+                if (flag) query += $", Contents='{model.Contents}'";
+                else query += $"Contents='{model.Contents}'";
+                flag = true;
+            }
+            if (model.Price != null)
+            {
+                if(flag) query += $", Price='{model.Price}'";
+                else query += $" Price='{model.Price}'";
+                flag = true;
+            }
+            if (model.Category != null)
+            {
+                if(flag) query += $", Category='{model.Category}'";
+                else query += $" Category='{model.Category}'";
+                flag=true;
+            }
+            query += $", UpdatedAt=CURRENT_TIMESTAMP WHERE ID='{model.Id}'";
+            await _service.GetDataAsync(query);
+
+            return model.Id;
+        }
+
+        public async Task<Guid> DeletePost(Guid postId)
+        {
+            var query = $"UPDATE dbo.Posts SET isDeleted=1 WHERE ID='{postId}';";
+            await _service.GetDataAsync(query);
+            return postId;
         }
     }
 }

@@ -152,6 +152,30 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.CreatePost(SignalRHubs.Models.PostCreateModel)">
+            <summary> 
+            Create New Post
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.GetPostsOfCommunity(System.Guid)">
+            <summary> 
+            Get Posts of Community
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.UpdatePost(SignalRHubs.Models.PostUpdateModel)">
+            <summary> 
+            Update Post
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.DeletePost(System.Guid)">
+            <summary>
+            Delete Post
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:SignalRHubs.Controllers.ImageController.UpdateUserAvatar(System.String)">
             <summary>
             Create or Update User Avatar

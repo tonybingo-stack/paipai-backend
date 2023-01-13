@@ -20,6 +20,8 @@ namespace SignalRHubs.Profiles
             CreateMap<CommunityUpdateModel, Community>();
             CreateMap<ChannelModel, Channel>();
             CreateMap<User, UserLoginModel>();
+
+            CreateMap<PostCreateModel, Post>();
         }
     }
 }

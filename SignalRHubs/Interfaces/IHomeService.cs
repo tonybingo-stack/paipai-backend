@@ -21,6 +21,10 @@ namespace SignalRHubs.Interfaces.Services
         Task<Guid> DeleteChannel(Guid id);
         Task<String> UpdateCommunityAvatar(Guid id, string url);
         Task<String> UpdateCommunityBackGround(Guid id, string url);
+        Task<Guid> CreatePost(Post entity);
+        Task<IEnumerable<PostViewModel>> GetPosts(Guid communityID, string username);
+        Task<Guid> UpdatePost(PostUpdateModel model);
+        Task<Guid> DeletePost(Guid postId);
 
     }
 }
