@@ -76,6 +76,8 @@ namespace SignalRHubs.Controllers.Chat
         [HttpPost("/send-message")]
         public async Task<IActionResult> SendMessage([FromForm] MessageBindingModel model)
         {
+            if (model.Content == null) return BadRequest("You can not send an empty message.");
+            if (model.ReceiverUserName == null) return BadRequest("Receiver User Name is required!");
             // Send message to receiver
             await _hubContext.Clients.User(model.ReceiverUserName).SendAsync("echo", UserName, model.Content);
 
@@ -87,8 +89,8 @@ namespace SignalRHubs.Controllers.Chat
             Message message = _mapper.Map<Message>(model);
             message.SenderUserName = UserName;
             message.Content = content;
-            message.ChannelId = null;
-            message.FilePath = null;
+            message.ChannelId = model.ChannelId;
+            message.FilePath = model.FilePath;
             await _service.SaveMessage(message);
 
             // Update ChatCard table by sender and receiver.

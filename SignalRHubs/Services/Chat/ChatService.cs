@@ -63,7 +63,12 @@ namespace SignalRHubs.Services
         public async Task SaveMessage(Message entity)
         {
             var query = $"INSERT INTO [dbo].[Message] " +
-                $"VALUES (NEWID(),'{entity.SenderUserName}','{entity.ReceiverUserName}','{entity.Content}',NULL,NULL,CURRENT_TIMESTAMP,NULL)";
+                $"VALUES (NEWID(),'{entity.SenderUserName}','{entity.ReceiverUserName}','{entity.Content}'";
+            if (entity.ChannelId != null) query += $", '{entity.ChannelId}'";
+            else query += $", NULL";
+            if (entity.FilePath != null) query += $", '{entity.FilePath}'";
+            else query += $", NULL";
+            query += $", CURRENT_TIMESTAMP, NULL)";
 
             await _service.GetDataAsync(query);
         }
