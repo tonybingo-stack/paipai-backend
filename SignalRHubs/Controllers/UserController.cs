@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using SignalRHubs.Entities;
 using SignalRHubs.Interfaces.Services;
+using SignalRHubs.Lib;
 using SignalRHubs.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;

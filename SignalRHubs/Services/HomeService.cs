@@ -1,6 +1,7 @@
 ﻿using DbHelper.Interfaces.Services;
 using SignalRHubs.Entities;
 using SignalRHubs.Interfaces.Services;
+using SignalRHubs.Lib;
 using SignalRHubs.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Data.SqlClient;
@@ -31,7 +32,8 @@ namespace SignalRHubs.Services
             if (entity.ChannelDescription != null) query += $"'{entity.ChannelDescription}', ";
             else query += $"NULL, ";
 
-            query+= $"'{entity.ChannelCommunityId}', " +
+            query+= $"'{entity.ChannelOwnerName}', " +
+                $"'{entity.ChannelCommunityId}', " +
                 $"CURRENT_TIMESTAMP," +
                 $"NULL" +
                 $")";
@@ -72,7 +74,7 @@ namespace SignalRHubs.Services
             await _service.GetDataAsync(query);
 
             // Update CommunityMember Table
-            query = $"INSERT INTO dbo.CommunityMember VALUES(NEWID(), '{entity.CommunityOwnerName}','{entity.Id}','TRUE');";
+            query = $"INSERT INTO dbo.CommunityMember VALUES(NEWID(), '{entity.CommunityOwnerName}','{entity.Id}',0);";
             await _service.GetDataAsync(query);
 
             return entity.Id;
@@ -94,18 +96,37 @@ namespace SignalRHubs.Services
 
         public async Task<Guid> DeleteChannel(Guid id)
         {
-            var query = $"DELETE FROM dbo.Channel WHERE ChannelId = '{id}';";
+            // Update referenced table participants, message
+            var query = $"DELETE FROM dbo.Participants WHERE ChannelId = '{id}';";
+            await _service.GetDataAsync(query);
+            query = $"UPDATE dbo.Message SET isDeleted=1 WHERE ChannelId = '{id}';";
+            await _service.GetDataAsync(query);
+
+            // Update referenced table
+
+            query = $"DELETE FROM dbo.Channel WHERE ChannelId = '{id}';";
             await _service.GetDataAsync(query);
             return id;
-        }
+        }  
 
         public async Task<Guid> DeleteCommunity(Guid id)
         {
-            var query = $"DELETE FROM dbo.Community WHERE ID = '{id}';";
+            // Update referenced table channel, communitymember, Posts
+            var query = $"DELETE FROM dbo.CommunityMember WHERE CommunityID='{id}'";
             await _service.GetDataAsync(query);
 
-            // Update CommunityMember Table
-            query = $"DELETE FROM dbo.CommunityMember WHERE CommunityID='{id}'";
+            query = $"SELECT * FROM dbo.Channel WHERE ChannelCommunityId='{id}';";
+            var response = await _service.GetDataAsync<Channel>(query);
+            foreach(var item in response)
+            {
+                await DeleteChannel(item.Id);
+            }
+
+            query = $"DELETE FROM dbo.Posts WHERE CommunityID='{id}';";
+            await _service.GetDataAsync(query);
+            // Update referenced table
+
+            query = $"DELETE FROM dbo.Community WHERE ID = '{id}';";
             await _service.GetDataAsync(query);
 
             return id;
@@ -122,10 +143,15 @@ namespace SignalRHubs.Services
         {
             var query = $"SELECT * FROM dbo.Community WHERE dbo.Community.CommunityOwnerName ='{username}'";
             var response = await _service.GetDataAsync<CommunityViewModel>(query);
-            
+            foreach(var item in response)
+            {
+                item.NumberOfUsers =GlobalModule.NumberOfUsers[item.Id.ToString()]==null? 0:(int)GlobalModule.NumberOfUsers[item.Id.ToString()];
+                item.NumberOfPosts = GlobalModule.NumberOfPosts[item.Id.ToString()] == null ? 0:(int)GlobalModule.NumberOfPosts[item.Id.ToString()];
+                item.NumberOfActiveUsers = GlobalModule.NumberOfActiveUser[item.Id.ToString()] == null ? 0:(int)GlobalModule.NumberOfActiveUser[item.Id.ToString()];
+            }
             return response.ToList();
         }
-
+         
         public async Task<Guid> UpdateChannel(ChannelUpdateModel model)
         {
             var query = $"UPDATE dbo.Channel SET ";
@@ -168,6 +194,8 @@ namespace SignalRHubs.Services
             if (entity.NumberOfPosts != null) query += $", NumberOfPosts = '{entity.NumberOfPosts}'";
             if (entity.NumberOfActiveUsers != null) query += $", NumberOfActiveUsers = '{entity.NumberOfActiveUsers}'";
             query += $" WHERE dbo.Community.ID = '{entity.Id}'; ";
+
+            Console.WriteLine("here:"+query);
 
             await _service.GetDataAsync(query);  
 
@@ -236,8 +264,9 @@ namespace SignalRHubs.Services
 
         public async Task<Guid> DeletePost(Guid postId)
         {
-            var query = $"UPDATE dbo.Posts SET isDeleted=1 WHERE ID='{postId}';";
-            await _service.GetDataAsync(query);
+            var query = $"UPDATE dbo.Posts SET isDeleted=1 OUTPUT Deleted.CommunityID as ID WHERE ID='{postId}';";
+            var response = await _service.GetDataAsync(query);
+            GlobalModule.NumberOfPosts[response[0].Id.ToString()] = (int)GlobalModule.NumberOfPosts[response[0].Id.ToString()] - 1;
             return postId;
         }
 
@@ -250,7 +279,7 @@ namespace SignalRHubs.Services
 
         public async Task<string> JoinCommunity(string username, Guid communityId)
         {
-            var query = $"INSERT INTO dbo.CommunityMember VALUES(NEWID(), '{username}','{communityId}','FALSE');";
+            var query = $"INSERT INTO dbo.CommunityMember VALUES(NEWID(), '{username}','{communityId}',2);";
             await _service.GetDataAsync(query);
             return $"'{username}' Joined Community.";
         }
@@ -261,5 +290,31 @@ namespace SignalRHubs.Services
             await _service.GetDataAsync(query);
             return $"'{username}' exited from Community.";
         }
+
+        public async Task<CommunityMember> GetUserRole(string username, Guid communityId)
+        {
+            var query = $"SELECT * FROM dbo.CommunityMember WHERE UserName='{username}' AND CommunityID='{communityId}';";
+            var response = await _service.GetDataAsync<CommunityMember>(query);
+
+            if (response.Count == 0) return null;
+            return response[0];
+        }
+
+        public async Task<Channel> GetChannelById(Guid channelId)
+        {
+            var query = $"SELECT * FROM dbo.Channel WHERE ChannelId='{channelId}';";
+            var response = await _service.GetDataAsync<Channel>(query);
+
+            return response[0];
+        }
+
+        public async Task<Community> GetCommunityFromChannelId(Guid channelId)
+        {
+            var query = $"SELECT*FROM dbo.Community INNER JOIN dbo.Channel ON dbo.Channel.ChannelCommunityId =dbo.Community.ID WHERE dbo.Channel.ChannelId ='{channelId}'";
+            var response = await _service.GetDataAsync(query);
+
+            return response[0];
+        }
+
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SignalRHubs.Entities;
 using SignalRHubs.Interfaces.Services;
+using SignalRHubs.Lib;
 using SignalRHubs.Models;
 using System.ComponentModel.DataAnnotations;
 
@@ -29,7 +30,13 @@ namespace SignalRHubs.Controllers
             entity.CommunityOwnerName = UserName;
             if(entity.CommunityDescription!=null) entity.CommunityDescription = entity.CommunityDescription.Replace("'", "''");
 
-            return Ok(await _homeService.CreateCommunity(entity));
+            var response = await _homeService.CreateCommunity(entity);
+
+            GlobalModule.NumberOfUsers[response.ToString()] = 1;
+            GlobalModule.NumberOfPosts[response.ToString()] = 0;
+            GlobalModule.NumberOfActiveUser[response.ToString()] = 1;
+
+            return Ok(response);
         }
         /// <summary>
         /// Get all communities user created
@@ -51,6 +58,10 @@ namespace SignalRHubs.Controllers
         [HttpPut("/community")]
         public async Task<IActionResult> UpdateCommunity([FromForm] CommunityUpdateModel model)
         {
+            // check user role
+            CommunityMember m = await _homeService.GetUserRole(UserName, model.Id);
+            if (m.UserRole > 0) return BadRequest("UserRole is not enough to perform this action!");
+
             if (model.Id == null) return BadRequest("Community ID is required!");
             if (model.CommunityName == null && model.CommunityDescription == null && model.CommunityType == null && model.ForegroundImage == null && model.BackgroundImage == null) return BadRequest("At least one field is required!");
             
@@ -58,6 +69,7 @@ namespace SignalRHubs.Controllers
             if (entity.CommunityDescription != null) entity.CommunityDescription = entity.CommunityDescription.Replace("'", "''");
             entity.CommunityOwnerName = UserName;
             entity.UpdatedAt = DateTime.Now;
+
             return Ok(await _homeService.UpdateCommunity(entity));
         }
         /// <summary>
@@ -69,6 +81,11 @@ namespace SignalRHubs.Controllers
         [HttpDelete("/community")]
         public async Task<IActionResult> DeleteCommunity([Required] Guid id)
         {
+            // check user role
+            CommunityMember m = await _homeService.GetUserRole(UserName, id);
+            if (m.UserRole > 0) return BadRequest("UserRole is not enough to perform this action!");
+
+            // Update referenced table
             return Ok(await _homeService.DeleteCommunity(id));
         }
         /// <summary> 
@@ -80,8 +97,14 @@ namespace SignalRHubs.Controllers
         [HttpPost("/create-new-channel")]
         public async Task<IActionResult> CreateChannel([FromForm] ChannelModel model)
         {
+            // check user role
+            CommunityMember m = await _homeService.GetUserRole(UserName, model.ChannelCommunityId);
+            if (m==null || m.UserRole > 1) return BadRequest("User Role is not enough to perform this action!");
+
             Channel entity = _mapper.Map<Channel>(model);
+            entity.ChannelOwnerName = UserName;
             if (entity.ChannelDescription != null) entity.ChannelDescription = entity.ChannelDescription.Replace("'", "''");
+
             return Ok(await _homeService.CreateChannel(entity));
         }
         /// <summary> 
@@ -104,7 +127,10 @@ namespace SignalRHubs.Controllers
         [HttpPut("/channel")]
         public async Task<IActionResult> UpdateChannel([FromForm] ChannelUpdateModel model)
         {
-            if (model.ChannelId == null) return BadRequest("ChannelID is required!");
+            // Check User Role
+            // Get current owner name from db, compare it with UserName.
+            Channel c = await _homeService.GetChannelById(model.ChannelId);
+            if (c.ChannelOwnerName != UserName) return BadRequest("You are not owner of this channel!");
             if (model.ChannelName == null && model.ChannelDescription == null) return BadRequest("Name or Description is required!");
 
             if (model.ChannelDescription != null) model.ChannelDescription = model.ChannelDescription.Replace("'", "''");
@@ -119,6 +145,10 @@ namespace SignalRHubs.Controllers
         [HttpDelete("/channel")]
         public async Task<IActionResult> DeleteChannel([Required] Guid channelId)
         {
+            // Check User Role
+            Community com = await _homeService.GetCommunityFromChannelId(channelId);
+            if (com.CommunityOwnerName != UserName) return BadRequest("Only owner of community can delete this channel!");
+
             return Ok(await _homeService.DeleteChannel(channelId));
         }
         /// <summary> 
@@ -138,8 +168,9 @@ namespace SignalRHubs.Controllers
 
             entity.UserName = UserName;
             entity.isDeleted = false;
-
-            return Ok(await _homeService.CreatePost(entity));
+            var response = await _homeService.CreatePost(entity);
+            GlobalModule.NumberOfPosts[model.CommunityID.ToString()] = (bool)GlobalModule.NumberOfPosts[model.CommunityID.ToString()] ? 1 : (int)GlobalModule.NumberOfPosts[model.CommunityID.ToString()] + 1;
+            return Ok(response);
         }
         /// <summary> 
         /// Get Posts of Community
@@ -179,7 +210,8 @@ namespace SignalRHubs.Controllers
         [HttpDelete("/post")]
         public async Task<IActionResult> DeletePost([Required] Guid postId)
         {
-            return Ok(await _homeService.DeletePost(postId));
+            var response = await _homeService.DeletePost(postId);
+            return Ok(response);
         }
         /// <summary>
         /// Get all communities user joined
@@ -201,6 +233,7 @@ namespace SignalRHubs.Controllers
         [HttpPost("/community/join")]
         public async Task<IActionResult> JoinCommunity([FromForm][Required] Guid communityId)
         {
+            GlobalModule.NumberOfUsers[communityId.ToString()] = (int)GlobalModule.NumberOfUsers[communityId.ToString()] + 1;
             return Ok(await _homeService.JoinCommunity(UserName, communityId));
         }
         /// <summary>
@@ -212,6 +245,7 @@ namespace SignalRHubs.Controllers
         [HttpPost("/community/exit")]
         public async Task<IActionResult> ExitCommunity([FromForm][Required] Guid communityId)
         {
+            GlobalModule.NumberOfUsers[communityId.ToString()] = (int)GlobalModule.NumberOfUsers[communityId.ToString()] - 1;
             return Ok(await _homeService.ExitCommunity(UserName, communityId));
         }
     }

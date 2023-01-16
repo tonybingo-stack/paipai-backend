@@ -26,7 +26,8 @@ namespace SignalRHubs.Interfaces.Services
         Task<IEnumerable<CommunityViewModel>> GetJoinedCommunity(string username);
         Task<string> JoinCommunity(string username,Guid communityId);
         Task<string> ExitCommunity(string username, Guid communityId);
-
-
+        Task<CommunityMember> GetUserRole(string username, Guid communityId);
+        Task<Channel> GetChannelById(Guid channelId);
+        Task<Community> GetCommunityFromChannelId(Guid channelId);
     }
 }
