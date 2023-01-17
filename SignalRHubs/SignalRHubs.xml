@@ -105,12 +105,6 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SignalRHubs.Controllers.CommunityController.GetAllCommunity">
-            <summary>
-            Get all communities user created
-            </summary>
-            <returns></returns>
-        </member>
         <member name="M:SignalRHubs.Controllers.CommunityController.UpdateCommunity(SignalRHubs.Models.CommunityUpdateModel)">
             <summary>
             Update Community
@@ -186,6 +180,30 @@
         <member name="M:SignalRHubs.Controllers.CommunityController.ExitCommunity(System.Guid)">
             <summary>
             Exit from community
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.CreateEvent(SignalRHubs.Models.EventCreateModel)">
+            <summary>
+            Create Event
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.GetAllEvent(System.Guid)">
+            <summary>
+            Get Events of Channel
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.UpdateEvent(SignalRHubs.Models.EventUpdateModel)">
+            <summary>
+            Update Event
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SignalRHubs.Controllers.CommunityController.DeleteEvent(System.Guid)">
+            <summary>
+            Delete Event
             </summary>
             <returns></returns>
         </member>

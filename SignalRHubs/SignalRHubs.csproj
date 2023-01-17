@@ -6,7 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>ce8adfdd-32ca-4cf1-843f-8c4d9d1ca8fb</UserSecretsId>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <DocumentationFile>SignalRHubs.xml</DocumentationFile>
+    <DocumentationFile></DocumentationFile>
+    <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
   </PropertyGroup>
 
   <ItemGroup>

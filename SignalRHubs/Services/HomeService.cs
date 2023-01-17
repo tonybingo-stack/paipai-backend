@@ -96,12 +96,13 @@ namespace SignalRHubs.Services
 
         public async Task<Guid> DeleteChannel(Guid id)
         {
-            // Update referenced table participants, message
+            // Update referenced table participants, message, event
             var query = $"DELETE FROM dbo.Participants WHERE ChannelId = '{id}';";
             await _service.GetDataAsync(query);
             query = $"UPDATE dbo.Message SET isDeleted=1 WHERE ChannelId = '{id}';";
             await _service.GetDataAsync(query);
-
+            query = $"UPDATE dbo.Events SET isDeleted=1 WHERE ChannelId='{id}'";
+            await _service.GetDataAsync(query);
             // Update referenced table
 
             query = $"DELETE FROM dbo.Channel WHERE ChannelId = '{id}';";
@@ -139,19 +140,6 @@ namespace SignalRHubs.Services
             return response.ToList();
         }
 
-        public async Task<IEnumerable<CommunityViewModel>> GetCommunity(string username)
-        {
-            var query = $"SELECT * FROM dbo.Community WHERE dbo.Community.CommunityOwnerName ='{username}'";
-            var response = await _service.GetDataAsync<CommunityViewModel>(query);
-            foreach(var item in response)
-            {
-                item.NumberOfUsers =GlobalModule.NumberOfUsers[item.Id.ToString()]==null? 0:(int)GlobalModule.NumberOfUsers[item.Id.ToString()];
-                item.NumberOfPosts = GlobalModule.NumberOfPosts[item.Id.ToString()] == null ? 0:(int)GlobalModule.NumberOfPosts[item.Id.ToString()];
-                item.NumberOfActiveUsers = GlobalModule.NumberOfActiveUser[item.Id.ToString()] == null ? 0:(int)GlobalModule.NumberOfActiveUser[item.Id.ToString()];
-            }
-            return response.ToList();
-        }
-         
         public async Task<Guid> UpdateChannel(ChannelUpdateModel model)
         {
             var query = $"UPDATE dbo.Channel SET ";
@@ -272,7 +260,7 @@ namespace SignalRHubs.Services
 
         public async Task<IEnumerable<CommunityViewModel>> GetJoinedCommunity(string username)
         {
-            var query = $"SELECT * FROM dbo.CommunityMember INNER JOIN dbo.Community ON dbo.CommunityMember.CommunityID =dbo.Community.ID WHERE dbo.CommunityMember.UserName ='{username}'";
+            var query = $"SELECT * FROM dbo.Community INNER JOIN dbo.CommunityMember ON dbo.CommunityMember.CommunityID =dbo.Community.ID WHERE dbo.CommunityMember.UserName ='{username}'";
             var response = await _service.GetDataAsync<CommunityViewModel>(query);
             return response.ToList();
         }
@@ -296,7 +284,9 @@ namespace SignalRHubs.Services
             var query = $"SELECT * FROM dbo.CommunityMember WHERE UserName='{username}' AND CommunityID='{communityId}';";
             var response = await _service.GetDataAsync<CommunityMember>(query);
 
-            if (response.Count == 0) return null;
+            CommunityMember m = new CommunityMember();
+            m.UserRole = 4;
+            if (response.Count == 0) return m;
             return response[0];
         }
 
@@ -316,5 +306,65 @@ namespace SignalRHubs.Services
             return response[0];
         }
 
+        public async Task<Guid> CreateEvent(Event e)
+        {
+            var query = $"INSERT INTO dbo.Event OUTPUT Inserted.ID VALUES(NEWID(), '{e.Title}', '{e.HostName}', ";
+            
+            if (e.Description != null) query += $"'{e.Description}', ";
+            else query += $"NULL, ";
+
+            if (e.Time != null) query += $"'{e.Time}',";
+            else query += $"NULL, ";
+
+            if (e.Access != null) query += $"'{e.Access}', ";
+            else query += $"NULL, ";
+
+            if (e.Image != null) query += $"'{e.Image}', ";
+            else query += $"NULL, ";
+
+            if (e.Limit != null) query += $"{e.Limit}, ";
+            else query += $"NULL, ";
+
+            query += $"'{e.ChannelId}', CURRENT_TIMESTAMP, NULL, 0);";
+
+            var response = await _service.GetDataAsync<Event>(query);
+            if (response.Count == 0) return Guid.Empty;
+
+            return response[0].Id;
+        }
+
+        public async Task<Event> GetEventByID(Guid id)
+        {
+            var query = $"SELECT * FROM dbo.Event WHERE Id='{id}'";
+            var response = await _service.GetDataAsync<Event>(query);
+            if (response.Count == 0) return null;
+            return response[0];
+        }
+
+        public async Task<Guid> UpdateEvent(Event e)
+        {
+            var query = $"UPDATE dbo.Event " +
+                $"SET Title='{e.Title}', Description='{e.Description}', Time='{e.Time}', Access='{e.Access}',Image='{e.Image}', Limit='{e.Limit}', UpdatedAt=CURRENT_TIMESTAMP " +
+                $"WHERE ID='{e.Id}'";
+
+            var response =await _service.GetDataAsync<Event>(query);
+            return e.Id;
+        }
+
+        public async Task<Guid> DeleteEvent(Guid id)
+        {
+            var query = $"UPDATE dbo.Event SET isDeleted=1 WHERE ID='{id}'";
+            await _service.GetDataAsync(query);
+
+            return id;
+        }
+
+        public async Task<IEnumerable<EventViewModel>> GetAllEvent(Guid channelId)
+        {
+            var query = $"SELECT * FROM dbo.Event Where ChannelId='{channelId}' AND isDeleted=0;";
+            var response = await _service.GetDataAsync<EventViewModel>(query);
+
+            return response.ToList();
+        }
     }
 }

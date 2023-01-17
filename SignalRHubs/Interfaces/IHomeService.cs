@@ -10,7 +10,6 @@ namespace SignalRHubs.Interfaces.Services
     public interface IHomeService
     {
         Task<Guid> CreateCommunity(Community entity);
-        Task<IEnumerable<CommunityViewModel>> GetCommunity(string username);
         Task<Guid> UpdateCommunity(Community entity);
         Task<Guid> DeleteCommunity(Guid id);
         Task<Guid> CreateChannel(Channel entity);
@@ -29,5 +28,10 @@ namespace SignalRHubs.Interfaces.Services
         Task<CommunityMember> GetUserRole(string username, Guid communityId);
         Task<Channel> GetChannelById(Guid channelId);
         Task<Community> GetCommunityFromChannelId(Guid channelId);
+        Task<Guid> CreateEvent(Event e);
+        Task<Event> GetEventByID(Guid id);
+        Task<Guid> UpdateEvent(Event e);
+        Task<Guid> DeleteEvent(Guid id);
+        Task<IEnumerable<EventViewModel>> GetAllEvent(Guid channelId);
     }
 }

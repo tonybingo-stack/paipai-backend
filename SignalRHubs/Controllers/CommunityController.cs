@@ -27,6 +27,7 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> CreateCommunity([FromForm] CommunityModel model)
         {
             Community entity = _mapper.Map<Community>(model);
+            entity.CommunityName = entity.CommunityName.Replace("'", "''");
             entity.CommunityOwnerName = UserName;
             if(entity.CommunityDescription!=null) entity.CommunityDescription = entity.CommunityDescription.Replace("'", "''");
 
@@ -38,17 +39,17 @@ namespace SignalRHubs.Controllers
 
             return Ok(response);
         }
-        /// <summary>
-        /// Get all communities user created
-        /// </summary>
-        /// <returns></returns>
-        [ProducesResponseType(typeof(List<CommunityViewModel>), 200)]
-        [ProducesResponseType(typeof(NotFoundResult), 400)]
-        [HttpGet("/community")]
-        public async Task<IActionResult> GetAllCommunity()
-        {
-            return Ok(await _homeService.GetCommunity(UserName));
-        }
+        ///// <summary>
+        ///// Get all communities user created
+        ///// </summary>
+        ///// <returns></returns>
+        //[ProducesResponseType(typeof(List<CommunityViewModel>), 200)]
+        //[ProducesResponseType(typeof(NotFoundResult), 400)]
+        //[HttpGet("/community")]
+        //public async Task<IActionResult> GetAllCommunity()
+        //{
+        //    return Ok(await _homeService.GetCommunity(UserName));
+        //}
         /// <summary>
         /// Update Community
         /// </summary>
@@ -66,6 +67,7 @@ namespace SignalRHubs.Controllers
             if (model.CommunityName == null && model.CommunityDescription == null && model.CommunityType == null && model.ForegroundImage == null && model.BackgroundImage == null) return BadRequest("At least one field is required!");
             
             Community entity = _mapper.Map<Community>(model);
+            if (entity.CommunityName != null) entity.CommunityName = entity.CommunityName.Replace("'", "''");
             if (entity.CommunityDescription != null) entity.CommunityDescription = entity.CommunityDescription.Replace("'", "''");
             entity.CommunityOwnerName = UserName;
             entity.UpdatedAt = DateTime.Now;
@@ -99,10 +101,11 @@ namespace SignalRHubs.Controllers
         {
             // check user role
             CommunityMember m = await _homeService.GetUserRole(UserName, model.ChannelCommunityId);
-            if (m==null || m.UserRole > 1) return BadRequest("User Role is not enough to perform this action!");
+            if (m.UserRole > 1) return BadRequest("User Role is not enough to perform this action!");
 
             Channel entity = _mapper.Map<Channel>(model);
             entity.ChannelOwnerName = UserName;
+            entity.ChannelName = entity.ChannelName.Replace("'", "''");
             if (entity.ChannelDescription != null) entity.ChannelDescription = entity.ChannelDescription.Replace("'", "''");
 
             return Ok(await _homeService.CreateChannel(entity));
@@ -134,6 +137,8 @@ namespace SignalRHubs.Controllers
             if (model.ChannelName == null && model.ChannelDescription == null) return BadRequest("Name or Description is required!");
 
             if (model.ChannelDescription != null) model.ChannelDescription = model.ChannelDescription.Replace("'", "''");
+            if (model.ChannelName != null) model.ChannelName = model.ChannelName.Replace("'", "''");
+
             return Ok(await _homeService.UpdateChannel(model));
         }
         /// <summary>
@@ -170,6 +175,7 @@ namespace SignalRHubs.Controllers
             entity.isDeleted = false;
             var response = await _homeService.CreatePost(entity);
             GlobalModule.NumberOfPosts[model.CommunityID.ToString()] = (bool)GlobalModule.NumberOfPosts[model.CommunityID.ToString()] ? 1 : (int)GlobalModule.NumberOfPosts[model.CommunityID.ToString()] + 1;
+            
             return Ok(response);
         }
         /// <summary> 
@@ -247,6 +253,81 @@ namespace SignalRHubs.Controllers
         {
             GlobalModule.NumberOfUsers[communityId.ToString()] = (int)GlobalModule.NumberOfUsers[communityId.ToString()] - 1;
             return Ok(await _homeService.ExitCommunity(UserName, communityId));
+        }
+
+        /// <summary>
+        /// Create Event
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(Guid), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpPost("/create-new-event")]
+        public async Task<IActionResult> CreateEvent([FromForm] EventCreateModel model)
+        {
+            // check user role
+            Channel c=await _homeService.GetChannelById(model.ChannelId);
+            CommunityMember m = await _homeService.GetUserRole(UserName, c.ChannelCommunityId);
+            if (m.UserRole > 1) return BadRequest("User role is not enough to perform this action!");
+
+            Event e=_mapper.Map<Event>(model);
+            e.Title = e.Title.Replace("'", "''");
+            if (e.Description != null) e.Description = e.Description.Replace("'", "''");
+            if (e.Image != null) e.Image = e.Image.Replace("'", "''");
+            e.HostName = UserName;
+            
+            return Ok(await _homeService.CreateEvent(e));
+        }
+        /// <summary>
+        /// Get Events of Channel
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(EventViewModel), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpGet("/events")]
+        public async Task<IActionResult> GetAllEvent([Required] Guid ChannelId)
+        {
+            return Ok(await _homeService.GetAllEvent(ChannelId));
+        }
+        /// <summary>
+        /// Update Event
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(Guid), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpPut("/event")]
+        public async Task<IActionResult> UpdateEvent([FromForm] EventUpdateModel model)
+        {
+            // check user role
+            Event e = await _homeService.GetEventByID(model.Id);
+            if (e == null) return BadRequest("Event not exist!");
+            if (e.HostName != UserName) return BadRequest("Only host can update event!");
+
+            if (model.Title != null) e.Title = model.Title.Replace("'", "''");
+            if (model.Description != null) e.Description = model.Description.Replace("'", "''");
+            if (model.Access != null) e.Access = model.Access.Replace("'", "''");
+            if (model.Image != null) e.Image = model.Image.Replace("'", "''");
+            if (model.Title != null) e.Time = model.Time;
+            if(model.Limit != null) e.Limit = model.Limit.Value;
+
+            return Ok(await _homeService.UpdateEvent(e));
+        }
+        /// <summary>
+        /// Delete Event
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(Guid), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpDelete("/event")]
+        public async Task<IActionResult> DeleteEvent([FromForm][Required] Guid Id)
+        {
+            // check user role
+            Event e = await _homeService.GetEventByID(Id);
+            if (e == null) return BadRequest("Event not exist!");
+            // Check User Role
+            Community com = await _homeService.GetCommunityFromChannelId(e.ChannelId);
+            if (com.CommunityOwnerName != UserName) return BadRequest("Only owner of community can delete this channel!");
+
+            return Ok(await _homeService.DeleteEvent(Id));
         }
     }
 }

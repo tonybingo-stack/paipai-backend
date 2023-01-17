@@ -21,6 +21,8 @@ namespace SignalRHubs.Profiles
             CreateMap<User, UserLoginModel>();
 
             CreateMap<PostCreateModel, Post>();
+
+            CreateMap<EventCreateModel, Event>();
         }
     }
 }
