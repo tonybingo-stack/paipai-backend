@@ -34,5 +34,7 @@ namespace SignalRHubs.Interfaces.Services
         Task<Guid> DeleteEvent(Guid id);
         Task<IEnumerable<EventViewModel>> GetAllEvent(Guid communityId);
         Task<Community> GetCommunityByChannelId(Guid channelId);
+        Task<string> AddAdmin(string username, Guid communityId);
+        Task<string> RemoveAdmin(string username, Guid communityId);
     }
 }

@@ -37,19 +37,6 @@ namespace SignalRHubs.Controllers.Chat
         }
 
         /// <summary>
-        /// Get messages of a channel by Id
-        /// </summary>
-        /// <param name="channelId">Chat Channel Id</param>
-        /// <returns>List of chat messages.</returns>
-        [ProducesResponseType(typeof(List<MessageViewModel>), 200)]
-        [ProducesResponseType(500)]
-        [HttpGet("/channel/{channelId}/messages")]
-        public async Task<IActionResult> GetMessagesByChannelId([FromRoute] string channelId)
-        {
-            return Ok(await _service.GetMessageByChannelId(Guid.Parse(channelId)));
-        }
-
-        /// <summary>
         /// Get details of a message by Id
         /// </summary>
         /// <param name="id"></param>
@@ -74,7 +61,7 @@ namespace SignalRHubs.Controllers.Chat
         public async Task<IActionResult> SendMessage([FromForm] MessageBindingModel model)
         {
             if (model.Content == null) return BadRequest("You can not send an empty message.");
-            if (model.ReceiverUserName == null) return BadRequest("Receiver User Name is required!");
+            if (model.ReceiverUserName == null) return BadRequest("Receiver Name is required!");
             // Send message to receiver
             await _hubContext.Clients.User(model.ReceiverUserName).SendAsync("echo", UserName, model.Content);
 
@@ -189,14 +176,28 @@ namespace SignalRHubs.Controllers.Chat
             var userSummary = _mapper.Map<ReadUserSummaryModel>(user);
             return Ok(userSummary);
         }
+
+        /// <summary>
+        /// Get messages of a channel by Id
+        /// </summary>
+        /// <param name="channelId">Chat Channel Id</param>
+        /// <returns>List of chat messages.</returns>
+        [ProducesResponseType(typeof(List<MessageViewModel>), 200)]
+        [ProducesResponseType(500)]
+        [HttpGet("/channel/chat-history")]
+        public async Task<IActionResult> GetMessagesByChannelId([FromQuery][Required] Guid channelId)
+        {
+            return Ok(await _service.GetMessageByChannelId(channelId));
+        }
+
         /// <summary>
         /// Get Chat History of user between offset*10 ~ (offset+1)*10 messages
         /// </summary>
         /// <returns></returns>  
-        [HttpPost("/chathistory")]
+        [HttpGet("/chatcard/chat-history")]
         [ProducesResponseType(typeof(ChatModel), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<IEnumerable<ChatModel>>> GetChatHistory([FromForm][Required] string receivername, [FromForm][Required] int offset)
+        public async Task<ActionResult<IEnumerable<ChatModel>>> GetChatHistory([FromQuery][Required] string receivername, [FromQuery][Required] int offset)
         {
             ChatHistoryBindingModel model = new ChatHistoryBindingModel();
             model.ReceiverUserName = receivername;

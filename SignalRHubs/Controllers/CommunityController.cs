@@ -256,7 +256,44 @@ namespace SignalRHubs.Controllers
             GlobalModule.NumberOfUsers[communityId.ToString()] = (int)GlobalModule.NumberOfUsers[communityId.ToString()] - 1;
             return Ok(await _homeService.ExitCommunity(UserName, communityId));
         }
+        /// <summary>
+        /// Provide admin role to joined user
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(Guid), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpPost("/community/admin")]
+        public async Task<IActionResult> ProvideAdminRole([FromForm][Required] string username, [FromForm][Required] Guid communityId)
+        {
+            // check user role
+            CommunityMember m = await _homeService.GetUserRole(UserName, communityId);
+            if (m == null || m.UserRole > 0) return BadRequest("You are not super admin of this community!");
+            m = await _homeService.GetUserRole(username, communityId);
+            if (m == null) return BadRequest("User not joined in this community!");
+            if (m.UserRole < 2) return BadRequest("User is already admin of this community!");
+            // Check User Role
 
+            return Ok(await _homeService.AddAdmin(username, communityId));
+        }
+        /// <summary>
+        /// Cancel admin role to joined user
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(Guid), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpDelete("/community/admin")]
+        public async Task<IActionResult> CancelAdminRole([FromForm][Required] string username, [FromForm][Required] Guid communityId)
+        {
+            // check user role
+            CommunityMember m = await _homeService.GetUserRole(UserName, communityId);
+            if (m == null || m.UserRole > 0) return BadRequest("You are not super admin of this community!");
+            m = await _homeService.GetUserRole(username, communityId);
+            if (m == null) return BadRequest("User not joined in this community!");
+            if (m.UserRole > 1) return BadRequest("User is not admin of this community!");
+            // Check User Role
+
+            return Ok(await _homeService.RemoveAdmin(username, communityId));
+        }
         /// <summary>
         /// Create Event
         /// </summary>
@@ -330,5 +367,6 @@ namespace SignalRHubs.Controllers
 
             return Ok(await _homeService.DeleteEvent(Id));
         }
+ 
     }
 }

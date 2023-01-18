@@ -107,25 +107,6 @@ namespace SignalRHubs.Services
 
         public async Task<Guid> DeleteCommunity(Guid id)
         {
-            // Update referenced table channel, communitymember, Posts
-            //var query = $"DELETE FROM dbo.CommunityMember WHERE CommunityID='{id}'";
-            //await _service.GetDataAsync(query);
-
-            //query = $"SELECT dbo.Channel.ChannelId,dbo.Channel.ChannelName,dbo.Channel.ChannelDescription,dbo.Channel.ChannelOwnerName,dbo.Channel.ChannelCommunityId,dbo.Channel.CreatedAt,dbo.Channel.UpdatedAt FROM dbo.Channel WHERE dbo.Channel.ChannelCommunityId='{id}';";
-            //var response = await _service.GetDataAsync<Channel>(query);
-            //foreach(var item in response)
-            //{
-            //    await DeleteChannel(item.ChannelId);
-            //}
-
-            //query = $"DELETE FROM dbo.Posts WHERE CommunityID='{id}';";
-            //await _service.GetDataAsync(query);
-
-            //query = $"UPDATE dbo.Event SET CommunityId=NULL, isDeleted=1 WHERE CommunityId='{id}'";
-            //await _service.GetDataAsync(query);
-            //// Update referenced table
-
-            //query = $"DELETE FROM dbo.Community WHERE ID = '{id}';";
             var query = $"DECLARE @Counter INT, @i INT " +
                 $"WITH x as (SELECT* FROM dbo.Channel WHERE dbo.Channel.ChannelCommunityId = '{id}') " +
                 $"SELECT @Counter = COUNT(*) FROM x " +
@@ -391,6 +372,20 @@ namespace SignalRHubs.Services
             var response = await _service.GetDataAsync<Community>(query);
             if (response.Count == 0) return null;
             return response[0];
+        }
+
+        public async Task<string> AddAdmin(string username, Guid communityId)
+        {
+            var query = $"UPDATE CommunityMember SET UserRole=1 WHERE UserName={username} AND CommunityID='{communityId}';";
+            await _service.GetDataAsync(query);
+            return $"{username} is selected as an admin of community!";
+        }
+
+        public async Task<string> RemoveAdmin(string username, Guid communityId)
+        {
+            var query = $"UPDATE CommunityMember SET UserRole=2 WHERE UserName={username} AND CommunityID='{communityId}';";
+            await _service.GetDataAsync(query);
+            return $"{username} is removed from admin of community!";
         }
     }
 }
