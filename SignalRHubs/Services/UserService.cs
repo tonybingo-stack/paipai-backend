@@ -29,8 +29,8 @@ namespace SignalRHubs.Services
         {
             var query = $"SELECT dbo.Users.ID " +
                 $"FROM dbo.Users " +
-                $"WHERE dbo.Users.UserName = @UserName";
-            var response = await _userService.GetDataAsync(query, new { UserName = name });
+                $"WHERE dbo.Users.UserName = N'{name}'";
+            var response = await _userService.GetDataAsync(query);
 
             return response[0].Id;
         }    
@@ -49,16 +49,16 @@ namespace SignalRHubs.Services
 
             var query = $"Insert into Users Values(" +
                 $"'{ entity.Id }', " +
-                $"'{ entity.FirstName }', " +
-                $"'{ entity.LastName }', " +
-                $"'{ entity.UserName }', " +
-                $"'{ entity.NickName }', " +
-                $"'{ entity.Email }', " +
-                $"'{ entity.Password }', " +
-                $"'{ entity.Phone }', " +
+                $"N'{ entity.FirstName }', " +
+                $"N'{ entity.LastName }', " +
+                $"N'{ entity.UserName }', " +
+                $"N'{ entity.NickName }', " +
+                $"N'{ entity.Email }', " +
+                $"N'{ entity.Password }', " +
+                $"N'{ entity.Phone }', " +
                 $"{ entity.Gender }, " +
                 $"CURRENT_TIMESTAMP, " +
-                $"'{entity.Avatar}'" +
+                $"N'{entity.Avatar}'" +
                 $")";
             await _userService.GetDataAsync(query);
 
@@ -72,7 +72,7 @@ namespace SignalRHubs.Services
         public async Task<string> LoginUser(UserModel model)
         {
 
-            var query = $"SELECT * FROM Users Where username='{ model.UserName }'";
+            var query = $"SELECT * FROM Users Where username=N'{ model.UserName }'";
             var response = await _userService.GetDataAsync(query);
 
             if (response.Count == 0) return "User Not Found";
@@ -90,7 +90,7 @@ namespace SignalRHubs.Services
         /// <returns></returns>
         public async Task<User> GetUserByUserName(string name)
         {
-            var query = $"SELECT * FROM Users WHERE UserName='{name}'";
+            var query = $"SELECT * FROM Users WHERE UserName=N'{name}'";
             return await _userService.GetFirstOrDefaultAsync<User>(query);
         }
         public async Task<List<User>> GetUsers()
@@ -104,14 +104,14 @@ namespace SignalRHubs.Services
 
         public async Task<string> UpdateUserAvatar(string url, string username)
         {
-            var query = $"UPDATE [dbo].[Users] SET Avatar = '{url}' WHERE UserName = '{username}'";
+            var query = $"UPDATE [dbo].[Users] SET Avatar = N'{url}' WHERE UserName = N'{username}'";
             await _userService.GetDataAsync(query);
             return "Successfully updated user avatar!";
         }
 
         public async Task<bool> IsValidUserName(string userName)
         {
-            var query = $"SELECT * FROM dbo.Users WHERE UserName = '{userName}'";
+            var query = $"SELECT * FROM dbo.Users WHERE UserName = N'{userName}'";
             var result = await _userService.GetDataAsync(query);
 
             if (result.Count == 0) return true;

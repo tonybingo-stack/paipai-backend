@@ -182,7 +182,7 @@ namespace SignalRHubs.Controllers.Chat
         /// </summary>
         /// <param name="channelId">Chat Channel Id</param>
         /// <returns>List of chat messages.</returns>
-        [ProducesResponseType(typeof(List<MessageViewModel>), 200)]
+        [ProducesResponseType(typeof(List<ChannelChatModel>), 200)]
         [ProducesResponseType(500)]
         [HttpGet("/channel/chat-history")]
         public async Task<IActionResult> GetMessagesByChannelId([FromQuery][Required] Guid channelId)

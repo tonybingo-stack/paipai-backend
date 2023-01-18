@@ -20,8 +20,8 @@ namespace SignalRHubs.Services
 
         public async Task<IEnumerable<ChannelViewModel>> GetChatChannels(string username)
         {
-            var query = $"SELECT dbo.Channel.ChannelId,dbo.Channel.ChannelName,dbo.Channel.ChannelDescription,dbo.Channel.ChannelCommunityId,dbo.Channel.CreatedAt,dbo.Channel.UpdatedAt FROM dbo.Channel INNER JOIN dbo.Community ON dbo.Channel.ChannelCommunityId =dbo.Community.ID INNER JOIN dbo.Users ON dbo.Community.CommunityOwnerName =dbo.Users.UserName WHERE dbo.Users.UserName =@Username";
-            return await _service.GetDataAsync<ChannelViewModel>(query, new {Username = username });
+            var query = $"SELECT dbo.Channel.ChannelId,dbo.Channel.ChannelName,dbo.Channel.ChannelDescription,dbo.Channel.ChannelCommunityId,dbo.Channel.CreatedAt,dbo.Channel.UpdatedAt FROM dbo.Channel INNER JOIN dbo.Community ON dbo.Channel.ChannelCommunityId =dbo.Community.ID INNER JOIN dbo.Users ON dbo.Community.CommunityOwnerName =dbo.Users.UserName WHERE dbo.Users.UserName =N'{username}'";
+            return await _service.GetDataAsync<ChannelViewModel>(query);
         }
 
         public async Task<MessageViewModel> GetMessage(Guid Id)
@@ -61,10 +61,10 @@ namespace SignalRHubs.Services
         public async Task SaveMessage(Message entity)
         {
             var query = $"INSERT INTO [dbo].[Message] " +
-                $"VALUES (NEWID(),'{entity.SenderUserName}','{entity.ReceiverUserName}','{entity.Content}'";
+                $"VALUES (NEWID(),N'{entity.SenderUserName}',N'{entity.ReceiverUserName}',N'{entity.Content}'";
             if (entity.ChannelId != null) query += $", '{entity.ChannelId}'";
             else query += $", NULL";
-            if (entity.FilePath != null) query += $", '{entity.FilePath}'";
+            if (entity.FilePath != null) query += $", N'{entity.FilePath}'";
             else query += $", NULL";
             query += $", CURRENT_TIMESTAMP, NULL, 'FALSE', ";
             if (entity.RepliedTo != null) query += $"'{entity.RepliedTo}');";
@@ -75,7 +75,7 @@ namespace SignalRHubs.Services
         public async Task PutMessage(Message message)
         {
             var query = $"UPDATE dbo.Message " +
-                $"SET Content = '{message.Content}', UpdatedAt = CURRENT_TIMESTAMP " +
+                $"SET Content = N'{message.Content}', UpdatedAt = CURRENT_TIMESTAMP " +
                 $"WHERE dbo.Message.ID = @Id; ";
 
             await _service.GetDataAsync(query, new { Id = message.Id });
@@ -88,30 +88,6 @@ namespace SignalRHubs.Services
 
             var response = await _service.GetDataAsync(query, new { Id = id });
         }
-        public async Task SaveChannel(Channel _channel)
-        {
-            SqlTransaction? transaction = null;
-            try
-            {
-                await _connection.OpenAsync();
-                transaction = _connection.BeginTransaction();
-
-                await _service.SaveAsync(_channel, _connection, transaction);
-                //var details = _channel.Details.ToList();
-                //await _service.SaveManyAsync<ChatRoomDetail>(details, _connection, transaction);
-
-                transaction.Commit();
-            }
-            catch (Exception)
-            {
-                if (transaction != null) transaction.Rollback();
-                throw;
-            }
-            finally
-            {
-                _connection.Close();
-            }
-        }
 
         public async Task CreateOrUpdateChatCards(ChatCardModel model)
         {
@@ -123,14 +99,14 @@ namespace SignalRHubs.Services
                 $"FROM " +
                 $"dbo.ChatCard " +
                 $"WHERE " +
-                $"dbo.ChatCard.SenderUserName = '{model.SenderUserName}' " +
-                $"AND dbo.ChatCard.ReceiverUserName = '{model.ReceiverUserName}' " +
+                $"dbo.ChatCard.SenderUserName = N'{model.SenderUserName}' " +
+                $"AND dbo.ChatCard.ReceiverUserName = N'{model.ReceiverUserName}' " +
                 $"SELECT @i; " +
                 $"IF " +
                 $"@i > 0 BEGIN " +
-                $"UPDATE dbo.ChatCard SET Content = '{model.Content}', isSend = '{model.isSend}', isDeleted = '{model.isDeleted}' WHERE SenderUserName = '{model.SenderUserName}' AND ReceiverUserName = '{model.ReceiverUserName}';" +
+                $"UPDATE dbo.ChatCard SET Content = N'{model.Content}', isSend = '{model.isSend}', isDeleted = '{model.isDeleted}' WHERE SenderUserName = N'{model.SenderUserName}' AND ReceiverUserName = N'{model.ReceiverUserName}';" +
                 $"END ELSE BEGIN " +
-                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), '{model.SenderUserName}', '{model.ReceiverUserName}', '{model.Content}', '{model.isSend}', '{model.isDeleted}');" +
+                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), N'{model.SenderUserName}', N'{model.ReceiverUserName}', N'{model.Content}', '{model.isSend}', '{model.isDeleted}');" +
                 $"END " +
                 $"END";
 
@@ -139,7 +115,7 @@ namespace SignalRHubs.Services
         }
         public async Task<IEnumerable<ChatCardModel>> GetChatCards(string username)
         {
-            var query = $"SELECT dbo.ChatCard.SenderUserName,dbo.ChatCard.ReceiverUserName,dbo.ChatCard.Content,dbo.ChatCard.isSend,dbo.ChatCard.isDeleted,dbo.Users.NickName,dbo.Users.Avatar FROM dbo.ChatCard INNER JOIN dbo.Users ON dbo.ChatCard.ReceiverUserName =dbo.Users.UserName WHERE dbo.ChatCard.SenderUserName= '{username}' AND isDeleted = 0";
+            var query = $"SELECT dbo.ChatCard.SenderUserName,dbo.ChatCard.ReceiverUserName,dbo.ChatCard.Content,dbo.ChatCard.isSend,dbo.ChatCard.isDeleted,dbo.Users.NickName,dbo.Users.Avatar FROM dbo.ChatCard INNER JOIN dbo.Users ON dbo.ChatCard.ReceiverUserName =dbo.Users.UserName WHERE dbo.ChatCard.SenderUserName= N'{username}' AND isDeleted = 0";
             var result = await _service.GetDataAsync<ChatCardModel>(query);
             return result.ToList();
         }
@@ -149,16 +125,16 @@ namespace SignalRHubs.Services
                 $"A.SenderUserName,A.Content,A.CreatedAt,A.RepliedTo," +
                 $"B.SenderUserName AS RepliedUserName,B.Content AS RepliedContent,B.CreatedAt AS RepliedMsgCreatedAt " +
                 $"FROM dbo.Message AS A LEFT JOIN dbo.Message AS B ON A.RepliedTo =B.ID " +
-                $"WHERE (A.SenderUserName ='user01' AND A.ReceiverUserName ='user02') OR (A.SenderUserName ='user02' AND A.ReceiverUserName ='user01') " +
-                $"ORDER BY A.CreatedAt DESC OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;";
+                $"WHERE (A.SenderUserName =N'{model.SenderUserName}' AND A.ReceiverUserName =N'{model.ReceiverUserName}') OR (A.SenderUserName =N'{model.ReceiverUserName}' AND A.ReceiverUserName =N'{model.SenderUserName}') " +
+                $"ORDER BY A.CreatedAt DESC OFFSET {offset*10} ROWS FETCH NEXT 10 ROWS ONLY;";
 
             var response = await _service.GetDataAsync<ChatModel>(query);
             return response.ToList();
         }
         public async Task<string> DeleteAllChatCards(string username)
         {
-            var query = $"UPDATE dbo.ChatCard SET isDeleted = 'TRUE'  WHERE dbo.ChatCard.SenderUserName =@Username;";
-            await _service.GetDataAsync(query, new { Username = username });
+            var query = $"UPDATE dbo.ChatCard SET isDeleted = 'TRUE'  WHERE dbo.ChatCard.SenderUserName =N'{username}';";
+            await _service.GetDataAsync(query);
             return "Deleted all chat cards";
         }
         public async Task<string> DeleteChatCardByID(Guid chatCardID)
@@ -171,14 +147,14 @@ namespace SignalRHubs.Services
         public async Task RefreshChatCard(string sender, string receiver)
         {
             var query = $"SELECT TOP 1 * FROM dbo.Message " +
-                $"WHERE dbo.Message.SenderUserName ='{sender}' AND " +
-                $"dbo.Message.ReceiverUserName ='{receiver}' AND " +
+                $"WHERE dbo.Message.SenderUserName =N'{sender}' AND " +
+                $"dbo.Message.ReceiverUserName =N'{receiver}' AND " +
                 $"dbo.Message.isDeleted =0 " +
                 $"ORDER BY dbo.Message.CreatedAt DESC";
 
             var response = await _service.GetDataAsync(query);
             if (response == null) return;
-            query = $"UPDATE dbo.ChatCard SET Content='{response[0].Content.Replace("'","''")}' WHERE (SenderUserName='{sender}' AND ReceiverUserName='{receiver}') OR (SenderUserName='{receiver}' AND ReceiverUserName='{sender}')";
+            query = $"UPDATE dbo.ChatCard SET Content=N'{response[0].Content.Replace("'","''")}' WHERE (SenderUserName=N'{sender}' AND ReceiverUserName=N'{receiver}') OR (SenderUserName=N'{receiver}' AND ReceiverUserName=N'{sender}')";
 
             await _service.GetDataAsync(query);
         }

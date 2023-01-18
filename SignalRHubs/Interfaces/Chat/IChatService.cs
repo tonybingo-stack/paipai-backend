@@ -11,7 +11,6 @@ namespace SignalRHubs.Interfaces.Services
         Task SaveMessage(Message chatMessage);
         Task PutMessage(Message chatMessage);
         Task DeleteMessage(Guid id);
-        Task SaveChannel(Channel _channel);
         Task CreateOrUpdateChatCards(ChatCardModel model);
         Task<IEnumerable<ChatCardModel>> GetChatCards(string username);
         Task RefreshChatCard(string sender, string receiver);
