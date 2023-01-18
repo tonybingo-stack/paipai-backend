@@ -151,8 +151,10 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> DeleteChannel([Required] Guid channelId)
         {
             // Check User Role
-            Community com = await _homeService.GetCommunityFromChannelId(channelId);
-            if (com.CommunityOwnerName != UserName) return BadRequest("Only owner of community can delete this channel!");
+            Community m = await _homeService.GetCommunityByChannelId(channelId);
+            if (m == null) return BadRequest("Channel or Community not exist!");
+
+            if (m.CommunityOwnerName != UserName) return BadRequest("Only owner of community can delete this channel!");
 
             return Ok(await _homeService.DeleteChannel(channelId));
         }
@@ -265,8 +267,7 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> CreateEvent([FromForm] EventCreateModel model)
         {
             // check user role
-            Channel c=await _homeService.GetChannelById(model.ChannelId);
-            CommunityMember m = await _homeService.GetUserRole(UserName, c.ChannelCommunityId);
+            CommunityMember m = await _homeService.GetUserRole(UserName, model.CommunityId);
             if (m.UserRole > 1) return BadRequest("User role is not enough to perform this action!");
 
             Event e=_mapper.Map<Event>(model);
@@ -278,15 +279,15 @@ namespace SignalRHubs.Controllers
             return Ok(await _homeService.CreateEvent(e));
         }
         /// <summary>
-        /// Get Events of Channel
+        /// Get Events of Community
         /// </summary>
         /// <returns></returns>
         [ProducesResponseType(typeof(EventViewModel), 200)]
         [ProducesResponseType(typeof(NotFoundResult), 400)]
         [HttpGet("/events")]
-        public async Task<IActionResult> GetAllEvent([Required] Guid ChannelId)
+        public async Task<IActionResult> GetAllEvent([Required] Guid CommunityId)
         {
-            return Ok(await _homeService.GetAllEvent(ChannelId));
+            return Ok(await _homeService.GetAllEvent(CommunityId));
         }
         /// <summary>
         /// Update Event
@@ -324,7 +325,7 @@ namespace SignalRHubs.Controllers
             Event e = await _homeService.GetEventByID(Id);
             if (e == null) return BadRequest("Event not exist!");
             // Check User Role
-            Community com = await _homeService.GetCommunityFromChannelId(e.ChannelId);
+            Community com = await _homeService.GetCommunityById(e.CommunityId);
             if (com.CommunityOwnerName != UserName) return BadRequest("Only owner of community can delete this channel!");
 
             return Ok(await _homeService.DeleteEvent(Id));

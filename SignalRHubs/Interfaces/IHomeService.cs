@@ -27,11 +27,12 @@ namespace SignalRHubs.Interfaces.Services
         Task<string> ExitCommunity(string username, Guid communityId);
         Task<CommunityMember> GetUserRole(string username, Guid communityId);
         Task<Channel> GetChannelById(Guid channelId);
-        Task<Community> GetCommunityFromChannelId(Guid channelId);
+        Task<Community> GetCommunityById(Guid id);
         Task<Guid> CreateEvent(Event e);
         Task<Event> GetEventByID(Guid id);
         Task<Guid> UpdateEvent(Event e);
         Task<Guid> DeleteEvent(Guid id);
-        Task<IEnumerable<EventViewModel>> GetAllEvent(Guid channelId);
+        Task<IEnumerable<EventViewModel>> GetAllEvent(Guid communityId);
+        Task<Community> GetCommunityByChannelId(Guid channelId);
     }
 }

@@ -12,6 +12,6 @@ namespace SignalRHubs.Models
         public string? Image { get; set; }
         public int? Limit { get; set; }
         [Required]
-        public Guid ChannelId { get; set; }
+        public Guid CommunityId { get; set; }
     }
 }

@@ -97,15 +97,10 @@ namespace SignalRHubs.Services
         public async Task<Guid> DeleteChannel(Guid id)
         {
             // Update referenced table participants, message, event
-            var query = $"DELETE FROM dbo.Participants WHERE ChannelId = '{id}';";
-            await _service.GetDataAsync(query);
-            query = $"UPDATE dbo.Message SET isDeleted=1 WHERE ChannelId = '{id}';";
-            await _service.GetDataAsync(query);
-            query = $"UPDATE dbo.Events SET isDeleted=1 WHERE ChannelId='{id}'";
-            await _service.GetDataAsync(query);
-            // Update referenced table
+            var query = $"DELETE FROM dbo.Participants WHERE ChannelId='{id}'; " +
+                $"UPDATE dbo.Message SET ChannelId = NULL,isDeleted = 1 WHERE ChannelId = '{id}';" +
+                $"DELETE FROM dbo.Channel WHERE ChannelId = '{id}'; "; 
 
-            query = $"DELETE FROM dbo.Channel WHERE ChannelId = '{id}';";
             await _service.GetDataAsync(query);
             return id;
         }  
@@ -113,21 +108,43 @@ namespace SignalRHubs.Services
         public async Task<Guid> DeleteCommunity(Guid id)
         {
             // Update referenced table channel, communitymember, Posts
-            var query = $"DELETE FROM dbo.CommunityMember WHERE CommunityID='{id}'";
-            await _service.GetDataAsync(query);
+            //var query = $"DELETE FROM dbo.CommunityMember WHERE CommunityID='{id}'";
+            //await _service.GetDataAsync(query);
 
-            query = $"SELECT * FROM dbo.Channel WHERE ChannelCommunityId='{id}';";
-            var response = await _service.GetDataAsync<Channel>(query);
-            foreach(var item in response)
-            {
-                await DeleteChannel(item.Id);
-            }
+            //query = $"SELECT dbo.Channel.ChannelId,dbo.Channel.ChannelName,dbo.Channel.ChannelDescription,dbo.Channel.ChannelOwnerName,dbo.Channel.ChannelCommunityId,dbo.Channel.CreatedAt,dbo.Channel.UpdatedAt FROM dbo.Channel WHERE dbo.Channel.ChannelCommunityId='{id}';";
+            //var response = await _service.GetDataAsync<Channel>(query);
+            //foreach(var item in response)
+            //{
+            //    await DeleteChannel(item.ChannelId);
+            //}
 
-            query = $"DELETE FROM dbo.Posts WHERE CommunityID='{id}';";
-            await _service.GetDataAsync(query);
-            // Update referenced table
+            //query = $"DELETE FROM dbo.Posts WHERE CommunityID='{id}';";
+            //await _service.GetDataAsync(query);
 
-            query = $"DELETE FROM dbo.Community WHERE ID = '{id}';";
+            //query = $"UPDATE dbo.Event SET CommunityId=NULL, isDeleted=1 WHERE CommunityId='{id}'";
+            //await _service.GetDataAsync(query);
+            //// Update referenced table
+
+            //query = $"DELETE FROM dbo.Community WHERE ID = '{id}';";
+            var query = $"DECLARE @Counter INT, @i INT " +
+                $"WITH x as (SELECT* FROM dbo.Channel WHERE dbo.Channel.ChannelCommunityId = '{id}') " +
+                $"SELECT @Counter = COUNT(*) FROM x " +
+                $"SET @i = 1 " +
+                $"WHILE(@i <= @Counter) " +
+                $"BEGIN " +
+                $"DECLARE @Id uniqueidentifier " +
+                $"SELECT TOP 1 @Id = ChannelId FROM(SELECT TOP(@i) * FROM dbo.Channel WHERE dbo.Channel.ChannelCommunityId = '{id}' ORDER BY ChannelId ASC) tmp ORDER BY ChannelId DESC " +
+                $"DELETE FROM dbo.Participants WHERE ChannelId = @Id; " +
+                $"UPDATE dbo.Message SET ChannelId = NULL,isDeleted = 1 WHERE ChannelId = @Id; " +
+                $"DELETE FROM dbo.Channel WHERE ChannelId = @Id; " +
+                $"PRINT 'The counter value is = ' + CONVERT(nvarchar(36), @Id) " +
+                $"SET @i = @i + 1 " +
+                $"END " +
+                $"DELETE FROM dbo.CommunityMember WHERE CommunityID = '{id}'; " +
+                $"DELETE FROM dbo.Posts WHERE CommunityID = '{id}'; " +
+                $"UPDATE dbo.Event SET CommunityId = NULL, isDeleted = 1 WHERE CommunityId = '{id}'; " +
+                $"DELETE FROM dbo.Community WHERE ID = '{id}'; ";
+
             await _service.GetDataAsync(query);
 
             return id;
@@ -260,7 +277,7 @@ namespace SignalRHubs.Services
 
         public async Task<IEnumerable<CommunityViewModel>> GetJoinedCommunity(string username)
         {
-            var query = $"SELECT * FROM dbo.Community INNER JOIN dbo.CommunityMember ON dbo.CommunityMember.CommunityID =dbo.Community.ID WHERE dbo.CommunityMember.UserName ='{username}'";
+            var query = $"SELECT dbo.Community.ID,dbo.Community.CommunityName,dbo.Community.CommunityDescription,dbo.Community.CommunityOwnerName,dbo.Community.CommunityType,dbo.Community.CreatedAt,dbo.Community.UpdatedAt,dbo.Community.ForegroundImage,dbo.Community.BackgroundImage,dbo.Community.NumberOfUsers,dbo.Community.NumberOfPosts,dbo.Community.NumberOfActiveUsers FROM dbo.Community INNER JOIN dbo.CommunityMember ON dbo.CommunityMember.CommunityID =dbo.Community.ID WHERE dbo.CommunityMember.UserName ='{username}'";
             var response = await _service.GetDataAsync<CommunityViewModel>(query);
             return response.ToList();
         }
@@ -295,14 +312,15 @@ namespace SignalRHubs.Services
             var query = $"SELECT * FROM dbo.Channel WHERE ChannelId='{channelId}';";
             var response = await _service.GetDataAsync<Channel>(query);
 
+            if (response.Count == 0) return null;
             return response[0];
         }
 
-        public async Task<Community> GetCommunityFromChannelId(Guid channelId)
+        public async Task<Community> GetCommunityById(Guid id)
         {
-            var query = $"SELECT*FROM dbo.Community INNER JOIN dbo.Channel ON dbo.Channel.ChannelCommunityId =dbo.Community.ID WHERE dbo.Channel.ChannelId ='{channelId}'";
+            var query = $"SELECT*FROM dbo.Community WHERE ID ='{id}'";
             var response = await _service.GetDataAsync(query);
-
+            if (response.Count == 0) return null;
             return response[0];
         }
 
@@ -325,7 +343,7 @@ namespace SignalRHubs.Services
             if (e.Limit != null) query += $"{e.Limit}, ";
             else query += $"NULL, ";
 
-            query += $"'{e.ChannelId}', CURRENT_TIMESTAMP, NULL, 0);";
+            query += $"'{e.CommunityId}', CURRENT_TIMESTAMP, NULL, 0);";
 
             var response = await _service.GetDataAsync<Event>(query);
             if (response.Count == 0) return Guid.Empty;
@@ -359,12 +377,20 @@ namespace SignalRHubs.Services
             return id;
         }
 
-        public async Task<IEnumerable<EventViewModel>> GetAllEvent(Guid channelId)
+        public async Task<IEnumerable<EventViewModel>> GetAllEvent(Guid communityId)
         {
-            var query = $"SELECT * FROM dbo.Event Where ChannelId='{channelId}' AND isDeleted=0;";
+            var query = $"SELECT * FROM dbo.Event Where CommunityId='{communityId}' AND isDeleted=0;";
             var response = await _service.GetDataAsync<EventViewModel>(query);
 
             return response.ToList();
+        }
+
+        public async Task<Community> GetCommunityByChannelId(Guid channelId)
+        {
+            var query = $"SELECT*FROM dbo.Community INNER JOIN dbo.Channel ON dbo.Channel.ChannelCommunityId =dbo.Community.ID WHERE dbo.Channel.ChannelId='{channelId}';";
+            var response = await _service.GetDataAsync<Community>(query);
+            if (response.Count == 0) return null;
+            return response[0];
         }
     }
 }

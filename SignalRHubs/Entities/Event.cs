@@ -12,7 +12,7 @@ namespace SignalRHubs.Entities
         public string Access { get; set; }
         public string Image { get; set; }
         public int Limit { get; set; }
-        public Guid ChannelId { get; set; }
+        public Guid CommunityId { get; set; }
         public bool isDeleted { get; set; }
     }
 }
