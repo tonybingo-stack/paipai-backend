@@ -8,7 +8,6 @@ namespace SignalRHubs.Models
         [Required]
         public string ReceiverUserName { get; set; }
         public string Content { get; set; }
-        public Guid? ChannelId { get; set; }
         public string? FilePath { get; set; }
         public Guid? RepiedTo { get; set; }
     }

@@ -25,8 +25,8 @@ namespace SignalRHubs.Services
 
         public async Task<Guid> CreateChannel(Channel entity)
         {
-            var query = $"INSERT INTO Channel VALUES(" +
-                $"'{entity.Id}', " +
+            var query = $"INSERT INTO Channel OUTPUT Inserted.ID VALUES(" +
+                $"NEWID(), " +
                 $"N'{entity.ChannelName}', ";
 
             if (entity.ChannelDescription != null) query += $"N'{entity.ChannelDescription}', ";
@@ -37,10 +37,12 @@ namespace SignalRHubs.Services
                 $"CURRENT_TIMESTAMP," +
                 $"NULL" +
                 $")";
+            //update channelmember
+            query += $"INSERT INTO [dbo].[ChannelMember] VALUES (NEWID(), '{entity.ChannelOwnerName}','{entity.Id}',1);";
 
-            await _service.GetDataAsync(query);
+            var res = await _service.GetDataAsync(query);
 
-            return entity.Id;
+            return res[0].Id;
         }
 
         /// <summary>
@@ -96,8 +98,8 @@ namespace SignalRHubs.Services
 
         public async Task<Guid> DeleteChannel(Guid id)
         {
-            // Update referenced table participants, message, event
-            var query = $"DELETE FROM dbo.Participants WHERE ChannelId='{id}'; " +
+            // Update referenced table ChannelMember, message, event
+            var query = $"DELETE FROM dbo.ChannelMember WHERE ChannelId='{id}'; " +
                 $"UPDATE dbo.Message SET ChannelId = NULL,isDeleted = 1 WHERE ChannelId = '{id}';" +
                 $"DELETE FROM dbo.Channel WHERE ChannelId = '{id}'; "; 
 
@@ -115,7 +117,7 @@ namespace SignalRHubs.Services
                 $"BEGIN " +
                 $"DECLARE @Id uniqueidentifier " +
                 $"SELECT TOP 1 @Id = ChannelId FROM(SELECT TOP(@i) * FROM dbo.Channel WHERE dbo.Channel.ChannelCommunityId = '{id}' ORDER BY ChannelId ASC) tmp ORDER BY ChannelId DESC " +
-                $"DELETE FROM dbo.Participants WHERE ChannelId = @Id; " +
+                $"DELETE FROM dbo.ChannelMember WHERE ChannelId = @Id; " +
                 $"UPDATE dbo.Message SET ChannelId = NULL,isDeleted = 1 WHERE ChannelId = @Id; " +
                 $"DELETE FROM dbo.Channel WHERE ChannelId = @Id; " +
                 $"PRINT 'The counter value is = ' + CONVERT(nvarchar(36), @Id) " +
@@ -388,6 +390,20 @@ namespace SignalRHubs.Services
             var query = $"UPDATE CommunityMember SET UserRole=2 WHERE UserName=N'{username}' AND CommunityID='{communityId}';";
             await _service.GetDataAsync(query);
             return $"{username} is removed from admin of community!";
+        }
+
+        public async Task<string> JoinChannel(string name, Guid channelId)
+        {
+            var query = $"INSERT INTO [dbo].[ChannelMember] VALUES (NEWID(), '{name}','{channelId}',0);";
+            await _service.GetDataAsync(query);
+            return "New User Joined";
+        }
+
+        public async Task<string> ExitChannel(string name, Guid channelId)
+        {
+            var query = $"INSERT INTO [dbo].[ChannelMember] VALUES (NEWID(), '{name}','{channelId}',0);";
+            await _service.GetDataAsync(query);
+            return "User exited";
         }
     }
 }

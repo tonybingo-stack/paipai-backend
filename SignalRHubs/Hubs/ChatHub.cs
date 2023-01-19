@@ -5,20 +5,6 @@ namespace SignalRHubs.Hubs
 {
     public class ChatHub : Hub
     {
-        //public override async Task OnConnectedAsync()
-        //{
-        //    await Groups.AddToGroupAsync(Context.ConnectionId, "HubUsers");
-
-        //    await base.OnConnectedAsync();
-        //}
-
-        //public override async Task OnDisconnectedAsync(Exception? exception)
-        //{
-        //    await Groups.RemoveFromGroupAsync(Context.ConnectionId, "HubUsers");
-        //    await base.OnDisconnectedAsync(exception);
-        //}
-
-
         public void BroadcastMessage(string name, string message)
         {
             Clients.All.SendAsync("broadcastMessage", name, message);

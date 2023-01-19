@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using SignalRHubs.Entities;
+using SignalRHubs.Hubs;
 using SignalRHubs.Interfaces.Services;
 using SignalRHubs.Lib;
 using SignalRHubs.Models;
@@ -12,10 +14,12 @@ namespace SignalRHubs.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IHomeService _homeService;
-        public CommunityController(IHomeService service, IUserService userService, IMapper mapper): base(userService)
+        private readonly IHubContext<ChatHub> _hubContext;
+        public CommunityController(IHomeService service, IUserService userService, IMapper mapper, IHubContext<ChatHub> hubContext) : base(userService)
         {
             _homeService = service;
             _mapper = mapper;
+            _hubContext = hubContext;
         }
         /// <summary>
         /// Create New Community
@@ -39,17 +43,6 @@ namespace SignalRHubs.Controllers
 
             return Ok(response);
         }
-        ///// <summary>
-        ///// Get all communities user created
-        ///// </summary>
-        ///// <returns></returns>
-        //[ProducesResponseType(typeof(List<CommunityViewModel>), 200)]
-        //[ProducesResponseType(typeof(NotFoundResult), 400)]
-        //[HttpGet("/community")]
-        //public async Task<IActionResult> GetAllCommunity()
-        //{
-        //    return Ok(await _homeService.GetCommunity(UserName));
-        //}
         /// <summary>
         /// Update Community
         /// </summary>
@@ -107,8 +100,12 @@ namespace SignalRHubs.Controllers
             entity.ChannelOwnerName = UserName;
             entity.ChannelName = entity.ChannelName.Replace("'", "''");
             if (entity.ChannelDescription != null) entity.ChannelDescription = entity.ChannelDescription.Replace("'", "''");
+            var res = await _homeService.CreateChannel(entity);
 
-            return Ok(await _homeService.CreateChannel(entity));
+            await _hubContext.Groups.AddToGroupAsync(UserName, res.ToString());
+            await _hubContext.Clients.Group(res.ToString()).SendAsync("echo", "_SYSTEM_", $"{UserName} joined Channel {res}");
+
+            return Ok(res);
         }
         /// <summary> 
         /// Get channels of Community
@@ -157,6 +154,36 @@ namespace SignalRHubs.Controllers
             if (m.CommunityOwnerName != UserName) return BadRequest("Only owner of community can delete this channel!");
 
             return Ok(await _homeService.DeleteChannel(channelId));
+        }
+        /// <summary>
+        /// Join Channel
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(Guid), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpPost("/channel/join")]
+        public async Task<IActionResult> JoinChannel([Required] Guid channelId)
+        {
+            // Check User Role
+            await _hubContext.Groups.AddToGroupAsync(UserName, channelId.ToString());
+            await _hubContext.Clients.Group(channelId.ToString()).SendAsync("echo", "_SYSTEM_", $"{UserName} joined Channel {channelId.ToString()}");
+            
+            return Ok(await _homeService.JoinChannel(UserName, channelId));
+        }
+        /// <summary>
+        /// Exit Channel
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(Guid), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpDelete("/channel/join")]
+        public async Task<IActionResult> ExitChannel([Required] Guid channelId)
+        {
+            // Check User Role
+            await _hubContext.Groups.RemoveFromGroupAsync(UserName, channelId.ToString());
+            await _hubContext.Clients.Group(channelId.ToString()).SendAsync("echo", "_SYSTEM_", $"{UserName} leaved Channel {channelId.ToString()}");
+
+            return Ok(await _homeService.ExitChannel(UserName, channelId));
         }
         /// <summary> 
         /// Create New Post

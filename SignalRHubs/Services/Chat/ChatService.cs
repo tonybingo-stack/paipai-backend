@@ -60,25 +60,46 @@ namespace SignalRHubs.Services
 
         public async Task SaveMessage(Message entity)
         {
-            var query = $"INSERT INTO [dbo].[Message] " +
-                $"VALUES (NEWID(),N'{entity.SenderUserName}',N'{entity.ReceiverUserName}',N'{entity.Content}'";
-            if (entity.ChannelId != null) query += $", '{entity.ChannelId}'";
-            else query += $", NULL";
-            if (entity.FilePath != null) query += $", N'{entity.FilePath}'";
-            else query += $", NULL";
-            query += $", CURRENT_TIMESTAMP, NULL, 'FALSE', ";
-            if (entity.RepliedTo != null) query += $"'{entity.RepliedTo}');";
-            else query += $"NULL);";
+            var query="";
+            if (entity.ChannelId == null)
+            {
+                //  1 to 1 chat
+                query = $"INSERT INTO [dbo].[Message] " +
+                    $"VALUES (NEWID(),N'{entity.SenderUserName}',N'{entity.ReceiverUserName}',N'{entity.Content}', NULL";
+                if (entity.FilePath != null) query += $", N'{entity.FilePath}'";
+                else query += $", NULL";
+                query += $", CURRENT_TIMESTAMP, NULL, 'FALSE', ";
+                if (entity.RepliedTo != null) query += $"'{entity.RepliedTo}');";
+                else query += $"NULL); ";
 
+                query += $"BEGIN DECLARE @i INT; " +
+                    $"SELECT @i = COUNT(*) FROM dbo.ChatCard " +
+                    $"WHERE dbo.ChatCard.SenderUserName = N'{entity.SenderUserName}' AND dbo.ChatCard.ReceiverUserName = N'{entity.ReceiverUserName}'" +
+                    $"SELECT @i; IF @i> 0 BEGIN UPDATE dbo.ChatCard " +
+                    $"SET Content = N'{entity.Content}',isSend = 1,isDeleted = 0 WHERE SenderUserName = N'{entity.SenderUserName}' AND ReceiverUserName = N'{entity.ReceiverUserName}'; " +
+                    $"UPDATE dbo.ChatCard " +
+                    $"SET Content = N'{entity.Content}',isSend = 0,isDeleted = 0 WHERE SenderUserName = N'{entity.ReceiverUserName}' AND ReceiverUserName = N'{entity.SenderUserName}'; " +
+                    $"END ELSE BEGIN " +
+                    $"INSERT INTO dbo.ChatCard VALUES(NEWID(), N'{entity.SenderUserName}',N'{entity.ReceiverUserName}',N'{entity.Content}',1,0); " +
+                    $"INSERT INTO dbo.ChatCard VALUES(NEWID(), N'{entity.ReceiverUserName}',N'{entity.SenderUserName}',N'{entity.Content}',0,0); END END; ";
+            }
+            else
+            {
+                // Channel Chat
+                query = $"INSERT INTO [dbo].[ChannelMessage] " +
+                    $"VALUES(NEWID(), '{entity.SenderUserName}', '{entity.Content}'";
+                if (entity.FilePath != null) query += $", N'{entity.FilePath}'";
+                else query += $", NULL";
+                query += $", '{entity.ChannelId}', CURRENT_TIMESTAMP, NULL, 0, NULL)";
+            }
             await _service.GetDataAsync(query);
         }
-        public async Task PutMessage(Message message)
+        public async Task PutMessage(Message entity)
         {
             var query = $"UPDATE dbo.Message " +
-                $"SET Content = N'{message.Content}', UpdatedAt = CURRENT_TIMESTAMP " +
-                $"WHERE dbo.Message.ID = @Id; ";
-
-            await _service.GetDataAsync(query, new { Id = message.Id });
+                $"SET Content = N'{entity.Content}', UpdatedAt = CURRENT_TIMESTAMP " +
+                $"WHERE dbo.Message.ID = '{entity.Id}'; ";
+            await _service.GetDataAsync(query);
         }
         public async Task DeleteMessage(Guid id)
         {
@@ -89,33 +110,9 @@ namespace SignalRHubs.Services
             var response = await _service.GetDataAsync(query, new { Id = id });
         }
 
-        public async Task CreateOrUpdateChatCards(ChatCardModel model)
-        {
-            var query = $"BEGIN " +
-                $"DECLARE " +
-                $"@i INT; " +
-                $"SELECT " +
-                $"@i = COUNT(* ) " +
-                $"FROM " +
-                $"dbo.ChatCard " +
-                $"WHERE " +
-                $"dbo.ChatCard.SenderUserName = N'{model.SenderUserName}' " +
-                $"AND dbo.ChatCard.ReceiverUserName = N'{model.ReceiverUserName}' " +
-                $"SELECT @i; " +
-                $"IF " +
-                $"@i > 0 BEGIN " +
-                $"UPDATE dbo.ChatCard SET Content = N'{model.Content}', isSend = '{model.isSend}', isDeleted = '{model.isDeleted}' WHERE SenderUserName = N'{model.SenderUserName}' AND ReceiverUserName = N'{model.ReceiverUserName}';" +
-                $"END ELSE BEGIN " +
-                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), N'{model.SenderUserName}', N'{model.ReceiverUserName}', N'{model.Content}', '{model.isSend}', '{model.isDeleted}');" +
-                $"END " +
-                $"END";
-
-            await _service.GetDataAsync(query);
-         
-        }
         public async Task<IEnumerable<ChatCardModel>> GetChatCards(string username)
         {
-            var query = $"SELECT dbo.ChatCard.SenderUserName,dbo.ChatCard.ReceiverUserName,dbo.ChatCard.Content,dbo.ChatCard.isSend,dbo.ChatCard.isDeleted,dbo.Users.NickName,dbo.Users.Avatar FROM dbo.ChatCard INNER JOIN dbo.Users ON dbo.ChatCard.ReceiverUserName =dbo.Users.UserName WHERE dbo.ChatCard.SenderUserName= N'{username}' AND isDeleted = 0";
+            var query = $"SELECT dbo.ChatCard.SenderUserName,dbo.ChatCard.ReceiverUserName,dbo.ChatCard.Content,dbo.ChatCard.isSend,dbo.Users.NickName,dbo.Users.Avatar FROM dbo.ChatCard INNER JOIN dbo.Users ON dbo.ChatCard.ReceiverUserName =dbo.Users.UserName WHERE dbo.ChatCard.SenderUserName= N'{username}' AND isDeleted = 0";
             var result = await _service.GetDataAsync<ChatCardModel>(query);
             return result.ToList();
         }

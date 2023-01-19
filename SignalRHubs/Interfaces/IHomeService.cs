@@ -36,5 +36,7 @@ namespace SignalRHubs.Interfaces.Services
         Task<Community> GetCommunityByChannelId(Guid channelId);
         Task<string> AddAdmin(string username, Guid communityId);
         Task<string> RemoveAdmin(string username, Guid communityId);
+        Task<string> JoinChannel(string name, Guid channelId);
+        Task<string> ExitChannel(string name, Guid channelId);
     }
 }
