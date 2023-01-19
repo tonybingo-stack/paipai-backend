@@ -100,7 +100,7 @@ namespace SignalRHubs.Services
         {
             // Update referenced table ChannelMember, message, event
             var query = $"DELETE FROM dbo.ChannelMember WHERE ChannelId='{id}'; " +
-                $"UPDATE dbo.Message SET ChannelId = NULL,isDeleted = 1 WHERE ChannelId = '{id}';" +
+                $"DELETE dbo.ChannelMessage WHERE ChannelId = '{id}';" +
                 $"DELETE FROM dbo.Channel WHERE ChannelId = '{id}'; "; 
 
             await _service.GetDataAsync(query);
@@ -118,7 +118,7 @@ namespace SignalRHubs.Services
                 $"DECLARE @Id uniqueidentifier " +
                 $"SELECT TOP 1 @Id = ChannelId FROM(SELECT TOP(@i) * FROM dbo.Channel WHERE dbo.Channel.ChannelCommunityId = '{id}' ORDER BY ChannelId ASC) tmp ORDER BY ChannelId DESC " +
                 $"DELETE FROM dbo.ChannelMember WHERE ChannelId = @Id; " +
-                $"UPDATE dbo.Message SET ChannelId = NULL,isDeleted = 1 WHERE ChannelId = @Id; " +
+                $"DELETE dbo.ChannelMessage WHERE ChannelId = @Id;" +
                 $"DELETE FROM dbo.Channel WHERE ChannelId = @Id; " +
                 $"PRINT 'The counter value is = ' + CONVERT(nvarchar(36), @Id) " +
                 $"SET @i = @i + 1 " +

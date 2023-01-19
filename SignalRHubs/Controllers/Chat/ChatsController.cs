@@ -62,21 +62,18 @@ namespace SignalRHubs.Controllers.Chat
             return Ok(userSummary);
         }
         /// <summary>
-        /// Get messages of a channel by Id
+        /// Get Chat History of channel between offset*10 ~ (offset+1)*10 messages
         /// </summary>
-        /// <param name="channelId">Chat Channel Id</param>
-        /// <returns>List of chat messages.</returns>
-        [ProducesResponseType(typeof(List<ChannelChatModel>), 200)]
+        [ProducesResponseType(typeof(List<ChannelMessageViewModel>), 200)]
         [ProducesResponseType(500)]
         [HttpGet("/channel/messages")]
-        public async Task<IActionResult> GetMessagesByChannelId([FromQuery][Required] Guid channelId)
+        public async Task<IActionResult> GetMessagesByChannelId([FromQuery][Required] Guid channelId, [FromQuery][Required] int offset)
         {
-            return Ok(await _service.GetMessageByChannelId(channelId));
+            return Ok(await _service.GetMessageByChannelId(channelId, offset));
         }
         /// <summary>
-        /// Send message To Channel
+        /// Send(Reply) message To Channel
         /// </summary>
-        /// <returns></returns>
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
@@ -102,7 +99,40 @@ namespace SignalRHubs.Controllers.Chat
 
             return Ok("success");
         }
+        /// <summary>
+        /// Update message of channel
+        /// </summary>
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        [HttpPut("/channel/message")]
+        public async Task<IActionResult> UpdateMessageOfChannel([FromForm] ChannelMessageUpdateModel model)
+        {
+            if (model.Content == null && model.FilePath == null) return BadRequest("At least one field is required!");
+            ChannelMessage m = await _service.GetChannelMessageById(model.Id);
+            if (m == null) return BadRequest("Message doesn't exist!");
+            if (model.Content != null) m.Content = model.Content.Replace("'", "''");
+            if (model.FilePath != null) m.FilePath = model.FilePath.Replace("'", "''");
 
+            await _service.UpdateChannelMessage(m);
+
+            return Ok("Message updated successfully");
+        }
+        /// <summary>
+        /// Delete message of channel
+        /// </summary>
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        [HttpDelete("/channel/message")]
+        public async Task<IActionResult> DeleteMessageOfChannel([FromQuery]Guid messageId)
+        {
+            ChannelMessage m = await _service.GetChannelMessageById(messageId);
+            if (m == null) return BadRequest("Message doesn't exist!");
+            await _service.DeleteChannelMessageById(messageId);
+
+            return Ok("Message deleted successfully");
+        }
         /// <summary>
         /// Get Chat History of user between offset*10 ~ (offset+1)*10 messages
         /// </summary>
@@ -118,7 +148,7 @@ namespace SignalRHubs.Controllers.Chat
             return Ok(await _service.GetChatHistory(model, offset));
         }
         /// <summary>
-        /// Send message 
+        /// Send(Reply) message 
         /// </summary>
         /// <returns></returns>
         [ProducesResponseType(200)]
@@ -141,11 +171,11 @@ namespace SignalRHubs.Controllers.Chat
             message.SenderUserName = UserName;
             message.Content = content;
             message.FilePath = model.FilePath;
+            message.RepliedTo = model.RepiedTo;
             await _service.SaveMessage(message);
 
             return Ok("success");
         }
-
         /// <summary>
         /// Update a message by Id
         /// </summary>

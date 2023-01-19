@@ -113,8 +113,8 @@ namespace SignalRHubs.Controllers
         /// <returns></returns>
         [ProducesResponseType(typeof(ChannelViewModel),200)]
         [ProducesResponseType(typeof(NotFoundResult), 400)]
-        [HttpPost("/channels")]
-        public async Task<IActionResult> GetAllChannels([FromForm][Required] Guid communityID)
+        [HttpGet("/channels")]
+        public async Task<IActionResult> GetAllChannels([FromQuery][Required] Guid communityID)
         {
             return Ok(await _homeService.GetAllChannels(communityID));
         }
@@ -166,7 +166,7 @@ namespace SignalRHubs.Controllers
         {
             // Check User Role
             await _hubContext.Groups.AddToGroupAsync(UserName, channelId.ToString());
-            await _hubContext.Clients.Group(channelId.ToString()).SendAsync("echo", "_SYSTEM_", $"{UserName} joined Channel {channelId.ToString()}");
+            await _hubContext.Clients.Group(channelId.ToString()).SendAsync("echo", "_SYSTEM_", $"{UserName} joined Channel {channelId}");
             
             return Ok(await _homeService.JoinChannel(UserName, channelId));
         }
@@ -181,7 +181,7 @@ namespace SignalRHubs.Controllers
         {
             // Check User Role
             await _hubContext.Groups.RemoveFromGroupAsync(UserName, channelId.ToString());
-            await _hubContext.Clients.Group(channelId.ToString()).SendAsync("echo", "_SYSTEM_", $"{UserName} leaved Channel {channelId.ToString()}");
+            await _hubContext.Clients.Group(channelId.ToString()).SendAsync("echo", "_SYSTEM_", $"{UserName} leaved Channel {channelId}");
 
             return Ok(await _homeService.ExitChannel(UserName, channelId));
         }

@@ -44,17 +44,16 @@ namespace SignalRHubs.Services
             else return response[0];
         }
 
-        public async Task<IEnumerable<ChannelChatModel>> GetMessageByChannelId(Guid channelId)
+        public async Task<IEnumerable<ChannelMessageViewModel>> GetMessageByChannelId(Guid channelId, int offset)
         {
-            var query = $"SELECT " +
-                $"A.SenderUserName,A.ReceiverUserName,A.Content,A.CreatedAt,A.RepliedTo," +
-                $"B.SenderUserName AS RepliedUserName," +
-                $"C.Avatar AS RepliedUserAvatar,B.Content AS RepliedContent,B.CreatedAt AS RepliedMsgCreatedAt " +
-                $"FROM dbo.Message AS A LEFT JOIN dbo.Message AS B ON A.RepliedTo =B.ID LEFT JOIN dbo.Users AS C ON B.SenderUserName =C.UserName " +
-                $"WHERE A.ChannelID='{channelId}' " +
-                $"ORDER BY A.CreatedAt DESC OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;";
+            var query = $"SELECT A.SenderUserName,A.Content,A.CreatedAt,A.RepiedTo,B.SenderUserName AS RepliedUserName," +
+                $"C.Avatar AS RepliedUserAvatar,B.Content AS RepliedContent,B.CreatedAt AS RepliedMsgCreatedAt," +
+                $"B.UpdatedAt AS RepliedMsgUpdatedAt " +
+                $"FROM dbo.ChannelMessage AS A LEFT JOIN dbo.ChannelMessage AS B ON A.RepiedTo =B.ID LEFT JOIN dbo.Users AS C ON B.SenderUserName =C.UserName " +
+                $"WHERE A.ChannelId='{channelId}' AND A.isDeleted=0" +
+                $"ORDER BY A.CreatedAt ASC OFFSET {offset*10} ROWS FETCH NEXT 10 ROWS ONLY;";
 
-            var response = await _service.GetDataAsync<ChannelChatModel>(query);
+            var response = await _service.GetDataAsync<ChannelMessageViewModel>(query);
             return response.ToList();
         }
 
@@ -86,11 +85,12 @@ namespace SignalRHubs.Services
             else
             {
                 // Channel Chat
-                query = $"INSERT INTO [dbo].[ChannelMessage] " +
-                    $"VALUES(NEWID(), '{entity.SenderUserName}', '{entity.Content}'";
+                query = $"INSERT INTO [dbo].[ChannelMessage] VALUES(NEWID(), '{entity.SenderUserName}', '{entity.Content}'";
                 if (entity.FilePath != null) query += $", N'{entity.FilePath}'";
                 else query += $", NULL";
-                query += $", '{entity.ChannelId}', CURRENT_TIMESTAMP, NULL, 0, NULL)";
+                query += $", '{entity.ChannelId}', CURRENT_TIMESTAMP, NULL, 0, ";
+                if (entity.RepliedTo != null) query += $"'{entity.RepliedTo}');";
+                else query += $"NULL);";
             }
             await _service.GetDataAsync(query);
         }
@@ -153,6 +153,26 @@ namespace SignalRHubs.Services
             if (response == null) return;
             query = $"UPDATE dbo.ChatCard SET Content=N'{response[0].Content.Replace("'","''")}' WHERE (SenderUserName=N'{sender}' AND ReceiverUserName=N'{receiver}') OR (SenderUserName=N'{receiver}' AND ReceiverUserName=N'{sender}')";
 
+            await _service.GetDataAsync(query);
+        }
+
+        public async Task<ChannelMessage> GetChannelMessageById(Guid id)
+        {
+            var query = $"SELECT * FROM dbo.ChannelMessage WHERE Id = '{id}';";
+            var res = await _service.GetDataAsync<ChannelMessage>(query);
+            if (res.Count == 0) return null;
+            else return res[0];
+        }
+
+        public async Task UpdateChannelMessage(ChannelMessage m)
+        {
+            var query = $"UPDATE dbo.ChannelMessage SET Content='{m.Content}', FilePath='{m.FilePath}', UpdatedAt=CURRENT_TIMESTAMP WHERE ID='{m.Id}';";
+            await _service.GetDataAsync(query);
+        }
+
+        public async Task DeleteChannelMessageById(Guid messageId)
+        {
+            var query = $"UPDATE dbo.ChannelMessage SET isDeleted = 1 WHERE Id='{messageId}';";
             await _service.GetDataAsync(query);
         }
     }
