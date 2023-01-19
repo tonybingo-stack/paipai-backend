@@ -40,12 +40,12 @@ namespace SignalRHubs.Controllers.Chat
         /// </summary>
         /// <returns></returns>
         [HttpGet("/users")]
-        [ProducesResponseType(typeof(IEnumerable<ReadUserSummaryModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<UserViewModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<IEnumerable<ReadUserSummaryModel>>> GetCustomersSummary()
+        public async Task<ActionResult<IEnumerable<UserViewModel>>> GetCustomersSummary()
         {
             var users = await _userService.GetUsers();
-            var usersSummary = _mapper.Map<IEnumerable<ReadUserSummaryModel>>(users);
+            var usersSummary = _mapper.Map<IEnumerable<UserViewModel>>(users);
             return Ok(usersSummary);
         }
         /// <summary>
@@ -53,12 +53,12 @@ namespace SignalRHubs.Controllers.Chat
         /// </summary>
         /// <returns></returns>
         [HttpGet("/user/{username}")]
-        [ProducesResponseType(typeof(ReadUserSummaryModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UserViewModel), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ReadUserSummaryModel>> GetCustomerSummaryById([FromRoute] string username)
+        public async Task<ActionResult<UserViewModel>> GetCustomerSummaryById([FromRoute] string username)
         {
             var user = await _userService.GetUserByUserName(username);
-            var userSummary = _mapper.Map<ReadUserSummaryModel>(user);
+            var userSummary = _mapper.Map<UserViewModel>(user);
             return Ok(userSummary);
         }
         /// <summary>

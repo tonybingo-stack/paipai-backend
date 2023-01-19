@@ -1,10 +1,8 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using SignalRHubs.Entities;
 using SignalRHubs.Interfaces.Services;
-using SignalRHubs.Lib;
 using SignalRHubs.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -42,12 +40,12 @@ namespace SignalRHubs.Controllers
         /// User Login
         /// </summary>
         /// <returns></returns>
-        [ProducesResponseType(typeof(UserLoginModel) ,200)]
+        [ProducesResponseType(typeof(UserSignupModel) ,200)]
         [ProducesResponseType(400)]
         [HttpPost("/signin")]
         //[HttpGet("/signin")]
         //public async Task<IActionResult> Login([FromQuery] string username, [FromQuery] string password)
-        public async Task<IActionResult> Login([FromForm] UserModel user)
+        public async Task<IActionResult> Login([FromForm] UserSigninModel user)
         {
             if (string.IsNullOrEmpty(user.UserName))
             {
@@ -80,7 +78,7 @@ namespace SignalRHubs.Controllers
 
             var response =await _userService.GetUserByUserName(user.UserName);
 
-            UserLoginModel res = _mapper.Map<UserLoginModel>(response);
+            UserSignupModel res = _mapper.Map<UserSignupModel>(response);
             res.Token = JwtTokenHandler.WriteToken(token);
 
             return Ok(res);
@@ -88,7 +86,7 @@ namespace SignalRHubs.Controllers
 
         private async Task<bool> IsExistingUser(string username, string password)
         {
-            UserModel user = new UserModel();
+            UserSigninModel user = new UserSigninModel();
             user.UserName = username;
             user.Password = password;
             var res = await _userService.LoginUser(user);

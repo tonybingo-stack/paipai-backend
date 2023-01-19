@@ -69,7 +69,7 @@ namespace SignalRHubs.Services
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public async Task<string> LoginUser(UserModel model)
+        public async Task<string> LoginUser(UserSigninModel model)
         {
 
             var query = $"SELECT * FROM Users Where username=N'{ model.UserName }'";
@@ -108,7 +108,12 @@ namespace SignalRHubs.Services
             await _userService.GetDataAsync(query);
             return "Successfully updated user avatar!";
         }
-
+        public async Task<string> UpdateUserBackground(string url, string userName)
+        {
+            var query = $"UPDATE [dbo].[Users] SET Background = N'{url}' WHERE UserName = N'{userName}'";
+            await _userService.GetDataAsync(query);
+            return "Successfully updated user background!";
+        }
         public async Task<bool> IsValidUserName(string userName)
         {
             var query = $"SELECT * FROM dbo.Users WHERE UserName = N'{userName}'";
@@ -117,5 +122,6 @@ namespace SignalRHubs.Services
             if (result.Count == 0) return true;
             else return false;
         }
+
     }
 }

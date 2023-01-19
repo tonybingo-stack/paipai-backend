@@ -8,7 +8,7 @@ namespace SignalRHubs.Profiles
     {
         public Profiles()
         {
-            CreateMap<User, ReadUserSummaryModel>();
+            CreateMap<User, UserViewModel>();
             CreateMap<MessageBindingModel, Message>();
             CreateMap<Message, MessageViewModel>();
             CreateMap<MessageViewModel, Message>();
@@ -18,7 +18,7 @@ namespace SignalRHubs.Profiles
             CreateMap<CommunityModel, Community>();
             CreateMap<CommunityUpdateModel, Community>();
             CreateMap<ChannelModel, Channel>();
-            CreateMap<User, UserLoginModel>();
+            CreateMap<User, UserSignupModel>();
 
             CreateMap<PostCreateModel, Post>();
 

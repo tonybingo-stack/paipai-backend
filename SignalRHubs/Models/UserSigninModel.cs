@@ -2,7 +2,7 @@
 
 namespace SignalRHubs.Models
 {
-    public class UserModel
+    public class UserSigninModel
     {
         [Required]
         public string UserName { get; set; }

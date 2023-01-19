@@ -15,5 +15,6 @@ namespace SignalRHubs.Entities
         public int Gender { get; set; }
         public DateTime RegisterTime { get; set; }
         public string Avatar { get; set; }
+        public string Background { get; set; }
     }
 }

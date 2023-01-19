@@ -8,9 +8,10 @@ namespace SignalRHubs.Interfaces.Services
         Task<Guid> GetIdByUserName(string name);
         Task<string> CreateUser(User entity);
         Task<string> UpdateUserAvatar(string url, string username);
-        Task<string> LoginUser(UserModel model);
+        Task<string> LoginUser(UserSigninModel model);
         Task<User> GetUserByUserName(string name);
         Task<List<User>> GetUsers();
         Task<bool> IsValidUserName(string userName);
+        Task<string> UpdateUserBackground(string url, string userName);
     }
 }

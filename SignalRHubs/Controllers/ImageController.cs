@@ -26,6 +26,18 @@ namespace SignalRHubs.Controllers
             //if (CheckURLValid(url)) return BadRequest("Invalid url");
             return Ok(await _userService.UpdateUserAvatar(url, UserName));
         }
+        /// <summary>
+        /// Create or Update User Background
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(string), 200)]
+        [ProducesResponseType(typeof(string), 400)]
+        [HttpPost("/user/background")]
+        public async Task<IActionResult> UpdateUserBackground([FromForm][Required] string url)
+        {
+            //if (CheckURLValid(url)) return BadRequest("Invalid url");
+            return Ok(await _userService.UpdateUserBackground(url, UserName));
+        }
         //public static bool CheckURLValid(string strURL)
         //{
         //    Uri uriResult;
