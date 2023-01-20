@@ -25,7 +25,7 @@ namespace SignalRHubs.Services
 
         public async Task<Guid> CreateChannel(Channel entity)
         {
-            var query = $"INSERT INTO Channel OUTPUT Inserted.ID VALUES(" +
+            var query = $"INSERT INTO Channel OUTPUT Inserted.ChannelId as Id VALUES(" +
                 $"NEWID(), " +
                 $"N'{entity.ChannelName}', ";
 
@@ -37,10 +37,11 @@ namespace SignalRHubs.Services
                 $"CURRENT_TIMESTAMP," +
                 $"NULL" +
                 $")";
-            //update channelmember
-            query += $"INSERT INTO [dbo].[ChannelMember] VALUES (NEWID(), '{entity.ChannelOwnerName}','{entity.Id}',1);";
 
             var res = await _service.GetDataAsync(query);
+            //update channelmember
+            query = $"INSERT INTO [dbo].[ChannelMember] VALUES (NEWID(), '{entity.ChannelOwnerName}','{res[0].Id}',1);";
+            await _service.GetDataAsync(query);
 
             return res[0].Id;
         }
