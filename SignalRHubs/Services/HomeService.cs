@@ -272,14 +272,14 @@ namespace SignalRHubs.Services
         {
             var query = $"INSERT INTO dbo.CommunityMember VALUES(NEWID(), N'{username}','{communityId}',2);";
             await _service.GetDataAsync(query);
-            return $"'{username}' Joined Community.";
+            return $"{username} Joined Community.";
         }
 
         public async Task<string> ExitCommunity(string username, Guid communityId)
         {
             var query = $"DELETE FROM dbo.CommunityMember WHERE UserName=N'{username} AND CommunityID='{communityId}';";
             await _service.GetDataAsync(query);
-            return $"'{username}' exited from Community.";
+            return $"{username} exited from Community.";
         }
 
         public async Task<CommunityMember> GetUserRole(string username, Guid communityId)
@@ -405,6 +405,12 @@ namespace SignalRHubs.Services
             var query = $"INSERT INTO [dbo].[ChannelMember] VALUES (NEWID(), '{name}','{channelId}',0);";
             await _service.GetDataAsync(query);
             return "User exited";
+        }
+
+        public async Task UpdateUserNumberOfCommunity(int v, Guid communityId)
+        {
+            var query = $"UPDATE [dbo].[Community] SET NumberOfUsers={v} WHERE ID='{communityId}';";
+            await _service.GetDataAsync(query);
         }
     }
 }

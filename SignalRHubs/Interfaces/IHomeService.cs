@@ -38,5 +38,6 @@ namespace SignalRHubs.Interfaces.Services
         Task<string> RemoveAdmin(string username, Guid communityId);
         Task<string> JoinChannel(string name, Guid channelId);
         Task<string> ExitChannel(string name, Guid channelId);
+        Task UpdateUserNumberOfCommunity(int v, Guid communityId);
     }
 }

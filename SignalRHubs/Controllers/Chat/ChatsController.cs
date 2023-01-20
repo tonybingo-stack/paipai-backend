@@ -89,13 +89,13 @@ namespace SignalRHubs.Controllers.Chat
             if (content != null) content = content.Replace("'", "''");
 
             // Save message
-            Message message = new Message();
+            ChannelMessage message = new ChannelMessage();
             message.SenderUserName = UserName;
             message.ChannelId = model.ChannelId;
             message.Content = content;
             message.FilePath = model.FilePath;
             message.RepliedTo = model.RepiedTo;
-            await _service.SaveMessage(message);
+            await _service.SaveChannelMessage(message);
 
             return Ok("success");
         }

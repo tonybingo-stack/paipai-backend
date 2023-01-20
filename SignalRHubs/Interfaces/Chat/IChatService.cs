@@ -19,5 +19,6 @@ namespace SignalRHubs.Interfaces.Services
         Task<ChannelMessage> GetChannelMessageById(Guid id);
         Task UpdateChannelMessage(ChannelMessage m);
         Task DeleteChannelMessageById(Guid messageId);
+        Task SaveChannelMessage(ChannelMessage message);
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using SignalRHubs.Entities;
 using SignalRHubs.Hubs;

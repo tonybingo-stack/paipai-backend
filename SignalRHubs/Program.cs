@@ -12,51 +12,10 @@ using Microsoft.Identity.Web;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
-//GlobalHost.DependencyResolver.Register(typeof(IUserIdProvider), () => new MyIdProvider());
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
-//builder.Services.AddSignalR().AddAzureSignalR("Endpoint=https://paipaisignalr.service.signalr.net/;AccessKey=xvCB88J0XjYLkhO1oQ6yO9j5nGnSXWb/kysDihoDB4I=;Version=1.0;");
 builder.Services.AddControllersWithViews();
-
-//builder.Services.AddSignalR(hubOptions =>
-//{
-//    hubOptions.KeepAliveInterval = TimeSpan.FromSeconds(10);
-//    hubOptions.MaximumReceiveMessageSize = 65_536;
-//    hubOptions.HandshakeTimeout = TimeSpan.FromSeconds(15);
-//    hubOptions.MaximumParallelInvocationsPerClient = 2;
-//    hubOptions.EnableDetailedErrors = true;
-//    hubOptions.StreamBufferCapacity = 15;
-
-//    if (hubOptions?.SupportedProtocols is not null)
-//    {
-//        foreach (var protocol in hubOptions.SupportedProtocols)
-//            Console.WriteLine($"SignalR supports {protocol} protocol.");
-//    }
-
-//}).AddAzureSignalR("Endpoint=https://paipaisignalr.service.signalr.net/;AccessKey=xvCB88J0XjYLkhO1oQ6yO9j5nGnSXWb/kysDihoDB4I=;Version=1.0;")
-//.AddJsonProtocol(options =>
-//{
-//    options.PayloadSerializerOptions.PropertyNamingPolicy = null;
-//    options.PayloadSerializerOptions.Encoder = null;
-//    options.PayloadSerializerOptions.IncludeFields = false;
-//    options.PayloadSerializerOptions.IgnoreReadOnlyFields = false;
-//    options.PayloadSerializerOptions.IgnoreReadOnlyProperties = false;
-//    options.PayloadSerializerOptions.MaxDepth = 0;
-//    options.PayloadSerializerOptions.NumberHandling = JsonNumberHandling.Strict;
-//    options.PayloadSerializerOptions.DictionaryKeyPolicy = null;
-//    options.PayloadSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
-//    options.PayloadSerializerOptions.PropertyNameCaseInsensitive = false;
-//    options.PayloadSerializerOptions.DefaultBufferSize = 32_768;
-//    options.PayloadSerializerOptions.ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip;
-//    options.PayloadSerializerOptions.ReferenceHandler = null;
-//    options.PayloadSerializerOptions.UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement;
-//    options.PayloadSerializerOptions.WriteIndented = true;
-
-//    Console.WriteLine($"Number of default JSON converters: {options.PayloadSerializerOptions.Converters.Count}");
-//});
-
-//builder.Services.AddIdentityCore<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true);
 
 builder.Services.AddRazorPages();
 

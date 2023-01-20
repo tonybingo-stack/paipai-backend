@@ -26,18 +26,9 @@ namespace SignalRHubs.Services
 
         public async Task<MessageViewModel> GetMessage(Guid Id)
         {
-            var query = $"SELECT " +
-                $"dbo.Message.ID, " +
-                $"dbo.Message.SenderUserName," +
-                $"dbo.Message.ReceiverUserName," +
-                $"dbo.Message.Content," +
-                $"dbo.Message.ChannelID," +
-                $"dbo.Message.FilePath, " +
-                $"dbo.Message.CreatedAt, " +
-                $"dbo.Message.UpdatedAt " +
-                $"dbo.Message.RepliedTo" +
+            var query = $"SELECT * " +
                 $"FROM dbo.Message " +
-                $"WHERE dbo.Message.ID =@Id";
+                $"WHERE dbo.Message.ID =@Id AND isDeleted=0";
 
             var response = await _service.GetDataAsync<MessageViewModel>(query, new { Id = Id });
             if (response == null) return null;
@@ -59,55 +50,42 @@ namespace SignalRHubs.Services
 
         public async Task SaveMessage(Message entity)
         {
-            var query="";
-            if (entity.ChannelId == null)
-            {
-                //  1 to 1 chat
-                query = $"INSERT INTO [dbo].[Message] " +
-                    $"VALUES (NEWID(),N'{entity.SenderUserName}',N'{entity.ReceiverUserName}',N'{entity.Content}', NULL";
-                if (entity.FilePath != null) query += $", N'{entity.FilePath}'";
-                else query += $", NULL";
-                query += $", CURRENT_TIMESTAMP, NULL, 'FALSE', ";
-                if (entity.RepliedTo != null) query += $"'{entity.RepliedTo}');";
-                else query += $"NULL); ";
+            //  1 to 1 chat
+            var query = $"INSERT INTO [dbo].[Message] " +
+                $"VALUES (NEWID(),N'{entity.SenderUserName}',N'{entity.ReceiverUserName}',N'{entity.Content}'";
+            if (entity.FilePath != null) query += $", N'{entity.FilePath}'";
+            else query += $", NULL";
+            query += $", CURRENT_TIMESTAMP, NULL, 'FALSE', ";
+            if (entity.RepliedTo != null) query += $"'{entity.RepliedTo}');";
+            else query += $"NULL); ";
 
-                query += $"BEGIN DECLARE @i INT; " +
-                    $"SELECT @i = COUNT(*) FROM dbo.ChatCard " +
-                    $"WHERE dbo.ChatCard.SenderUserName = N'{entity.SenderUserName}' AND dbo.ChatCard.ReceiverUserName = N'{entity.ReceiverUserName}'" +
-                    $"SELECT @i; IF @i> 0 BEGIN UPDATE dbo.ChatCard " +
-                    $"SET Content = N'{entity.Content}',isSend = 1,isDeleted = 0 WHERE SenderUserName = N'{entity.SenderUserName}' AND ReceiverUserName = N'{entity.ReceiverUserName}'; " +
-                    $"UPDATE dbo.ChatCard " +
-                    $"SET Content = N'{entity.Content}',isSend = 0,isDeleted = 0 WHERE SenderUserName = N'{entity.ReceiverUserName}' AND ReceiverUserName = N'{entity.SenderUserName}'; " +
-                    $"END ELSE BEGIN " +
-                    $"INSERT INTO dbo.ChatCard VALUES(NEWID(), N'{entity.SenderUserName}',N'{entity.ReceiverUserName}',N'{entity.Content}',1,0); " +
-                    $"INSERT INTO dbo.ChatCard VALUES(NEWID(), N'{entity.ReceiverUserName}',N'{entity.SenderUserName}',N'{entity.Content}',0,0); END END; ";
-            }
-            else
-            {
-                // Channel Chat
-                query = $"INSERT INTO [dbo].[ChannelMessage] VALUES(NEWID(), '{entity.SenderUserName}', '{entity.Content}'";
-                if (entity.FilePath != null) query += $", N'{entity.FilePath}'";
-                else query += $", NULL";
-                query += $", '{entity.ChannelId}', CURRENT_TIMESTAMP, NULL, 0, ";
-                if (entity.RepliedTo != null) query += $"'{entity.RepliedTo}');";
-                else query += $"NULL);";
-            }
+            query += $"BEGIN DECLARE @i INT; " +
+                $"SELECT @i = COUNT(*) FROM dbo.ChatCard " +
+                $"WHERE dbo.ChatCard.SenderUserName = N'{entity.SenderUserName}' AND dbo.ChatCard.ReceiverUserName = N'{entity.ReceiverUserName}'" +
+                $"SELECT @i; IF @i> 0 BEGIN UPDATE dbo.ChatCard " +
+                $"SET Content = N'{entity.Content}',isSend = 1,isDeleted = 0 WHERE SenderUserName = N'{entity.SenderUserName}' AND ReceiverUserName = N'{entity.ReceiverUserName}'; " +
+                $"UPDATE dbo.ChatCard " +
+                $"SET Content = N'{entity.Content}',isSend = 0,isDeleted = 0 WHERE SenderUserName = N'{entity.ReceiverUserName}' AND ReceiverUserName = N'{entity.SenderUserName}'; " +
+                $"END ELSE BEGIN " +
+                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), N'{entity.SenderUserName}',N'{entity.ReceiverUserName}',N'{entity.Content}',1,0); " +
+                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), N'{entity.ReceiverUserName}',N'{entity.SenderUserName}',N'{entity.Content}',0,0); END END; ";
+
             await _service.GetDataAsync(query);
         }
         public async Task PutMessage(Message entity)
         {
-            var query = $"UPDATE dbo.Message " +
-                $"SET Content = N'{entity.Content}', UpdatedAt = CURRENT_TIMESTAMP " +
-                $"WHERE dbo.Message.ID = '{entity.Id}'; ";
+            var query = $"UPDATE dbo.Message SET Content = N'{entity.Content}',";
+            if (entity.FilePath != null) query += $"FilePath='{entity.FilePath}',";
+            query+= $"UpdatedAt = CURRENT_TIMESTAMP WHERE dbo.Message.ID = '{entity.Id}'; ";
             await _service.GetDataAsync(query);
         }
         public async Task DeleteMessage(Guid id)
         {
             var query = $"UPDATE dbo.Message " +
-                $"SET UpdatedAt = CURRENT_TIMESTAMP, isDeleted='TRUE' " +
-                $"WHERE dbo.Message.ID = @Id; ";
+                $"SET UpdatedAt = CURRENT_TIMESTAMP, isDeleted=1 " +
+                $"WHERE dbo.Message.ID = '{id}'; ";
 
-            var response = await _service.GetDataAsync(query, new { Id = id });
+            var response = await _service.GetDataAsync(query);
         }
 
         public async Task<IEnumerable<ChatCardModel>> GetChatCards(string username)
@@ -150,8 +128,8 @@ namespace SignalRHubs.Services
                 $"ORDER BY dbo.Message.CreatedAt DESC";
 
             var response = await _service.GetDataAsync(query);
-            if (response == null) return;
-            query = $"UPDATE dbo.ChatCard SET Content=N'{response[0].Content.Replace("'","''")}' WHERE (SenderUserName=N'{sender}' AND ReceiverUserName=N'{receiver}') OR (SenderUserName=N'{receiver}' AND ReceiverUserName=N'{sender}')";
+            if (response.Count==0) query = $"UPDATE dbo.ChatCard SET Content=NULL WHERE (SenderUserName=N'{sender}' AND ReceiverUserName=N'{receiver}') OR (SenderUserName=N'{receiver}' AND ReceiverUserName=N'{sender}')";
+            else query = $"UPDATE dbo.ChatCard SET Content=N'{response[0].Content.Replace("'","''")}' WHERE (SenderUserName=N'{sender}' AND ReceiverUserName=N'{receiver}') OR (SenderUserName=N'{receiver}' AND ReceiverUserName=N'{sender}')";
 
             await _service.GetDataAsync(query);
         }
@@ -173,6 +151,18 @@ namespace SignalRHubs.Services
         public async Task DeleteChannelMessageById(Guid messageId)
         {
             var query = $"UPDATE dbo.ChannelMessage SET isDeleted = 1 WHERE Id='{messageId}';";
+            await _service.GetDataAsync(query);
+        }
+
+        public async Task SaveChannelMessage(ChannelMessage message)
+        {
+            // Channel Chat
+            var query = $"INSERT INTO [dbo].[ChannelMessage] VALUES(NEWID(), '{message.SenderUserName}', '{message.Content}'";
+            if (message.FilePath != null) query += $", N'{message.FilePath}'";
+            else query += $", NULL";
+            query += $", '{message.ChannelId}', CURRENT_TIMESTAMP, NULL, 0, ";
+            if (message.RepliedTo != null) query += $"'{message.RepliedTo}');";
+            else query += $"NULL);";
             await _service.GetDataAsync(query);
         }
     }
