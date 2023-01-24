@@ -18,8 +18,8 @@ namespace SignalRHubs.Interfaces.Services
         Task<Guid> DeleteChannel(Guid id);
         Task<String> UpdateCommunityAvatar(Guid id, string url);
         Task<String> UpdateCommunityBackGround(Guid id, string url);
-        Task<Guid> CreatePost(Post entity);
-        Task<IEnumerable<PostViewModel>> GetPosts(Guid communityID, string username);
+        Task<Guid> CreatePost(Post entity, List<Guid>? CommunityIds);
+        Task<IEnumerable<PostViewModel>> GetPosts(string username);
         Task<SearchResultViewModel> GetSearchResult(string text);
         Task<Guid> UpdatePost(PostUpdateModel model);
         Task<Guid> DeletePost(Guid postId);
@@ -40,5 +40,7 @@ namespace SignalRHubs.Interfaces.Services
         Task<string> JoinChannel(string name, Guid channelId);
         Task<string> ExitChannel(string name, Guid channelId);
         Task UpdateUserNumberOfCommunity(int v, Guid communityId);
+        Task<string> LikePost(string userName, Guid postId);
+        Task<string> UnLikePost(string userName, Guid postId);
     }
 }

@@ -39,21 +39,21 @@ namespace SignalRHubs.Controllers
 
             entity.UserName = UserName;
             entity.isDeleted = false;
-            var response = await _homeService.CreatePost(entity);
-            GlobalModule.NumberOfPosts[model.CommunityID.ToString()] = (bool)GlobalModule.NumberOfPosts[model.CommunityID.ToString()] ? 1 : (int)GlobalModule.NumberOfPosts[model.CommunityID.ToString()] + 1;
+            var response = await _homeService.CreatePost(entity, model.CommunityIds);
+            //GlobalModule.NumberOfPosts[model.CommunityID.ToString()] = (bool)GlobalModule.NumberOfPosts[model.CommunityID.ToString()] ? 1 : (int)GlobalModule.NumberOfPosts[model.CommunityID.ToString()] + 1;
 
             return Ok(response);
         }
         /// <summary> 
-        /// Get Posts of Community
+        /// Get Posts of User
         /// </summary>
         /// <returns></returns>
         [ProducesResponseType(typeof(List<PostViewModel>), 200)]
         [ProducesResponseType(typeof(NotFoundResult), 400)]
         [HttpGet("/posts")]
-        public async Task<IActionResult> GetPostsOfCommunity([FromQuery][Required] Guid communityID)
+        public async Task<IActionResult> GetPostsOfCommunity()
         {
-            return Ok(await _homeService.GetPosts(communityID, UserName));
+            return Ok(await _homeService.GetPosts(UserName));
         }
         /// <summary> 
         /// Update Post
@@ -83,6 +83,30 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> DeletePost([Required] Guid postId)
         {
             var response = await _homeService.DeletePost(postId);
+            return Ok(response);
+        }
+        /// <summary>
+        /// User Like Post
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(Guid), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpPost("/post/like")]
+        public async Task<IActionResult> LikePost([Required][FromForm] Guid postId)
+        {
+            var response = await _homeService.LikePost(UserName, postId);
+            return Ok(response);
+        }
+        /// <summary>
+        /// User unlike Post
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(Guid), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpPost("/post/unlike")]
+        public async Task<IActionResult> UnLikePost([Required][FromForm] Guid postId)
+        {
+            var response = await _homeService.UnLikePost(UserName, postId);
             return Ok(response);
         }
     }
