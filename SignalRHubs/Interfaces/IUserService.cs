@@ -13,5 +13,9 @@ namespace SignalRHubs.Interfaces.Services
         Task<List<User>> GetUsers();
         Task<bool> IsValidUserName(string userName);
         Task<string> UpdateUserBackground(string url, string userName);
+        Task<string> AddUserToFriendList(string userName, string username);
+        Task<List<UserViewModel>> GetAllFriends(string userName);
+        Task<string> RemoveUserFromFriend(string userName, string username);
+        Task<string> BlockUser(string userName, string username);
     }
 }

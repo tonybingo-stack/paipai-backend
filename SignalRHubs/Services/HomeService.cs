@@ -412,5 +412,26 @@ namespace SignalRHubs.Services
             var query = $"UPDATE [dbo].[Community] SET NumberOfUsers={v} WHERE ID='{communityId}';";
             await _service.GetDataAsync(query);
         }
+
+        public async Task<SearchResultViewModel> GetSearchResult(string text)
+        {
+            SearchResultViewModel result = new SearchResultViewModel();
+            var query = $"SELECT * FROM Community WHERE CHARINDEX('{text}', CommunityName) > 0";
+            var response = await _service.GetDataAsync<CommunityViewModel>(query);
+            result.communityViewModels=response.ToList();
+
+            query = $"SELECT * FROM Users WHERE CHARINDEX('{text}', UserName) > 0";
+            var response1 = await _service.GetDataAsync<UserViewModel>(query);
+            result.usersViewModels = response1.ToList();
+
+            query = $"SELECT * FROM Posts WHERE CHARINDEX('{text}', Title) > 0";
+            var response2 = await _service.GetDataAsync<PostViewModel>(query);
+            result.postsViewModels = response2.ToList();
+
+            query = $"SELECT * FROM Event WHERE CHARINDEX('{text}', Title) > 0";
+            var response3 = await _service.GetDataAsync<EventViewModel>(query);
+            result.eventsViewModels = response3.ToList();
+            return result;
+        }
     }
 }

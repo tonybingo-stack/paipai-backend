@@ -123,5 +123,37 @@ namespace SignalRHubs.Services
             else return false;
         }
 
+        public async Task<string> AddUserToFriendList(string userName, string username)
+        {
+            var query = $"INSERT INTO [dbo].[FriendList] VALUES(NEWID(), '{userName}', '{username}', 0);" +
+                $"INSERT INTO [dbo].[FriendList] VALUES(NEWID(), '{username}', '{userName}', 0);";
+            await _userService.GetDataAsync(query);
+            return "Successfully added friend list.";
+        }
+
+        public async Task<List<UserViewModel>> GetAllFriends(string userName)
+        {
+            var query = $"SELECT * FROM dbo.FriendList " +
+                $"INNER JOIN dbo.Users ON dbo.FriendList.UserTwo =dbo.Users.UserName " +
+                $"WHERE dbo.FriendList.UserOne='{userName}' AND dbo.FriendList.isBlocked=0";
+            var response=await _userService.GetDataAsync<UserViewModel>(query);
+            return response.ToList();
+        }
+
+        public async Task<string> RemoveUserFromFriend(string userName, string username)
+        {
+            var query = $"DELETE FROM dbo.FriendList " +
+                $"WHERE (UserOne='{userName}' AND UserTwo='{username}') OR (UserOne='{username}' AND UserTwo='{userName}');";
+            await _userService.GetDataAsync(query);
+            return $"{username} removed from friend list.";
+        }
+
+        public async Task<string> BlockUser(string userName, string username)
+        {
+            var query = $"UPDATE dbo.FriendList SET isBlocked=1 " +
+                $"WHERE (UserOne='{userName}' AND UserTwo='{username}') OR (UserOne='{username}' AND UserTwo='{userName}');";
+            await _userService.GetDataAsync(query);
+            return $"{username} blocked!";
+        }
     }
 }

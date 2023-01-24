@@ -83,23 +83,6 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = false,
         ValidateIssuerSigningKey = true
     };
-    //o.Events = new JwtBearerEvents
-    //{
-    //    OnMessageReceived = context =>
-    //    {
-    //        var accessToken = context.Request.Query["access_token"];
-
-    //        // If the request is for our hub...
-    //        var path = context.HttpContext.Request.Path;
-    //        if (!string.IsNullOrEmpty(accessToken) &&
-    //            (path.StartsWithSegments("/chatHub")))
-    //        {
-    //            // Read the token out of the query string
-    //            context.Token = accessToken;
-    //        }
-    //        return Task.CompletedTask;
-    //    }
-    //};
 });
 builder.Services.AddAuthorization();
 // Authentication
@@ -123,12 +106,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-//// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseSwagger();
-//    app.UseSwaggerUI();
-//}
 app.UseSwagger();
 app.UseSwaggerUI();
 
@@ -161,16 +138,5 @@ app.MapHub<ChatHub>("/chathub", options =>
 
     Console.WriteLine($"Authorization data items: {options.AuthorizationData.Count}");
 });
-//app.UseEndpoints(endpoints =>
-//{
-//    endpoints.MapHub<ChatHub>("/chathub", options =>
-//    {
-//        options.Transports =
-//        HttpTransportType.WebSockets |
-//        HttpTransportType.LongPolling;
-//    }
-//    );
-//}
-//);
 
 app.Run();
