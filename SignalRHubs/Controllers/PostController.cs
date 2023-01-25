@@ -56,6 +56,17 @@ namespace SignalRHubs.Controllers
             return Ok(await _homeService.GetPosts(UserName));
         }
         /// <summary> 
+        /// Get Posts for feed page
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(List<PostViewModel>), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpGet("/posts/feed")]
+        public async Task<IActionResult> GetPostsForFeed([Required][FromQuery]int offset)
+        {
+            return Ok(await _homeService.GetPostsForFeed(offset));
+        }
+        /// <summary> 
         /// Update Post
         /// </summary>
         /// <returns></returns>
