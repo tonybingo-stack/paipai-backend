@@ -20,10 +20,12 @@ namespace SignalRHubs.Interfaces.Services
         Task<String> UpdateCommunityBackGround(Guid id, string url);
         Task<Guid> CreatePost(Post entity, List<Guid>? CommunityIds);
         Task<IEnumerable<PostViewModel>> GetPosts(string username);
+        Task<IEnumerable<PostViewModel>> GetPostsForFeed(int offset);
         Task<SearchResultViewModel> GetSearchResult(string text);
         Task<Guid> UpdatePost(PostUpdateModel model);
         Task<Guid> DeletePost(Guid postId);
         Task<IEnumerable<CommunityViewModel>> GetJoinedCommunity(string username);
+        Task<IEnumerable<CommunityViewModel>> GetCommunityForFeed(int offset);
         Task<string> JoinCommunity(string username,Guid communityId);
         Task<string> ExitCommunity(string username, Guid communityId);
         Task<CommunityMember> GetUserRole(string username, Guid communityId);

@@ -221,13 +221,43 @@ namespace SignalRHubs.Services
         {
             List<PostViewModel> result = new List<PostViewModel>();
             var query = $"SELECT * " +
-                $"FROM dbo.Posts WHERE dbo.Posts.UserName ='{username}' AND dbo.Posts.isDeleted =0 " +
+                $"FROM dbo.Posts WHERE dbo.Posts.UserName =N'{username}' AND dbo.Posts.isDeleted =0 " +
                 $"ORDER BY dbo.Posts.CreatedAt DESC";
             var response = await _service.GetDataAsync<PostViewModel>(query);
-            if (response.Count == 0) return null;
+            if (response.Count == 0) return result;
 
             result = response.ToList();
             for(int i=0; i<result.Count; i++)
+            {
+                query = $"SELECT Users.* " +
+                    $"FROM [dbo].[Posts] " +
+                    $"INNER JOIN PostLikeUser ON Posts.ID=PostLikeUser.PostId " +
+                    $"INNER JOIN Users ON PostLikeUser.UserName=Users.UserName " +
+                    $"WHERE Posts.ID='{result[i].ID}'";
+                var users = await _service.GetDataAsync<UserViewModel>(query);
+                result[i].UsersLikePost = users.ToList();
+                query = $"SELECT Community.*" +
+                    $"FROM [dbo].[Posts] " +
+                    $"INNER JOIN PostWithCommunity ON Posts.ID=PostWithCommunity.PostId " +
+                    $"INNER JOIN Community ON PostWithCommunity.CommunityId=Community.ID " +
+                    $"WHERE Posts.ID='{result[i].ID}'";
+                var community = await _service.GetDataAsync<CommunityViewModel>(query);
+                result[i].CommunitiesOfPost = community.ToList();
+            }
+            return result;
+        }
+        public async Task<IEnumerable<PostViewModel>> GetPostsForFeed(int offset)
+        {
+            List<PostViewModel> result = new List<PostViewModel>();
+            var query = $"SELECT * " +
+                $"FROM dbo.Posts WHERE dbo.Posts.isDeleted =0 " +
+                $"ORDER BY dbo.Posts.CreatedAt DESC OFFSET {offset*10} ROWS FETCH NEXT 10 ROWS ONLY;";
+
+            var response = await _service.GetDataAsync<PostViewModel>(query);
+            if (response.Count == 0) return result;
+
+            result = response.ToList();
+            for (int i = 0; i<result.Count; i++)
             {
                 query = $"SELECT Users.* " +
                     $"FROM [dbo].[Posts] " +
@@ -298,7 +328,14 @@ namespace SignalRHubs.Services
             var response = await _service.GetDataAsync<CommunityViewModel>(query);
             return response.ToList();
         }
-
+        public async Task<IEnumerable<CommunityViewModel>> GetCommunityForFeed(int offset)
+        {
+            var query = $"SELECT dbo.Community.ID,dbo.Community.CommunityName,dbo.Community.CommunityDescription,dbo.Community.CommunityOwnerName,dbo.Community.CommunityType,dbo.Community.CreatedAt,dbo.Community.UpdatedAt,dbo.Community.ForegroundImage,dbo.Community.BackgroundImage,dbo.Community.NumberOfUsers,dbo.Community.NumberOfPosts,dbo.Community.NumberOfActiveUsers " +
+                $"FROM dbo.Community " +
+                $"ORDER BY dbo.Community.CreatedAt DESC OFFSET {offset*10} ROWS FETCH NEXT 10 ROWS ONLY;";
+            var response = await _service.GetDataAsync<CommunityViewModel>(query);
+            return response.ToList();
+        }
         public async Task<string> JoinCommunity(string username, Guid communityId)
         {
             var query = $"INSERT INTO dbo.CommunityMember VALUES(NEWID(), N'{username}','{communityId}',2);";

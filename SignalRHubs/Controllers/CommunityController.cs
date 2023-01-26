@@ -133,6 +133,17 @@ namespace SignalRHubs.Controllers
             return Ok(await _homeService.GetJoinedCommunity(UserName));
         }
         /// <summary>
+        /// Get communities for feed page
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(List<CommunityViewModel>), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpGet("/community/feed")]
+        public async Task<IActionResult> GetCommunityForFeed([Required][FromQuery]int offset)
+        {
+            return Ok(await _homeService.GetCommunityForFeed(offset));
+        }
+        /// <summary>
         /// Join a community
         /// </summary>
         /// <returns></returns>
