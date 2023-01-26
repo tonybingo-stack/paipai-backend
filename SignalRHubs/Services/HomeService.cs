@@ -56,6 +56,7 @@ namespace SignalRHubs.Services
             var query = $"INSERT INTO Community VALUES( " +
                 $"'{entity.Id}', " +
                 $"N'{entity.CommunityName}', ";
+
             if (entity.CommunityDescription == null) query += $"NULL, ";
             else query += $"N'{entity.CommunityDescription}', ";
 
