@@ -379,7 +379,7 @@ namespace SignalRHubs.Services
 
         public async Task<string> ExitCommunity(string username, Guid communityId)
         {
-            var query = $"DELETE FROM dbo.CommunityMember WHERE UserName=N'{username} AND CommunityID='{communityId}';";
+            var query = $"DELETE FROM dbo.CommunityMember WHERE UserName=N'{username}' AND CommunityID='{communityId}';";
             await _service.GetDataAsync(query);
             return $"{username} exited from Community.";
         }

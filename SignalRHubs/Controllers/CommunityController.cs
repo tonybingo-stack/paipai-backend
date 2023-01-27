@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Distributed;
 using RedisCacheForPaiPai;
 using SignalRHubs.Entities;
 using SignalRHubs.Hubs;
@@ -8,6 +9,7 @@ using SignalRHubs.Interfaces.Services;
 using SignalRHubs.Lib;
 using SignalRHubs.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 
 namespace SignalRHubs.Controllers
 {
@@ -17,16 +19,55 @@ namespace SignalRHubs.Controllers
         private readonly IHomeService _homeService;
         private readonly IHubContext<ChatHub> _hubContext;
         private readonly IConfiguration _iconfiguration;
-        private RedisConnection _redisConnection;
+        //private RedisConnection _redisConnection;
+        private readonly IDistributedCache _cache;
+        private readonly DistributedCacheEntryOptions expiration;
 
-        public CommunityController(IHomeService service, IUserService userService, IMapper mapper, IHubContext<ChatHub> hubContext, IConfiguration iconfiguration) : base(userService)
+        public CommunityController(IHomeService service, IUserService userService, IMapper mapper, IHubContext<ChatHub> hubContext, 
+            IConfiguration iconfiguration, IDistributedCache cache) : base(userService)
         {
             _homeService = service;
             _mapper = mapper;
             _hubContext = hubContext;
             _iconfiguration = iconfiguration;
+            _cache = cache;
+            expiration = new DistributedCacheEntryOptions()
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(100),
+                SlidingExpiration = TimeSpan.FromDays(100)
+            };
         }
+        /// <summary>
+        /// Init Redis Cache
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpGet("/community/initcache")]
+        public async Task<IActionResult> InitCache()
+        {
+            await _cache.SetAsync("e30e127ca47e428a9d15c5778f929f80", Encoding.UTF8.GetBytes("1"), expiration);
+            await _cache.SetAsync("e30e127ca47e428a9d15c5778f929f80" + "_old", Encoding.UTF8.GetBytes("1"), expiration);
+            await _cache.SetAsync("0398a28dd1644c4d8f466ffaa7ba1fc8", Encoding.UTF8.GetBytes("1"), expiration);
+            await _cache.SetAsync("0398a28dd1644c4d8f466ffaa7ba1fc8" + "_old", Encoding.UTF8.GetBytes("1"), expiration);
+            await _cache.SetAsync("8ba18d00c0bc4249b1572a9e460b1b75", Encoding.UTF8.GetBytes("1"), expiration);
+            await _cache.SetAsync("8ba18d00c0bc4249b1572a9e460b1b75" + "_old", Encoding.UTF8.GetBytes("1"), expiration);
 
+            return Ok("success");
+        }
+        /// </summary>
+        /// Get Redis Cache
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpGet("/community/get")]
+        public async Task<IActionResult> GetCache()
+        {
+            var res = await _cache.GetAsync("e30e127ca47e428a9d15c5778f929f80");
+
+            return Ok(Encoding.UTF8.GetString(res));
+        }
         /// <summary>
         /// Test redis
         /// </summary>
@@ -36,16 +77,14 @@ namespace SignalRHubs.Controllers
         [HttpGet("/community/numberofuser")]
         public async Task<IActionResult> GetUserNumberOfCommunity([FromQuery][Required] Guid communityId)
         {
-            _redisConnection = await RedisConnection.InitializeAsync(connectionString: _iconfiguration["ConnectionStrings:RedisCache"]);
-
-            //var res1= (await _redisConnection.BasicRetryAsync(async (db) => await db.ExecuteAsync("PING"))).ToString();
-            //await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync("test", "great"));
-            var res= await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(communityId.ToString()));
-            if (res.IsNull == true)
+            string key = communityId.ToString().Replace("-", "");
+            var res = await _cache.GetAsync(key);
+            if ((res?.Count() ?? 0) > 0)
             {
-                return Ok("Key doesn't exist in Redis Cache. Try again in another community.");
+                return Ok(Encoding.UTF8.GetString(res));
             }
-            return Ok(res.ToString());
+            return Ok("Key doesn't exist in Redis Cache. Try again in another community.");
+
         }
         /// <summary>
         /// Create New Community
@@ -64,14 +103,8 @@ namespace SignalRHubs.Controllers
             var response = await _homeService.CreateCommunity(entity);
 
             // Create Redis cache for this community
-            _redisConnection = await RedisConnection.InitializeAsync(connectionString: _iconfiguration["ConnectionStrings:RedisCache"]);
-
-            await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(response.ToString(), 1));
-            await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(response.ToString()+"_old", 1));
-            //var res = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(communityId.ToString()));
-            //GlobalModule.NumberOfUsers[response.ToString()] = 1;
-            //GlobalModule.NumberOfPosts[response.ToString()] = 0;
-            //GlobalModule.NumberOfActiveUser[response.ToString()] = 1;
+            await _cache.SetAsync(response.ToString().Replace("-", ""), Encoding.UTF8.GetBytes("1"), expiration);
+            await _cache.SetAsync(response.ToString().Replace("-", "") + "_old", Encoding.UTF8.GetBytes("1"), expiration);
 
             return Ok(response);
         }
@@ -113,10 +146,8 @@ namespace SignalRHubs.Controllers
             if (m.UserRole > 0) return BadRequest("UserRole is not enough to perform this action!");
             var res = await _homeService.DeleteCommunity(id);
 
-            // Clear Redis Cache for this community
-            _redisConnection = await RedisConnection.InitializeAsync(connectionString: _iconfiguration["ConnectionStrings:RedisCache"]);
-            await _redisConnection.BasicRetryAsync(async (db) => db.KeyDelete(id.ToString()));
-            await _redisConnection.BasicRetryAsync(async (db) => db.KeyDelete(id.ToString()+"_old"));
+            await _cache.RemoveAsync(id.ToString().Replace("-", ""));
+            await _cache.RemoveAsync(id.ToString().Replace("-", "") + "_old");
 
             return Ok(res);
         }
@@ -131,12 +162,11 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> GetAllJoinedCommunity()
         {
             var res = await _homeService.GetJoinedCommunity(UserName);
-            _redisConnection = await RedisConnection.InitializeAsync(connectionString: _iconfiguration["ConnectionStrings:RedisCache"]);
 
             foreach (var item in res)
             {
-                var num = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(item.Id.ToString()));
-                item.NumberOfUsers = Int32.Parse(num.ToString());
+                var num = await _cache.GetAsync(item.Id.ToString().Replace("-", ""));
+                item.NumberOfUsers = Int32.Parse(Encoding.UTF8.GetString(num));
             }
             return Ok(res);
         }
@@ -150,12 +180,12 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> GetCommunityForFeed([Required][FromQuery]int offset)
         {
             var res = await _homeService.GetCommunityForFeed(offset);
-            _redisConnection = await RedisConnection.InitializeAsync(connectionString: _iconfiguration["ConnectionStrings:RedisCache"]);
+            //_redisConnection = await RedisConnection.InitializeAsync(connectionString: _iconfiguration["ConnectionStrings:RedisCache"]);
 
             foreach (var item in res)
             {
-                var num = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(item.Id.ToString()));
-                item.NumberOfUsers = Int32.Parse(num.ToString());
+                var num = await _cache.GetAsync(item.Id.ToString().Replace("-", ""));
+                item.NumberOfUsers = Int32.Parse(Encoding.UTF8.GetString(num));
             }
             return Ok(res);
         }
@@ -168,21 +198,22 @@ namespace SignalRHubs.Controllers
         [HttpPost("/community/join")]
         public async Task<IActionResult> JoinCommunity([FromForm][Required] Guid communityId)
         {
-            //GlobalModule.NumberOfUsers[communityId.ToString()] = (int)GlobalModule.NumberOfUsers[communityId.ToString()] + 1;
-            _redisConnection = await RedisConnection.InitializeAsync(connectionString: _iconfiguration["ConnectionStrings:RedisCache"]);
-            var cur = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(communityId.ToString()));
-            var old = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(communityId.ToString() + "_old"));
-            if (cur.IsNull || old.IsNull) return BadRequest("Redis Cache Exception: No key exist!");
+            var cur = await _cache.GetAsync(communityId.ToString().Replace("-", ""));
+            var old = await _cache.GetAsync(communityId.ToString().Replace("-", "") + "_old");
+            if ((cur?.Count() ?? 0) == 0 || (old?.Count() ?? 0) == 0) return BadRequest("Redis Cache Exception: No key exist!");
 
             var res = await _homeService.JoinCommunity(UserName, communityId);
 
             // if old<cur+100 then update db
-            if (Int32.Parse(old.ToString()) < Int32.Parse(cur.ToString()) + 100)
+            if (Int32.Parse(Encoding.UTF8.GetString(old)) < Int32.Parse(Encoding.UTF8.GetString(cur)) + 100)
             {
-                await _homeService.UpdateUserNumberOfCommunity(Int32.Parse(cur.ToString()), communityId);
-                await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(communityId.ToString()+"_old", Int32.Parse(cur.ToString()) + 1));
+                await _homeService.UpdateUserNumberOfCommunity(Int32.Parse(Encoding.UTF8.GetString(cur)), communityId);
+                //await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(communityId.ToString()+"_old", Int32.Parse(cur.ToString()) + 1));
+                await _cache.SetAsync(communityId.ToString().Replace("-", "") + "_old", Encoding.UTF8.GetBytes(Encoding.UTF8.GetString(cur)), expiration);
             }
-            await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(communityId.ToString(), Int32.Parse(cur.ToString())+1));
+            //await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(communityId.ToString(), Int32.Parse(cur.ToString())+1));
+            await _cache.SetAsync(communityId.ToString().Replace("-", ""), Encoding.UTF8.GetBytes((Int32.Parse(Encoding.UTF8.GetString(cur))+1).ToString()), expiration);
+
             return Ok(res);
         }
         /// <summary>
@@ -194,22 +225,20 @@ namespace SignalRHubs.Controllers
         [HttpPost("/community/exit")]
         public async Task<IActionResult> ExitCommunity([FromForm][Required] Guid communityId)
         {
-            //GlobalModule.NumberOfUsers[communityId.ToString()] = (int)GlobalModule.NumberOfUsers[communityId.ToString()] - 1;
-            _redisConnection = await RedisConnection.InitializeAsync(connectionString: _iconfiguration["ConnectionStrings:RedisCache"]);
-
-            var cur = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(communityId.ToString()));
-            var old = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(communityId.ToString() + "_old"));
-            if (cur.IsNull || old.IsNull) return BadRequest("Redis Cache Exception: No key exist!");
+            var cur = await _cache.GetAsync(communityId.ToString().Replace("-", ""));
+            var old = await _cache.GetAsync(communityId.ToString().Replace("-", "") + "_old");
+            if ((cur?.Count() ?? 0) == 0 || (old?.Count() ?? 0) == 0) return BadRequest("Redis Cache Exception: No key exist!");
 
             var res = await _homeService.ExitCommunity(UserName, communityId);
 
-            await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(communityId.ToString(), Int32.Parse(cur.ToString()) - 1));
             // if old>cur-100 then update db
-            if (Int32.Parse(old.ToString()) > Int32.Parse(cur.ToString()) - 100)
+            if (Int32.Parse(Encoding.UTF8.GetString(old)) > Int32.Parse(Encoding.UTF8.GetString(cur)) - 100)
             {
-                await _homeService.UpdateUserNumberOfCommunity(Int32.Parse(cur.ToString()), communityId);
-                await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(communityId.ToString() + "_old", Int32.Parse(cur.ToString())));
+                await _homeService.UpdateUserNumberOfCommunity(Int32.Parse(Encoding.UTF8.GetString(cur)), communityId);
+                await _cache.SetAsync(communityId.ToString().Replace("-", "") + "_old", Encoding.UTF8.GetBytes(Encoding.UTF8.GetString(cur)), expiration);
             }
+            await _cache.SetAsync(communityId.ToString().Replace("-", ""), Encoding.UTF8.GetBytes((Int32.Parse(Encoding.UTF8.GetString(cur)) - 1).ToString()), expiration);
+
             return Ok(res);
         }
         /// <summary>
