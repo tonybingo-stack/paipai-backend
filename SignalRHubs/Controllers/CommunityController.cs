@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Distributed;
-using RedisCacheForPaiPai;
 using SignalRHubs.Entities;
 using SignalRHubs.Hubs;
 using SignalRHubs.Interfaces.Services;
@@ -36,37 +35,6 @@ namespace SignalRHubs.Controllers
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(100),
                 SlidingExpiration = TimeSpan.FromDays(100)
             };
-        }
-        /// <summary>
-        /// Init Redis Cache
-        /// </summary>
-        /// <returns></returns>
-        [ProducesResponseType(200)]
-        [ProducesResponseType(typeof(NotFoundResult), 400)]
-        [HttpGet("/community/initcache")]
-        public async Task<IActionResult> InitCache()
-        {
-            await _cache.SetAsync("e30e127ca47e428a9d15c5778f929f80", Encoding.UTF8.GetBytes("1"), expiration);
-            await _cache.SetAsync("e30e127ca47e428a9d15c5778f929f80" + "_old", Encoding.UTF8.GetBytes("1"), expiration);
-            await _cache.SetAsync("0398a28dd1644c4d8f466ffaa7ba1fc8", Encoding.UTF8.GetBytes("1"), expiration);
-            await _cache.SetAsync("0398a28dd1644c4d8f466ffaa7ba1fc8" + "_old", Encoding.UTF8.GetBytes("1"), expiration);
-            await _cache.SetAsync("8ba18d00c0bc4249b1572a9e460b1b75", Encoding.UTF8.GetBytes("1"), expiration);
-            await _cache.SetAsync("8ba18d00c0bc4249b1572a9e460b1b75" + "_old", Encoding.UTF8.GetBytes("1"), expiration);
-
-            return Ok("success");
-        }
-        /// </summary>
-        /// Get Redis Cache
-        /// </summary>
-        /// <returns></returns>
-        [ProducesResponseType(200)]
-        [ProducesResponseType(typeof(NotFoundResult), 400)]
-        [HttpGet("/community/get")]
-        public async Task<IActionResult> GetCache()
-        {
-            var res = await _cache.GetAsync("e30e127ca47e428a9d15c5778f929f80");
-
-            return Ok(Encoding.UTF8.GetString(res));
         }
         /// <summary>
         /// Test redis
@@ -180,7 +148,6 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> GetCommunityForFeed([Required][FromQuery]int offset)
         {
             var res = await _homeService.GetCommunityForFeed(offset);
-            //_redisConnection = await RedisConnection.InitializeAsync(connectionString: _iconfiguration["ConnectionStrings:RedisCache"]);
 
             foreach (var item in res)
             {

@@ -31,19 +31,25 @@ namespace SignalRHubs.Controllers
         [HttpPost("/create-new-post")]
         public async Task<IActionResult> CreatePost([FromForm] PostCreateModel model)
         {
-            if (model.Urls.Count != model.Types.Count) return BadRequest("Number of Urls and Types must same!");
+            if(model.Urls.Count==model.Types.Count && model.Types.Count==model.PreviewHs.Count && model.PreviewHs.Count == model.PreviewWs.Count)
+            {
+                Post entity = _mapper.Map<Post>(model);
+                if (entity.Title != null) entity.Title = entity.Title.Replace("'", "''");
+                if (entity.Contents != null) entity.Contents = entity.Contents.Replace("'", "''");
+                if (entity.Category != null) entity.Category = entity.Category.Replace("'", "''");
+                if (entity.Price != null) entity.Price = entity.Price.Replace("'", "''");
 
-            Post entity = _mapper.Map<Post>(model);
-            if (entity.Title != null) entity.Title = entity.Title.Replace("'", "''");
-            if (entity.Contents != null) entity.Contents = entity.Contents.Replace("'", "''");
-            if (entity.Category != null) entity.Category = entity.Category.Replace("'", "''");
-            if (entity.Price != null) entity.Price = entity.Price.Replace("'", "''");
+                entity.UserName = UserName;
+                entity.isDeleted = false;
+                var response = await _homeService.CreatePost(entity, model);
 
-            entity.UserName = UserName;
-            entity.isDeleted = false;
-            var response = await _homeService.CreatePost(entity, model);
+                return Ok(response);
+            }
+            else
+            {
+                return BadRequest("Number of Urls, Types, PreviewHs, PreviewWs must same!");
+            }
 
-            return Ok(response);
         }
         /// <summary> 
         /// Get Posts of User
@@ -77,14 +83,21 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> UpdatePost([FromForm] PostUpdateModel model)
         {
             if (model.Title == null && model.Contents == null && model.Price == null && model.Category == null) return BadRequest("At lease one field is required!");
-            if (model.Urls.Count != model.Types.Count) return BadRequest("Number of Urls and Types must same!");
+            if (model.Urls.Count == model.Types.Count && model.Types.Count == model.PreviewHs.Count && model.PreviewHs.Count == model.PreviewWs.Count)
+            {
+                if (model.Title != null) model.Title = model.Title.Replace("'", "''");
+                if (model.Contents != null) model.Contents = model.Contents.Replace("'", "''");
+                if (model.Price != null) model.Price = model.Price.Replace("'", "''");
+                if (model.Category != null) model.Category = model.Category.Replace("'", "''");
 
-            if (model.Title != null) model.Title = model.Title.Replace("'", "''");
-            if (model.Contents != null) model.Contents = model.Contents.Replace("'", "''");
-            if (model.Price != null) model.Price = model.Price.Replace("'", "''");
-            if (model.Category != null) model.Category = model.Category.Replace("'", "''");
+                return Ok(await _homeService.UpdatePost(model));
+            }
+            else
+            {
+                return BadRequest("Number of Urls, Types, PreviewHs, PreviewWs must same!");
+            }
 
-            return Ok(await _homeService.UpdatePost(model));
+
         }
         /// <summary>
         /// Delete Post

@@ -216,7 +216,7 @@ namespace SignalRHubs.Services
             {
                 for (int i = 0; i < model.Urls.Count; i++)
                 {
-                    query += $"INSERT INTO dbo.PostFile VALUES(NEWID(), '{response[0].Id}', {i}, N'{model.Urls[i]}', N'{model.Types[i]}')";
+                    query += $"INSERT INTO dbo.PostFile VALUES(NEWID(), '{response[0].Id}', {i}, N'{model.Urls[i]}', N'{model.Types[i]}', {model.PreviewWs[i]}, {model.PreviewHs[i]})";
                 }
             }
             await _service.GetDataAsync(query);
@@ -238,7 +238,8 @@ namespace SignalRHubs.Services
             {
                 query = $"SELECT * " +
                     $"FROM dbo.PostFile " +
-                    $"WHERE dbo.PostFile.PostId='{result[i].ID}'";
+                    $"WHERE dbo.PostFile.PostId='{result[i].ID}'" +
+                    $"ORDER BY [Index] ASC;";
                 var postfiles = await _service.GetDataAsync<PostFileViewModel>(query);
                 result[i].PostFiles = postfiles.ToList();
                 query = $"SELECT Users.* " +
@@ -273,7 +274,8 @@ namespace SignalRHubs.Services
             {
                 query = $"SELECT * " +
                     $"FROM dbo.PostFile " +
-                    $"WHERE dbo.PostFile.PostId='{result[i].ID}'";
+                    $"WHERE dbo.PostFile.PostId='{result[i].ID}'" +
+                    $"ORDER BY [Index] ASC;";
                 var postfiles = await _service.GetDataAsync<PostFileViewModel>(query);
                 result[i].PostFiles = postfiles.ToList();
                 query = $"SELECT Users.* " + 
@@ -334,7 +336,7 @@ namespace SignalRHubs.Services
                 query += $"DELETE * FROM PostFile WHERE PostId='{model.Id}';";
                 for (int i=0; i<model.Urls.Count; i++)
                 {
-                    query += $"INSERT INTO PostFile VALUES(NEWID(), '{model.Id}', {i}, '{model.Urls[i]}', '{model.Types[i]}' );";
+                    query += $"INSERT INTO PostFile VALUES(NEWID(), '{model.Id}', {i}, '{model.Urls[i]}', '{model.Types[i]}', {model.PreviewWs[i]}, {model.PreviewHs[i]});";
                 }
             }
             await _service.GetDataAsync(query);

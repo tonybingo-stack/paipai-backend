@@ -12,5 +12,7 @@ namespace SignalRHubs.Models
         public List<Guid>? CommunityIds { get; set; }
         public List<string>? Urls { get; set; }
         public List<string>? Types { get; set; }
+        public List<int>? PreviewWs { get; set; }
+        public List<int>? PreviewHs { get; set; }
     }
 }
