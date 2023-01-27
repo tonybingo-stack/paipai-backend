@@ -349,7 +349,6 @@ namespace SignalRHubs.Services
                 $"DELETE FROM dbo.PostFile WHERE PostId='{postId}';" +
                 $"UPDATE dbo.Posts SET isDeleted=1 WHERE ID='{postId}';";
             var response = await _service.GetDataAsync(query);
-            //GlobalModule.NumberOfPosts[response[0].Id.ToString()] = (int)GlobalModule.NumberOfPosts[response[0].Id.ToString()] - 1;
             return postId;
         }
 
@@ -358,7 +357,8 @@ namespace SignalRHubs.Services
             var query = $"SELECT dbo.Community.ID,dbo.Community.CommunityName,dbo.Community.CommunityDescription,dbo.Community.CommunityOwnerName,dbo.Community.CommunityType,dbo.Community.CreatedAt,dbo.Community.UpdatedAt,dbo.Community.ForegroundImage,dbo.Community.BackgroundImage,dbo.Community.NumberOfUsers,dbo.Community.NumberOfPosts,dbo.Community.NumberOfActiveUsers " +
                 $"FROM dbo.Community " +
                 $"INNER JOIN dbo.CommunityMember ON dbo.CommunityMember.CommunityID =dbo.Community.ID " +
-                $"WHERE dbo.CommunityMember.UserName =N'{username}'";
+                $"WHERE dbo.CommunityMember.UserName =N'{username}'" +
+                $"ORDER BY NumberOfUsers DESC";
             var response = await _service.GetDataAsync<CommunityViewModel>(query);
             return response.ToList();
         }
@@ -366,7 +366,7 @@ namespace SignalRHubs.Services
         {
             var query = $"SELECT dbo.Community.ID,dbo.Community.CommunityName,dbo.Community.CommunityDescription,dbo.Community.CommunityOwnerName,dbo.Community.CommunityType,dbo.Community.CreatedAt,dbo.Community.UpdatedAt,dbo.Community.ForegroundImage,dbo.Community.BackgroundImage,dbo.Community.NumberOfUsers,dbo.Community.NumberOfPosts,dbo.Community.NumberOfActiveUsers " +
                 $"FROM dbo.Community " +
-                $"ORDER BY dbo.Community.CreatedAt DESC OFFSET {offset*10} ROWS FETCH NEXT 10 ROWS ONLY;";
+                $"ORDER BY dbo.Community.NumberOfUsers DESC OFFSET {offset*10} ROWS FETCH NEXT 10 ROWS ONLY;";
             var response = await _service.GetDataAsync<CommunityViewModel>(query);
             return response.ToList();
         }
