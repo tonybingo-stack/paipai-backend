@@ -190,7 +190,7 @@ namespace SignalRHubs.Services
             return entity.Id;
         }
 
-        public async Task<Guid> CreatePost(Post entity, List<Guid>? CommunityIds)
+        public async Task<Guid> CreatePost(Post entity, PostCreateModel model)
         {
             var query = $"INSERT INTO dbo.Posts OUTPUT Inserted.ID Values(NEWID(), N'{entity.UserName}', N'{entity.Title}', ";
             if (entity.Contents != null) query += $"N'{entity.Contents}',";
@@ -205,11 +205,18 @@ namespace SignalRHubs.Services
             query += $"CURRENT_TIMESTAMP, NULL, 'FALSE')";
             var response = await _service.GetDataAsync<Post>(query);
             query = "";
-            if (CommunityIds != null)
+            if (model.CommunityIds != null)
             {
-                for(int i = 0; i < CommunityIds.Count; i++)
+                for(int i = 0; i < model.CommunityIds.Count; i++)
                 {
-                    query += $"INSERT INTO dbo.PostWithCommunity VALUES(NEWID(), '{response[0].Id}', '{CommunityIds[i]}');";
+                    query += $"INSERT INTO dbo.PostWithCommunity VALUES(NEWID(), '{response[0].Id}', '{model.CommunityIds[i]}');";
+                }
+            }
+            if(model.Urls != null)
+            {
+                for (int i = 0; i < model.Urls.Count; i++)
+                {
+                    query += $"INSERT INTO dbo.PostFile VALUES(NEWID(), '{response[0].Id}', {i}, N'{model.Urls[i]}', N'{model.Types[i]}')";
                 }
             }
             await _service.GetDataAsync(query);
@@ -229,6 +236,11 @@ namespace SignalRHubs.Services
             result = response.ToList();
             for(int i=0; i<result.Count; i++)
             {
+                query = $"SELECT * " +
+                    $"FROM dbo.PostFile " +
+                    $"WHERE dbo.PostFile.PostId='{result[i].ID}'";
+                var postfiles = await _service.GetDataAsync<PostFileViewModel>(query);
+                result[i].PostFiles = postfiles.ToList();
                 query = $"SELECT Users.* " +
                     $"FROM [dbo].[Posts] " +
                     $"INNER JOIN PostLikeUser ON Posts.ID=PostLikeUser.PostId " +
@@ -259,7 +271,12 @@ namespace SignalRHubs.Services
             result = response.ToList();
             for (int i = 0; i<result.Count; i++)
             {
-                query = $"SELECT Users.* " +
+                query = $"SELECT * " +
+                    $"FROM dbo.PostFile " +
+                    $"WHERE dbo.PostFile.PostId='{result[i].ID}'";
+                var postfiles = await _service.GetDataAsync<PostFileViewModel>(query);
+                result[i].PostFiles = postfiles.ToList();
+                query = $"SELECT Users.* " + 
                     $"FROM [dbo].[Posts] " +
                     $"INNER JOIN PostLikeUser ON Posts.ID=PostLikeUser.PostId " +
                     $"INNER JOIN Users ON PostLikeUser.UserName=Users.UserName " +
@@ -304,6 +321,22 @@ namespace SignalRHubs.Services
                 else query += $" Category=N'{model.Category}'";
             }
             query += $", UpdatedAt=CURRENT_TIMESTAMP WHERE ID='{model.Id}'";
+            if (model.CommunityIds != null)
+            {
+                query += $"DELETE * FROM PostWithCommunity WHERE PostId='{model.Id}';";
+                for(int i =0; i<model.CommunityIds.Count; i++)
+                {
+                    query += $"INSERT INTO PostWithCommunity VALUES(NEWID(), '{model.Id}', '{model.CommunityIds[i]}');";
+                }
+            }
+            if(model.Urls != null)
+            {
+                query += $"DELETE * FROM PostFile WHERE PostId='{model.Id}';";
+                for (int i=0; i<model.Urls.Count; i++)
+                {
+                    query += $"INSERT INTO PostFile VALUES(NEWID(), '{model.Id}', {i}, '{model.Urls[i]}', '{model.Types[i]}' );";
+                }
+            }
             await _service.GetDataAsync(query);
 
             return model.Id;
@@ -313,6 +346,7 @@ namespace SignalRHubs.Services
         {
             var query = $"DELETE FROM dbo.PostWithCommunity WHERE PostId='{postId}';" +
                 $"DELETE FROM dbo.PostLikeUser WHERE PostId='{postId}';" +
+                $"DELETE FROM dbo.PostFile WHERE PostId='{postId}';" +
                 $"UPDATE dbo.Posts SET isDeleted=1 WHERE ID='{postId}';";
             var response = await _service.GetDataAsync(query);
             //GlobalModule.NumberOfPosts[response[0].Id.ToString()] = (int)GlobalModule.NumberOfPosts[response[0].Id.ToString()] - 1;

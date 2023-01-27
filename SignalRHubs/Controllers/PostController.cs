@@ -31,6 +31,8 @@ namespace SignalRHubs.Controllers
         [HttpPost("/create-new-post")]
         public async Task<IActionResult> CreatePost([FromForm] PostCreateModel model)
         {
+            if (model.Urls.Count != model.Types.Count) return BadRequest("Number of Urls and Types must same!");
+
             Post entity = _mapper.Map<Post>(model);
             if (entity.Title != null) entity.Title = entity.Title.Replace("'", "''");
             if (entity.Contents != null) entity.Contents = entity.Contents.Replace("'", "''");
@@ -39,8 +41,7 @@ namespace SignalRHubs.Controllers
 
             entity.UserName = UserName;
             entity.isDeleted = false;
-            var response = await _homeService.CreatePost(entity, model.CommunityIds);
-            //GlobalModule.NumberOfPosts[model.CommunityID.ToString()] = (bool)GlobalModule.NumberOfPosts[model.CommunityID.ToString()] ? 1 : (int)GlobalModule.NumberOfPosts[model.CommunityID.ToString()] + 1;
+            var response = await _homeService.CreatePost(entity, model);
 
             return Ok(response);
         }
@@ -76,6 +77,7 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> UpdatePost([FromForm] PostUpdateModel model)
         {
             if (model.Title == null && model.Contents == null && model.Price == null && model.Category == null) return BadRequest("At lease one field is required!");
+            if (model.Urls.Count != model.Types.Count) return BadRequest("Number of Urls and Types must same!");
 
             if (model.Title != null) model.Title = model.Title.Replace("'", "''");
             if (model.Contents != null) model.Contents = model.Contents.Replace("'", "''");
