@@ -130,7 +130,15 @@ namespace SignalRHubs.Controllers
         [HttpGet("/joined-community")]
         public async Task<IActionResult> GetAllJoinedCommunity()
         {
-            return Ok(await _homeService.GetJoinedCommunity(UserName));
+            var res = await _homeService.GetJoinedCommunity(UserName);
+            _redisConnection = await RedisConnection.InitializeAsync(connectionString: _iconfiguration["ConnectionStrings:RedisCache"]);
+
+            foreach (var item in res)
+            {
+                var num = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(item.Id.ToString()));
+                item.NumberOfUsers = Int32.Parse(num.ToString());
+            }
+            return Ok(res);
         }
         /// <summary>
         /// Get communities for feed page
@@ -141,7 +149,15 @@ namespace SignalRHubs.Controllers
         [HttpGet("/community/feed")]
         public async Task<IActionResult> GetCommunityForFeed([Required][FromQuery]int offset)
         {
-            return Ok(await _homeService.GetCommunityForFeed(offset));
+            var res = await _homeService.GetCommunityForFeed(offset);
+            _redisConnection = await RedisConnection.InitializeAsync(connectionString: _iconfiguration["ConnectionStrings:RedisCache"]);
+
+            foreach (var item in res)
+            {
+                var num = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(item.Id.ToString()));
+                item.NumberOfUsers = Int32.Parse(num.ToString());
+            }
+            return Ok(res);
         }
         /// <summary>
         /// Join a community
