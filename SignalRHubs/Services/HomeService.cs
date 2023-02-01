@@ -219,7 +219,7 @@ namespace SignalRHubs.Services
                     query += $"INSERT INTO dbo.PostFile VALUES(NEWID(), '{response[0].Id}', {i}, N'{model.Urls[i]}', N'{model.Types[i]}', {model.PreviewWs[i]}, {model.PreviewHs[i]})";
                 }
             }
-            await _service.GetDataAsync(query);
+            if(query!="") await _service.GetDataAsync(query);
 
             return response[0].Id;
         }

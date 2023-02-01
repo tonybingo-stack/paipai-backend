@@ -35,10 +35,10 @@ namespace SignalRHubs.Services
 
         public async Task<IEnumerable<ChannelMessageViewModel>> GetMessageByChannelId(Guid channelId, int offset)
         {
-            var query = $"SELECT A.SenderUserName,A.Content,A.FilePath, A.FileType, A.FilePreviewW, A.FilePreviewH, A.CreatedAt,A.RepiedTo,B.SenderUserName AS RepliedUserName," +
+            var query = $"SELECT A.SenderUserName,A.Content,A.FilePath, A.FileType, A.FilePreviewW, A.FilePreviewH, A.CreatedAt,A.RepliedTo,B.SenderUserName AS RepliedUserName," +
                 $"C.Avatar AS RepliedUserAvatar,B.Content AS RepliedContent,B.CreatedAt AS RepliedMsgCreatedAt," +
                 $"B.UpdatedAt AS RepliedMsgUpdatedAt " +
-                $"FROM dbo.ChannelMessage AS A LEFT JOIN dbo.ChannelMessage AS B ON A.RepiedTo =B.ID LEFT JOIN dbo.Users AS C ON B.SenderUserName =C.UserName " +
+                $"FROM dbo.ChannelMessage AS A LEFT JOIN dbo.ChannelMessage AS B ON A.RepliedTo =B.ID LEFT JOIN dbo.Users AS C ON B.SenderUserName =C.UserName " +
                 $"WHERE A.ChannelId='{channelId}' AND A.isDeleted=0" +
                 $"ORDER BY A.CreatedAt ASC OFFSET {offset*10} ROWS FETCH NEXT 10 ROWS ONLY;";
 
@@ -67,12 +67,12 @@ namespace SignalRHubs.Services
                 $"SELECT @i = COUNT(*) FROM dbo.ChatCard " +
                 $"WHERE dbo.ChatCard.SenderUserName = N'{entity.SenderUserName}' AND dbo.ChatCard.ReceiverUserName = N'{entity.ReceiverUserName}'" +
                 $"SELECT @i; IF @i> 0 BEGIN UPDATE dbo.ChatCard " +
-                $"SET Content = N'{entity.Content}',isSend = 1,isDeleted = 0 WHERE SenderUserName = N'{entity.SenderUserName}' AND ReceiverUserName = N'{entity.ReceiverUserName}'; " +
+                $"SET Content = N'{entity.Content}', FilePath = N'{entity.FilePath}', FileType = N'{entity.FileType}',isSend = 1,isDeleted = 0 WHERE SenderUserName = N'{entity.SenderUserName}' AND ReceiverUserName = N'{entity.ReceiverUserName}'; " +
                 $"UPDATE dbo.ChatCard " +
-                $"SET Content = N'{entity.Content}',isSend = 0,isDeleted = 0 WHERE SenderUserName = N'{entity.ReceiverUserName}' AND ReceiverUserName = N'{entity.SenderUserName}'; " +
+                $"SET Content = N'{entity.Content}', FilePath = N'{entity.FilePath}', FileType = N'{entity.FileType}',isSend = 0,isDeleted = 0 WHERE SenderUserName = N'{entity.ReceiverUserName}' AND ReceiverUserName = N'{entity.SenderUserName}'; " +
                 $"END ELSE BEGIN " +
-                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), N'{entity.SenderUserName}',N'{entity.ReceiverUserName}',N'{entity.Content}',1,0); " +
-                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), N'{entity.ReceiverUserName}',N'{entity.SenderUserName}',N'{entity.Content}',0,0); END END; ";
+                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), N'{entity.SenderUserName}',N'{entity.ReceiverUserName}',N'{entity.Content}', N'{entity.FilePath}', N'{entity.FileType}', 1,0); " +
+                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), N'{entity.ReceiverUserName}',N'{entity.SenderUserName}',N'{entity.Content}', N'{entity.FilePath}', N'{entity.FileType}',0,0); END END; ";
 
             await _service.GetDataAsync(query);
         }
@@ -136,7 +136,8 @@ namespace SignalRHubs.Services
 
             var response = await _service.GetDataAsync(query);
             if (response.Count==0) query = $"UPDATE dbo.ChatCard SET Content=NULL WHERE (SenderUserName=N'{sender}' AND ReceiverUserName=N'{receiver}') OR (SenderUserName=N'{receiver}' AND ReceiverUserName=N'{sender}')";
-            else query = $"UPDATE dbo.ChatCard SET Content=N'{response[0].Content.Replace("'","''")}' WHERE (SenderUserName=N'{sender}' AND ReceiverUserName=N'{receiver}') OR (SenderUserName=N'{receiver}' AND ReceiverUserName=N'{sender}')";
+            else query = $"UPDATE dbo.ChatCard SET Content=N'{response[0].Content?.Replace("'","''")}', FilePath = N'{response[0].FilePath}', FileType = N'{response[0].FileType}' " +
+                    $" WHERE (SenderUserName=N'{sender}' AND ReceiverUserName=N'{receiver}') OR (SenderUserName=N'{receiver}' AND ReceiverUserName=N'{sender}')";
 
             await _service.GetDataAsync(query);
         }

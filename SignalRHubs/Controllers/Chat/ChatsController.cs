@@ -195,6 +195,8 @@ namespace SignalRHubs.Controllers.Chat
         [HttpPut("/chatcard/message")]
         public async Task<IActionResult> Put([FromForm] MessageUpdateModel model)
         {
+            if (model.FilePath == null && (model.FileType != null || model.FilePreviewW != null || model.FilePreviewH != null)) return BadRequest("Bad request");
+            if (model.FilePath != null && (model.FileType == null || model.FilePreviewW == null || model.FilePreviewH == null)) return BadRequest("Bad request");
             Message message = _mapper.Map<Message>(await _service.GetMessage(model.Id));
             if (message == null) return BadRequest("Message does not exists.");
 
@@ -211,7 +213,6 @@ namespace SignalRHubs.Controllers.Chat
             //update chat card
             await _service.RefreshChatCard(message.SenderUserName, message.ReceiverUserName);
             //await _hubContext.Clients.All.SendAsync("notifyMessage", messageVm);
-            message.Content = model.Content;
 
             return Ok(message);
         }

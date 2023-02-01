@@ -31,7 +31,7 @@ namespace SignalRHubs.Controllers
         [HttpPost("/create-new-post")]
         public async Task<IActionResult> CreatePost([FromForm] PostCreateModel model)
         {
-            if(model.Urls.Count==model.Types.Count && model.Types.Count==model.PreviewHs.Count && model.PreviewHs.Count == model.PreviewWs.Count)
+            if(model.Urls?.Count==model.Types?.Count && model.Types?.Count==model.PreviewHs?.Count && model.PreviewHs?.Count == model.PreviewWs?.Count)
             {
                 Post entity = _mapper.Map<Post>(model);
                 if (entity.Title != null) entity.Title = entity.Title.Replace("'", "''");

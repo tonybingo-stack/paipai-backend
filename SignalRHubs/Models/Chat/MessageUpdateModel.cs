@@ -6,7 +6,7 @@ namespace SignalRHubs.Models
     {
         [Required]
         public Guid Id { get; set; }
-        public string Content { get; set; }
+        public string? Content { get; set; }
         public string? FilePath { get; set; }
         public string? FileType { get; set; }
         public int? FilePreviewW { get; set; }
