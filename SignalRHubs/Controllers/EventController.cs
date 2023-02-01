@@ -37,8 +37,8 @@ namespace SignalRHubs.Controllers
 
             Event e = _mapper.Map<Event>(model);
             e.Title = e.Title.Replace("'", "''");
-            if (e.Description != null) e.Description = e.Description.Replace("'", "''");
-            if (e.Image != null) e.Image = e.Image.Replace("'", "''");
+            if (e.Description != null) e.Description = e.Description;
+            if (e.Image != null) e.Image = e.Image;
             e.HostName = UserName;
 
             return Ok(await _homeService.CreateEvent(e));
@@ -68,10 +68,10 @@ namespace SignalRHubs.Controllers
             if (e == null) return BadRequest("Event not exist!");
             if (e.HostName != UserName) return BadRequest("Only host can update event!");
 
-            if (model.Title != null) e.Title = model.Title.Replace("'", "''");
-            if (model.Description != null) e.Description = model.Description.Replace("'", "''");
-            if (model.Access != null) e.Access = model.Access.Replace("'", "''");
-            if (model.Image != null) e.Image = model.Image.Replace("'", "''");
+            if (model.Title != null) e.Title = model.Title;
+            if (model.Description != null) e.Description = model.Description;
+            if (model.Access != null) e.Access = model.Access;
+            if (model.Image != null) e.Image = model.Image;
             if (model.Title != null) e.Time = model.Time;
             if (model.Limit != null) e.Limit = model.Limit.Value;
 

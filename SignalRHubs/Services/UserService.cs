@@ -72,16 +72,11 @@ namespace SignalRHubs.Services
         public async Task<string> LoginUser(UserSigninModel model)
         {
 
-            var query = $"SELECT * FROM Users Where username=N'{ model.UserName }'";
-            var response = await _userService.GetDataAsync(query);
+            var query = $"SELECT * FROM Users Where username=@name AND Password = @pass";
+            var response = await _userService.GetDataAsync(query, new {name=model.UserName, pass=model.Password});
 
             if (response.Count == 0) return "User Not Found";
-
-            if (response.FirstOrDefault().Password == model.Password)
-            {
-                return "success";
-            }
-            else return "Incorrect Password";
+            else return "success";
         }
         /// <summary>
         /// Get User by UserName
@@ -90,8 +85,8 @@ namespace SignalRHubs.Services
         /// <returns></returns>
         public async Task<User> GetUserByUserName(string name)
         {
-            var query = $"SELECT * FROM Users WHERE UserName=N'{name}'";
-            return await _userService.GetFirstOrDefaultAsync<User>(query);
+            var query = $"SELECT * FROM Users WHERE UserName=@username";
+            return await _userService.GetFirstOrDefaultAsync<User>(query, new {username=name});
         }
         public async Task<List<User>> GetUsers()
         {
@@ -104,20 +99,20 @@ namespace SignalRHubs.Services
 
         public async Task<string> UpdateUserAvatar(string url, string username)
         {
-            var query = $"UPDATE [dbo].[Users] SET Avatar = N'{url}' WHERE UserName = N'{username}'";
-            await _userService.GetDataAsync(query);
+            var query = $"UPDATE [dbo].[Users] SET Avatar = @Url WHERE UserName = @Username";
+            await _userService.GetDataAsync(query, new { Url=url, Username=username });
             return "Successfully updated user avatar!";
         }
         public async Task<string> UpdateUserBackground(string url, string userName)
         {
-            var query = $"UPDATE [dbo].[Users] SET Background = N'{url}' WHERE UserName = N'{userName}'";
-            await _userService.GetDataAsync(query);
+            var query = $"UPDATE [dbo].[Users] SET Background = @Url WHERE UserName = @Username";
+            await _userService.GetDataAsync(query, new { Url = url, Username = userName });
             return "Successfully updated user background!";
         }
         public async Task<bool> IsValidUserName(string userName)
         {
-            var query = $"SELECT * FROM dbo.Users WHERE UserName = N'{userName}'";
-            var result = await _userService.GetDataAsync(query);
+            var query = $"SELECT * FROM dbo.Users WHERE UserName = @username";
+            var result = await _userService.GetDataAsync(query, new {username=userName});
 
             if (result.Count == 0) return true;
             else return false;
@@ -125,9 +120,9 @@ namespace SignalRHubs.Services
 
         public async Task<string> AddUserToFriendList(string userName, string username)
         {
-            var query = $"INSERT INTO [dbo].[FriendList] VALUES(NEWID(), '{userName}', '{username}', 0);" +
-                $"INSERT INTO [dbo].[FriendList] VALUES(NEWID(), '{username}', '{userName}', 0);";
-            await _userService.GetDataAsync(query);
+            var query = $"INSERT INTO [dbo].[FriendList] VALUES(NEWID(), @user1, @user2, 0);" +
+                $"INSERT INTO [dbo].[FriendList] VALUES(NEWID(), @user2, @user1, 0);";
+            await _userService.GetDataAsync(query, new { user1=userName, user2=username });
             return "Successfully added friend list.";
         }
 
@@ -135,25 +130,25 @@ namespace SignalRHubs.Services
         {
             var query = $"SELECT * FROM dbo.FriendList " +
                 $"INNER JOIN dbo.Users ON dbo.FriendList.UserTwo =dbo.Users.UserName " +
-                $"WHERE dbo.FriendList.UserOne='{userName}' AND dbo.FriendList.isBlocked=0";
-            var response=await _userService.GetDataAsync<UserViewModel>(query);
+                $"WHERE dbo.FriendList.UserOne=@user AND dbo.FriendList.isBlocked=0";
+            var response=await _userService.GetDataAsync<UserViewModel>(query, new { user=userName });
             return response.ToList();
         }
 
         public async Task<string> RemoveUserFromFriend(string userName, string username)
         {
             var query = $"DELETE FROM dbo.FriendList " +
-                $"WHERE (UserOne='{userName}' AND UserTwo='{username}') OR (UserOne='{username}' AND UserTwo='{userName}');";
-            await _userService.GetDataAsync(query);
+                $"WHERE (UserOne=@user1 AND UserTwo=@user2) OR (UserOne=@user2 AND UserTwo=@user1);";
+            await _userService.GetDataAsync(query, new { user1=userName, user2=username });
             return $"{username} removed from friend list.";
         }
 
         public async Task<string> BlockUser(string userName, string username)
         {
             var query = $"UPDATE dbo.FriendList SET isBlocked=1 " +
-                $"WHERE (UserOne='{userName}' AND UserTwo='{username}') OR (UserOne='{username}' AND UserTwo='{userName}');";
-            await _userService.GetDataAsync(query);
-            return $"{username} blocked!";
+                $"WHERE (UserOne=@user1 AND UserTwo=@user2) OR (UserOne=@user2 AND UserTwo=@user1);";
+            await _userService.GetDataAsync(query, new { user1=userName, user2=username });
+            return $"{username} blocked by {userName}!";
         }
     }
 }

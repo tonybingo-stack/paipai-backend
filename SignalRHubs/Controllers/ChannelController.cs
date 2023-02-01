@@ -37,8 +37,8 @@ namespace SignalRHubs.Controllers
 
             Channel entity = _mapper.Map<Channel>(model);
             entity.ChannelOwnerName = UserName;
-            entity.ChannelName = entity.ChannelName.Replace("'", "''");
-            if (entity.ChannelDescription != null) entity.ChannelDescription = entity.ChannelDescription.Replace("'", "''");
+            entity.ChannelName = entity.ChannelName;
+            if (entity.ChannelDescription != null) entity.ChannelDescription = entity.ChannelDescription;
             var res = await _homeService.CreateChannel(entity);
 
             await _hubContext.Groups.AddToGroupAsync(UserName, res.ToString());
@@ -73,8 +73,8 @@ namespace SignalRHubs.Controllers
             if (c.ChannelOwnerName != UserName) return BadRequest("You are not owner of this channel!");
             if (model.ChannelName == null && model.ChannelDescription == null) return BadRequest("Name or Description is required!");
 
-            if (model.ChannelDescription != null) model.ChannelDescription = model.ChannelDescription.Replace("'", "''");
-            if (model.ChannelName != null) model.ChannelName = model.ChannelName.Replace("'", "''");
+            if (model.ChannelDescription != null) model.ChannelDescription = model.ChannelDescription;
+            if (model.ChannelName != null) model.ChannelName = model.ChannelName;
 
             return Ok(await _homeService.UpdateChannel(model));
         }

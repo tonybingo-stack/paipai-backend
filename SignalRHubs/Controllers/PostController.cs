@@ -34,10 +34,10 @@ namespace SignalRHubs.Controllers
             if(model.Urls?.Count==model.Types?.Count && model.Types?.Count==model.PreviewHs?.Count && model.PreviewHs?.Count == model.PreviewWs?.Count)
             {
                 Post entity = _mapper.Map<Post>(model);
-                if (entity.Title != null) entity.Title = entity.Title.Replace("'", "''");
-                if (entity.Contents != null) entity.Contents = entity.Contents.Replace("'", "''");
-                if (entity.Category != null) entity.Category = entity.Category.Replace("'", "''");
-                if (entity.Price != null) entity.Price = entity.Price.Replace("'", "''");
+                if (entity.Title != null) entity.Title = entity.Title;
+                if (entity.Contents != null) entity.Contents = entity.Contents;
+                if (entity.Category != null) entity.Category = entity.Category;
+                if (entity.Price != null) entity.Price = entity.Price;
 
                 entity.UserName = UserName;
                 entity.isDeleted = false;
@@ -85,10 +85,10 @@ namespace SignalRHubs.Controllers
             if (model.Title == null && model.Contents == null && model.Price == null && model.Category == null) return BadRequest("At lease one field is required!");
             if (model.Urls.Count == model.Types.Count && model.Types.Count == model.PreviewHs.Count && model.PreviewHs.Count == model.PreviewWs.Count)
             {
-                if (model.Title != null) model.Title = model.Title.Replace("'", "''");
-                if (model.Contents != null) model.Contents = model.Contents.Replace("'", "''");
-                if (model.Price != null) model.Price = model.Price.Replace("'", "''");
-                if (model.Category != null) model.Category = model.Category.Replace("'", "''");
+                if (model.Title != null) model.Title = model.Title;
+                if (model.Contents != null) model.Contents = model.Contents;
+                if (model.Price != null) model.Price = model.Price;
+                if (model.Category != null) model.Category = model.Category;
 
                 return Ok(await _homeService.UpdatePost(model));
             }

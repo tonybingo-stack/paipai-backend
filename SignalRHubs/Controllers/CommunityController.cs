@@ -64,9 +64,9 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> CreateCommunity([FromForm] CommunityModel model)
         {
             Community entity = _mapper.Map<Community>(model);
-            entity.CommunityName = entity.CommunityName.Replace("'", "''");
+            entity.CommunityName = entity.CommunityName;
             entity.CommunityOwnerName = UserName;
-            if(entity.CommunityDescription!=null) entity.CommunityDescription = entity.CommunityDescription.Replace("'", "''");
+            if(entity.CommunityDescription!=null) entity.CommunityDescription = entity.CommunityDescription;
 
             var response = await _homeService.CreateCommunity(entity);
 
@@ -93,8 +93,8 @@ namespace SignalRHubs.Controllers
             if (model.CommunityName == null && model.CommunityDescription == null && model.CommunityType == null && model.ForegroundImage == null && model.BackgroundImage == null) return BadRequest("At least one field is required!");
             
             Community entity = _mapper.Map<Community>(model);
-            if (entity.CommunityName != null) entity.CommunityName = entity.CommunityName.Replace("'", "''");
-            if (entity.CommunityDescription != null) entity.CommunityDescription = entity.CommunityDescription.Replace("'", "''");
+            if (entity.CommunityName != null) entity.CommunityName = entity.CommunityName;
+            if (entity.CommunityDescription != null) entity.CommunityDescription = entity.CommunityDescription;
             entity.CommunityOwnerName = UserName;
             entity.UpdatedAt = DateTime.Now;
 
@@ -175,10 +175,8 @@ namespace SignalRHubs.Controllers
             if (Int32.Parse(Encoding.UTF8.GetString(old)) < Int32.Parse(Encoding.UTF8.GetString(cur)) + 100)
             {
                 await _homeService.UpdateUserNumberOfCommunity(Int32.Parse(Encoding.UTF8.GetString(cur)), communityId);
-                //await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(communityId.ToString()+"_old", Int32.Parse(cur.ToString()) + 1));
                 await _cache.SetAsync(communityId.ToString().Replace("-", "") + "_old", Encoding.UTF8.GetBytes(Encoding.UTF8.GetString(cur)), expiration);
             }
-            //await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(communityId.ToString(), Int32.Parse(cur.ToString())+1));
             await _cache.SetAsync(communityId.ToString().Replace("-", ""), Encoding.UTF8.GetBytes((Int32.Parse(Encoding.UTF8.GetString(cur))+1).ToString()), expiration);
 
             return Ok(res);

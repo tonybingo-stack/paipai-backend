@@ -84,15 +84,12 @@ namespace SignalRHubs.Controllers.Chat
 
             // Send message to receiver
             await _hubContext.Clients.Group(model.ChannelId.ToString()).SendAsync("echo", UserName, model.Content);
-            // Change message content for DB acceptable
-            string? content = model.Content;
-            if (content != null) content = content.Replace("'", "''");
 
             // Save message
             ChannelMessage message = new ChannelMessage();
             message.SenderUserName = UserName;
             message.ChannelId = model.ChannelId;
-            message.Content = content;
+            message.Content = model.Content;
             message.FilePath = model.FilePath;
             message.FileType = model.FileType;
             message.FilePreviewW = model.FilePreviewW;
@@ -115,9 +112,9 @@ namespace SignalRHubs.Controllers.Chat
             ChannelMessage m = await _service.GetChannelMessageById(model.Id);
             if (m == null) return BadRequest("Message doesn't exist!");
 
-            if (model.Content != null) m.Content = model.Content.Replace("'", "''");
-            if (model.FilePath != null) m.FilePath = model.FilePath.Replace("'", "''");
-            if (model.FileType != null) m.FileType = model.FileType.Replace("'", "''");
+            if (model.Content != null) m.Content = model.Content;
+            if (model.FilePath != null) m.FilePath = model.FilePath;
+            if (model.FileType != null) m.FileType = model.FileType;
             if (model.FilePreviewW != null) m.FilePreviewW = model.FilePreviewW;
             if (model.FilePreviewH != null) m.FilePreviewH = model.FilePreviewH;
 
@@ -169,14 +166,10 @@ namespace SignalRHubs.Controllers.Chat
             // Send message to receiver
             await _hubContext.Clients.User(model.ReceiverUserName).SendAsync("echo", UserName, model.Content);
 
-            // Change message content for DB acceptable
-            string? content = model.Content;
-            if (content != null) content = content.Replace("'", "''");
-
             // Save message
             Message message = _mapper.Map<Message>(model);
             message.SenderUserName = UserName;
-            message.Content = content;
+            message.Content = model.Content;
             message.FilePath = model.FilePath;
             message.RepliedTo = model.RepiedTo;
             await _service.SaveMessage(message);
@@ -200,7 +193,7 @@ namespace SignalRHubs.Controllers.Chat
             Message message = _mapper.Map<Message>(await _service.GetMessage(model.Id));
             if (message == null) return BadRequest("Message does not exists.");
 
-            if (model.Content != null) message.Content = model.Content.Replace("'", "''");
+            if (model.Content != null) message.Content = model.Content;
             message.FilePath = model.FilePath;
             message.FileType = model.FileType;
             message.FilePreviewW = model.FilePreviewW;

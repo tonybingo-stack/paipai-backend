@@ -76,7 +76,7 @@ namespace SignalRHubs.Controllers
             );
             JwtTokenHandler.WriteToken(token);
 
-            var response =await _userService.GetUserByUserName(user.UserName);
+            var response = await _userService.GetUserByUserName(user.UserName);
 
             UserSignupModel res = _mapper.Map<UserSignupModel>(response);
             res.Token = JwtTokenHandler.WriteToken(token);
