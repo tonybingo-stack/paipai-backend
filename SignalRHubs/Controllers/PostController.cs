@@ -66,7 +66,7 @@ namespace SignalRHubs.Controllers
         /// Get Posts for feed page
         /// </summary>
         /// <returns></returns>
-        [ProducesResponseType(typeof(List<PostViewModel>), 200)]
+        [ProducesResponseType(typeof(List<PostFeedViewModel>), 200)]
         [ProducesResponseType(typeof(NotFoundResult), 400)]
         [HttpGet("/posts/feed")]
         public async Task<IActionResult> GetPostsForFeed([Required][FromQuery]int offset)

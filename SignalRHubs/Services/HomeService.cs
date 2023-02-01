@@ -259,19 +259,23 @@ namespace SignalRHubs.Services
             }
             return result;
         }
-        public async Task<IEnumerable<PostViewModel>> GetPostsForFeed(int offset)
+        public async Task<IEnumerable<PostFeedViewModel>> GetPostsForFeed(int offset)
         {
-            List<PostViewModel> result = new List<PostViewModel>();
+            List<PostFeedViewModel> result = new List<PostFeedViewModel>();
             var query = $"SELECT * " +
                 $"FROM dbo.Posts WHERE dbo.Posts.isDeleted =0 " +
                 $"ORDER BY dbo.Posts.CreatedAt DESC OFFSET {offset*10} ROWS FETCH NEXT 10 ROWS ONLY;";
 
-            var response = await _service.GetDataAsync<PostViewModel>(query);
+            var response = await _service.GetDataAsync<PostFeedViewModel>(query);
             if (response.Count == 0) return result;
 
             result = response.ToList();
             for (int i = 0; i<result.Count; i++)
             {
+                query = $"SELECT * FROM dbo.Users WHERE UserName = N'{result[i].UserName}';";
+                var postowner = await _service.GetDataAsync<UserViewModel>(query);
+                if(postowner != null) result[i].PostOwner = postowner[0];
+
                 query = $"SELECT * " +
                     $"FROM dbo.PostFile " +
                     $"WHERE dbo.PostFile.PostId='{result[i].ID}'" +

@@ -20,7 +20,7 @@ namespace SignalRHubs.Interfaces.Services
         Task<String> UpdateCommunityBackGround(Guid id, string url);
         Task<Guid> CreatePost(Post entity, PostCreateModel model);
         Task<IEnumerable<PostViewModel>> GetPosts(string username);
-        Task<IEnumerable<PostViewModel>> GetPostsForFeed(int offset);
+        Task<IEnumerable<PostFeedViewModel>> GetPostsForFeed(int offset);
         Task<SearchResultViewModel> GetSearchResult(string text);
         Task<Guid> UpdatePost(PostUpdateModel model);
         Task<Guid> DeletePost(Guid postId);
