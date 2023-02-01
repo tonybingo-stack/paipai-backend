@@ -9,6 +9,9 @@ namespace SignalRHubs.Entities
         public string SenderUserName { get; set; }
         public string? Content { get; set; }
         public string? FilePath { get; set; }
+        public string? FileType { get; set; }
+        public int? FilePreviewW { get; set; }
+        public int? FilePreviewH { get; set; }
         public Guid? ChannelId { get; set; }
         public bool? isDeleted { get; set; }
         public Guid? RepliedTo { get; set; }

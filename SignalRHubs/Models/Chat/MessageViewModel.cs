@@ -8,6 +8,9 @@ namespace SignalRHubs.Models
         public string ReceiverUserName { get; set; }
         public string Content { get; set; }
         public string? FilePath { get; set; }
+        public string? FileType { get; set; }
+        public int? FilePreviewW { get; set; }
+        public int? FilePreviewH { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public Guid? RepliedTo { get; set; }

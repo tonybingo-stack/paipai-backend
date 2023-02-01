@@ -36,6 +36,7 @@
                    placeholder="Type user name, if send to users, separate with comma">
             <button class="btn-success" id="senduser">Send to User</button>
             <button class="btn-success" id="sendusers">Send to Users</button>
+            <button class="btn-success" id="sendstream">SendStream</button>
         </div>
     </div>
 
@@ -51,16 +52,25 @@
     </div>
 
     <!--Reference the SignalR library. -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js">
+import { parseJSON } from "jquery";
+</script>
     <!--Add script to update the page and send messages.-->
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function () {
-            function get(url) {
+            function getToken(url, username, password) {
                 return new Promise((resolve, reject) => {
                     var xhr = new XMLHttpRequest();
-                    xhr.open('GET', url, true);
+                    
+                    xhr.open('POST', url, true);
                     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-                    xhr.send();
+                    
+                    var data = new FormData();
+                    
+                    data.append('UserName', username);
+                    data.append('Password', password);
+
+                    xhr.send(data);
                     xhr.onload = () => {
                         if (xhr.status >= 200 && xhr.status < 300) {
                             resolve(xhr.response || xhr.responseText);
@@ -149,14 +159,25 @@
                 // Create a function that the hub can call to broadcast messages.
                 connection.on('broadcastMessage', messageCallback);
                 connection.on('echo', messageCallback);
+ 
                 connection.onclose(onConnectionError);
             }
 
             async function onConnected(connection) {
                 console.log('connection started');
                 await connection.send('broadcastMessage', '_SYSTEM_', username + ' JOINED');
-                console.log("joined");
-                  
+                connection.stream("Counter", 10, 500)
+                    .subscribe({
+                        next: (item) => {
+                            appendMessage("stream", item);
+                        },
+                        complete: () => {
+                            appendMessage("stream", "Stream Completed");
+                        },
+                        error: (err) => {
+                          appendMessage("stream", err);
+                        },
+                }); 
                 document.getElementById('sendmessage').addEventListener('click', function (event) {
                     // Call the broadcastMessage method on the hub.
                     if (messageInput.value) {
@@ -254,6 +275,23 @@
                     messageInput.focus();
                     event.preventDefault();
                 });
+                //Send stream to server
+                document.getElementById('sendstream').addEventListener('click', function (event) {
+                    const subject = new signalR.Subject();
+                    console.log("start stream");
+                    connection.send("UploadStream", subject);
+                    var iteration = 0;
+                    const intervalHandle = setInterval( function () {
+                        iteration++;
+                        subject.next(iteration.toString());
+                        if (iteration === 100) {
+                            clearInterval(intervalHandle);
+                            subject.complete();
+                        }
+                    }, 500);
+                    event.preventDefault();
+
+                });
             }
 
             function onConnectionError(error) {
@@ -274,12 +312,13 @@
                     })
                 .build();
 
-            var url = `/signin?username=${username}&password=${password}`;
+            var url = `/signin`;
 
-            get(url).then((token) => {
-                    jwtToken = token;
+            getToken(url, username, password).then((res) => {
+                    const obj = JSON.parse(res);
+                    jwtToken = obj.token;
                     bindConnectionMessage(connection);
-                    console.log(token);
+                    console.log("here:"+obj.token);
                     return connection.start();
                 })
                 .then(function() {

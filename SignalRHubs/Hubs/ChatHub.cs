@@ -5,6 +5,37 @@ namespace SignalRHubs.Hubs
 {
     public class ChatHub : Hub
     {
+        public async Task UploadStream(IAsyncEnumerable<string> stream)
+        {
+            Console.WriteLine("Video Stream incomming...");
+            await foreach (var item in stream)
+            {
+                Console.WriteLine(item);
+                // Wanna directly send to Azure inputUrl
+            }
+        }
+        public async IAsyncEnumerable<int> Counter(
+            int count,
+            int delay,
+            [EnumeratorCancellation]
+                CancellationToken cancellationToken)
+        {
+            Console.WriteLine("Video Streaming Started...");
+            for (var i = 0; i < count; i++)
+            {
+                // Check the cancellation token regularly so that the server will stop
+                // producing items if the client disconnects.
+                cancellationToken.ThrowIfCancellationRequested();
+
+                yield return i;
+                Console.WriteLine("returned value {0}", i);
+
+                // Use the cancellationToken in other APIs that accept cancellation
+                // tokens so the cancellation can flow down to them.
+                await Task.Delay(delay, cancellationToken);
+            }
+        }
+
         public void BroadcastMessage(string name, string message)
         {
             Clients.All.SendAsync("broadcastMessage", name, message);

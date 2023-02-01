@@ -94,6 +94,9 @@ namespace SignalRHubs.Controllers.Chat
             message.ChannelId = model.ChannelId;
             message.Content = content;
             message.FilePath = model.FilePath;
+            message.FileType = model.FileType;
+            message.FilePreviewW = model.FilePreviewW;
+            message.FilePreviewH = model.FilePreviewH;
             message.RepliedTo = model.RepiedTo;
             await _service.SaveChannelMessage(message);
 
@@ -111,8 +114,12 @@ namespace SignalRHubs.Controllers.Chat
             if (model.Content == null && model.FilePath == null) return BadRequest("At least one field is required!");
             ChannelMessage m = await _service.GetChannelMessageById(model.Id);
             if (m == null) return BadRequest("Message doesn't exist!");
+
             if (model.Content != null) m.Content = model.Content.Replace("'", "''");
             if (model.FilePath != null) m.FilePath = model.FilePath.Replace("'", "''");
+            if (model.FileType != null) m.FileType = model.FileType.Replace("'", "''");
+            if (model.FilePreviewW != null) m.FilePreviewW = model.FilePreviewW;
+            if (model.FilePreviewH != null) m.FilePreviewH = model.FilePreviewH;
 
             await _service.UpdateChannelMessage(m);
 
@@ -193,6 +200,10 @@ namespace SignalRHubs.Controllers.Chat
 
             if (model.Content != null) message.Content = model.Content.Replace("'", "''");
             message.FilePath = model.FilePath;
+            message.FileType = model.FileType;
+            message.FilePreviewW = model.FilePreviewW;
+            message.FilePreviewH = model.FilePreviewH;
+
             message.UpdatedAt = DateTime.Now;
             message.EntityState = DbHelper.Enums.EntityState.Modified;
 
@@ -247,7 +258,7 @@ namespace SignalRHubs.Controllers.Chat
         /// </summary>
         /// <returns></returns>
         [HttpDelete("/chatcards")]
-        [ProducesResponseType(typeof(ChatCardModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<string>> DeleteAllChathistory()
         {
@@ -259,7 +270,7 @@ namespace SignalRHubs.Controllers.Chat
         /// </summary>
         /// <returns></returns>
         [HttpDelete("/chatcard/{id}")]
-        [ProducesResponseType(typeof(ChatCardModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<string>> DeleteChatCardByID([FromRoute] string id)
         {
