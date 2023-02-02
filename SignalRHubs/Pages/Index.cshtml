@@ -166,18 +166,18 @@ import { parseJSON } from "jquery";
             async function onConnected(connection) {
                 console.log('connection started');
                 await connection.send('broadcastMessage', '_SYSTEM_', username + ' JOINED');
-                connection.stream("Counter", 10, 500)
-                    .subscribe({
-                        next: (item) => {
-                            appendMessage("stream", item);
-                        },
-                        complete: () => {
-                            appendMessage("stream", "Stream Completed");
-                        },
-                        error: (err) => {
-                          appendMessage("stream", err);
-                        },
-                }); 
+                //connection.stream("Counter", 10, 500)
+                //    .subscribe({
+                //        next: (item) => {
+                //            appendMessage("stream", item);
+                //        },
+                //        complete: () => {
+                //            appendMessage("stream", "Stream Completed");
+                //        },
+                //        error: (err) => {
+                //          appendMessage("stream", err);
+                //        },
+                //}); 
                 document.getElementById('sendmessage').addEventListener('click', function (event) {
                     // Call the broadcastMessage method on the hub.
                     if (messageInput.value) {
@@ -279,12 +279,12 @@ import { parseJSON } from "jquery";
                 document.getElementById('sendstream').addEventListener('click', function (event) {
                     const subject = new signalR.Subject();
                     console.log("start stream");
-                    connection.send("UploadStream", subject);
+                    connection.send("UploadStream", subject, username);
                     var iteration = 0;
                     const intervalHandle = setInterval( function () {
                         iteration++;
                         subject.next(iteration.toString());
-                        if (iteration === 100) {
+                        if (iteration === 10) {
                             clearInterval(intervalHandle);
                             subject.complete();
                         }

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Connections;
-using System.Text.Json.Serialization;
 
 using Microsoft.OpenApi.Models;
 using SignalRHubs.Hubs;
@@ -8,8 +7,6 @@ using SignalRHubs.Interfaces.Services;
 using SignalRHubs.Services;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.Identity.Web;
-using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -136,7 +133,7 @@ app.MapHub<ChatHub>("/chathub", options =>
     options.TransportMaxBufferSize = 65_536;
     options.MinimumProtocolVersion = 0;
     options.TransportSendTimeout = TimeSpan.FromSeconds(10);
-    options.WebSockets.CloseTimeout = TimeSpan.FromSeconds(3);
+    options.WebSockets.CloseTimeout = TimeSpan.FromSeconds(10);
     options.LongPolling.PollTimeout = TimeSpan.FromSeconds(10);
 
     Console.WriteLine($"Authorization data items: {options.AuthorizationData.Count}");

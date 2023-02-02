@@ -78,7 +78,7 @@ namespace SignalRHubs.Services
 
             query += $"BEGIN DECLARE @i INT; " +
                 $"SELECT @i = COUNT(*) FROM dbo.ChatCard " +
-                $"WHERE dbo.ChatCard.SenderUserName = senderUsername AND dbo.ChatCard.ReceiverUserName = @receiverUsername'" +
+                $"WHERE dbo.ChatCard.SenderUserName = senderUsername AND dbo.ChatCard.ReceiverUserName = @receiverUsername " +
                 $"SELECT @i; IF @i> 0 BEGIN UPDATE dbo.ChatCard " +
                 $"SET Content = @content, FilePath = @filePath, FileType = @fileType,isSend = 1,isDeleted = 0 WHERE SenderUserName = @senderUsername AND ReceiverUserName = @receiverUsername; " +
                 $"UPDATE dbo.ChatCard " +
@@ -242,6 +242,15 @@ namespace SignalRHubs.Services
                 repliedTo=message.RepliedTo
             };
             await _service.GetDataAsync(query, obj);
+        }
+
+        public async Task<int> CheckUserFriendShip(string userName, string receiverUserName)
+        {
+            var query = $"SELECT * FROM FriendList WHERE UserOne = @userone AND UserTwo = @usertwo";
+            var response = await _service.GetDataAsync<FriendListModel>(query, new { userone = userName, usertwo = receiverUserName });
+            if (response.Count == 0) return 0;
+            if (response[0].isBlocked) return 1;
+            else return 2;
         }
     }
 }

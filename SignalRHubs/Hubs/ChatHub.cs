@@ -1,16 +1,18 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using SignalRHubs.Lib;
 using System.Runtime.CompilerServices;
 
 namespace SignalRHubs.Hubs
 {
     public class ChatHub : Hub
     {
-        public async Task UploadStream(IAsyncEnumerable<string> stream)
+        public async Task UploadStream(IAsyncEnumerable<string> stream, string name)
         {
             Console.WriteLine("Video Stream incomming...");
+            
             await foreach (var item in stream)
             {
-                Console.WriteLine(item);
+                _ = Task.Run(() => new StreamThread().CreateDnsThreadAsync(name, item));
                 // Wanna directly send to Azure inputUrl
             }
         }

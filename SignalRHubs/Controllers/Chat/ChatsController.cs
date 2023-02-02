@@ -163,6 +163,10 @@ namespace SignalRHubs.Controllers.Chat
         {
             if (model.Content == null && model.FilePath == null) return BadRequest("You can not send an empty message.");
             if (model.ReceiverUserName == null) return BadRequest("Receiver Name is required!");
+            // is friend? is blocked?
+            int _check = await _service.CheckUserFriendShip(UserName, model.ReceiverUserName);
+            if (_check==0) return BadRequest($"{model.ReceiverUserName} is not your friend now.");
+            if (_check==1) return BadRequest($"You can't send message to blocked user");
             // Send message to receiver
             await _hubContext.Clients.User(model.ReceiverUserName).SendAsync("echo", UserName, model.Content);
 
