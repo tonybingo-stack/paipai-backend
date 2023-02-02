@@ -18,7 +18,6 @@ namespace SignalRHubs.Controllers
         private readonly IHomeService _homeService;
         private readonly IHubContext<ChatHub> _hubContext;
         private readonly IConfiguration _iconfiguration;
-        //private RedisConnection _redisConnection;
         private readonly IDistributedCache _cache;
         private readonly DistributedCacheEntryOptions expiration;
 

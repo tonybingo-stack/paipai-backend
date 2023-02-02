@@ -308,7 +308,7 @@ namespace SignalRHubs.Services
 
                 query = $"SELECT * " +
                     $"FROM dbo.PostFile " +
-                    $"WHERE dbo.PostFile.PostId=@Id" +
+                    $"WHERE dbo.PostFile.PostId=@Id " +
                     $"ORDER BY [Index] ASC;";
                 var postfiles = await _service.GetDataAsync<PostFileViewModel>(query, new {Id = result[i].ID});
                 result[i].PostFiles = postfiles.ToList();
@@ -336,19 +336,19 @@ namespace SignalRHubs.Services
             var query = $"UPDATE dbo.Posts SET ";
             if (model.Title != null)
             {
-                query += $"Title=@mTitle";
+                query += $"Title=@mTitle ";
                 flag = true;
             }
             if (model.Contents != null)
             {
-                if (flag) query += $", Contents=@mContent";
-                else query += $"Contents=@mContent";
+                if (flag) query += $", Contents=@mContent ";
+                else query += $"Contents=@mContent ";
                 flag = true;
             }
             if (model.Price != null)
             {
-                if(flag) query += $", Price=@mPrice";
-                else query += $" Price=@mPrice";
+                if(flag) query += $", Price=@mPrice ";
+                else query += $" Price=@mPrice ";
                 flag = true;
             }
             if (model.Category != null)
@@ -401,7 +401,7 @@ namespace SignalRHubs.Services
             var query = $"SELECT dbo.Community.ID,dbo.Community.CommunityName,dbo.Community.CommunityDescription,dbo.Community.CommunityOwnerName,dbo.Community.CommunityType,dbo.Community.CreatedAt,dbo.Community.UpdatedAt,dbo.Community.ForegroundImage,dbo.Community.BackgroundImage,dbo.Community.NumberOfUsers,dbo.Community.NumberOfPosts,dbo.Community.NumberOfActiveUsers " +
                 $"FROM dbo.Community " +
                 $"INNER JOIN dbo.CommunityMember ON dbo.CommunityMember.CommunityID =dbo.Community.ID " +
-                $"WHERE dbo.CommunityMember.UserName =@name" +
+                $"WHERE dbo.CommunityMember.UserName =@name " +
                 $"ORDER BY NumberOfUsers DESC";
             var response = await _service.GetDataAsync<CommunityViewModel>(query, new {name = username});
             return response.ToList();
