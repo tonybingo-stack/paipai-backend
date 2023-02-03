@@ -89,7 +89,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddSignalR()
     .AddAzureSignalR(options =>
     {
-        options.ConnectionString = "Endpoint=https://paipaisignalr.service.signalr.net/;AccessKey=xvCB88J0XjYLkhO1oQ6yO9j5nGnSXWb/kysDihoDB4I=;Version=1.0;";
+        options.ConnectionString = builder.Configuration["ConnectionStrings:SignalR"];
         options.ClaimsProvider = context => new[]
         {
             new Claim(ClaimTypes.NameIdentifier, context.Request.Query["username"])

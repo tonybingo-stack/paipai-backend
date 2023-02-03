@@ -1,14 +1,7 @@
 ﻿using DbHelper.Interfaces.Services;
-using Microsoft.IdentityModel.Tokens;
 using SignalRHubs.Entities;
 using SignalRHubs.Interfaces.Services;
 using SignalRHubs.Models;
-using System.Data.SqlClient;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using SignalRHubs.Hubs;
-using Microsoft.AspNet.SignalR;
 
 namespace SignalRHubs.Services
 {
@@ -29,9 +22,9 @@ namespace SignalRHubs.Services
         {
             var query = $"SELECT dbo.Users.ID " +
                 $"FROM dbo.Users " +
-                $"WHERE dbo.Users.UserName = N'{name}'";
-            var response = await _userService.GetDataAsync(query);
-
+                $"WHERE dbo.Users.UserName = @Name";
+            var response = await _userService.GetDataAsync(query, new {Name = name});
+            if (response.Count == 0) return Guid.Empty;
             return response[0].Id;
         }    
 
@@ -48,19 +41,34 @@ namespace SignalRHubs.Services
             }
 
             var query = $"Insert into Users Values(" +
-                $"'{ entity.Id }', " +
-                $"N'{ entity.FirstName }', " +
-                $"N'{ entity.LastName }', " +
-                $"N'{ entity.UserName }', " +
-                $"N'{ entity.NickName }', " +
-                $"N'{ entity.Email }', " +
-                $"N'{ entity.Password }', " +
-                $"N'{ entity.Phone }', " +
-                $"{ entity.Gender }, " +
+                $"NEWID(), " +
+                $"@eFirstName, " +
+                $"@eLastName, " +
+                $"@eUsername, " +
+                $"@eNickname, " +
+                $"@eEmail, " +
+                $"@ePass, " +
+                $"@ePhone, " +
+                $"@eGender, " +
                 $"CURRENT_TIMESTAMP, " +
-                $"N'{entity.Avatar}'" +
+                $"@eAvatar, " +
+                $"@eBack" +
                 $")";
-            await _userService.GetDataAsync(query);
+            var obj = new
+            {
+                eId = entity.Id,
+                eFirstName = entity.FirstName,
+                eLastName = entity.LastName,
+                eUsername = entity.UserName,
+                eNickname = entity.NickName,
+                eEmail = entity.Email,
+                ePass = entity.Password,
+                ePhone = entity.Phone,
+                eGender = entity.Gender,
+                eAvatar = entity.Avatar,
+                eBack = entity.Background
+            };
+            await _userService.GetDataAsync(query, obj);
 
             return "success";
         }

@@ -33,7 +33,11 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> CreateUser(CreateUserModel model)
         {
             User user = _mapper.Map<User>(model);
-            return Ok(await _userService.CreateUser(user));
+            if (await _userService.IsValidUserName(model.UserName))
+            {
+                return Ok(await _userService.CreateUser(user));
+            }
+            return BadRequest("Invalid user name!");
         }
 
         /// <summary>
@@ -43,8 +47,6 @@ namespace SignalRHubs.Controllers
         [ProducesResponseType(typeof(UserSignupModel) ,200)]
         [ProducesResponseType(400)]
         [HttpPost("/signin")]
-        //[HttpGet("/signin")]
-        //public async Task<IActionResult> Login([FromQuery] string username, [FromQuery] string password)
         public async Task<IActionResult> Login([FromForm] UserSigninModel user)
         {
             if (string.IsNullOrEmpty(user.UserName))
