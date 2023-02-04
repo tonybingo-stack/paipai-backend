@@ -7,16 +7,16 @@ namespace SignalRHubs.Interfaces.Services
     {
         Task<IEnumerable<ChannelViewModel>> GetChatChannels(string username);
         Task<IEnumerable<ChannelMessageViewModel>> GetMessageByChannelId(Guid channelId, int offset);
-        Task<MessageViewModel> GetMessage(Guid id);
-        Task SaveMessage(Message entity);
+        Task<Message> GetMessage(Guid? id);
+        Task SaveMessage(List<Message> messages);
         Task PutMessage(Message chatMessage);
         Task DeleteMessage(Guid id);
-        Task<IEnumerable<ChatCardModel>> GetChatCards(string username);
-        Task RefreshChatCard(string sender, string receiver);
+        Task<IEnumerable<ChatCardViewModel>> GetChatCards(string username);
+        Task RefreshChatCard(string sender, string receiver, Message message);
         Task<IEnumerable<ChatModel>> GetChatHistory(ChatHistoryBindingModel model, int offset);
         Task<string> DeleteAllChatCards(string username); 
         Task<string> DeleteChatCardByID(Guid chatCardID);
-        Task<ChannelMessage> GetChannelMessageById(Guid id);
+        Task<ChannelMessage> GetChannelMessageById(Guid? id);
         Task UpdateChannelMessage(ChannelMessage m);
         Task DeleteChannelMessageById(Guid messageId);
         Task SaveChannelMessage(ChannelMessage message);

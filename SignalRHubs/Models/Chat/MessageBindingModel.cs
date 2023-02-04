@@ -12,6 +12,6 @@ namespace SignalRHubs.Models
         public string? FileType { get; set; }
         public int? FilePreviewW { get; set; }
         public int? FilePreviewH { get; set; }
-        public Guid? RepiedTo { get; set; }
+        public Guid? RepliedTo { get; set; }
     }
 }

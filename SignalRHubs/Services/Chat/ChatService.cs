@@ -25,13 +25,15 @@ namespace SignalRHubs.Services
             return await _service.GetDataAsync<ChannelViewModel>(query, new {Username=username});
         }
 
-        public async Task<MessageViewModel> GetMessage(Guid Id)
+        public async Task<Message> GetMessage(Guid? Id)
         {
+            if(Id == null) return null;
+
             var query = $"SELECT * " +
                 $"FROM dbo.Message " +
-                $"WHERE dbo.Message.ID =@Id AND isDeleted=0";
+                $"WHERE dbo.Message.ID =@Id";
 
-            var response = await _service.GetDataAsync<MessageViewModel>(query, new { Id = Id });
+            var response = await _service.GetDataAsync<Message>(query, new { Id = Id });
             if (response.Count==0) return null;
             else return response[0];
         }
@@ -49,45 +51,29 @@ namespace SignalRHubs.Services
             return response.ToList();
         }
 
-        public async Task SaveMessage(Message entity)
+        public async Task SaveMessage(List<Message> messages)
         {
-            var arr = new { 
-                senderUsername=entity.SenderUserName, 
-                receiverUsername=entity.ReceiverUserName, 
-                content = entity.Content,
-                filePath = entity.FilePath,
-                fileType = entity.FileType,
-                filePreviewW = entity.FilePreviewW,
-                filePreviewH = entity.FilePreviewH,
-                repliedTo = entity.RepliedTo
-            };
-            //  1 to 1 chat
-            var query = $"INSERT INTO [dbo].[Message] " +
-                $"VALUES (NEWID(),@senderUsername, @receiverUsername,@content";
-            if (entity.FilePath != null) query += $", @filePath";
-            else query += $", NULL";
-            if (entity.FileType != null) query += $", @fileType";
-            else query += $", NULL";
-            if (entity.FilePreviewW != null) query += $", @filePreviewW";
-            else query += $", NULL";
-            if (entity.FilePreviewH != null) query += $", @filePreviewH";
-            else query += $", NULL";
-            query += $", CURRENT_TIMESTAMP, NULL, 'FALSE', ";
-            if (entity.RepliedTo != null) query += $"@repliedTo);";
-            else query += $"NULL); ";
+            foreach (var entity in messages)
+            {
+                var obj = new
+                {
+                    Id = entity.Id,
+                    senderUsername = entity.SenderUserName,
+                    receiverUsername = entity.ReceiverUserName,
+                    content = entity.Content,
+                    filePath = entity.FilePath,
+                    fileType = entity.FileType,
+                    filePreviewW = entity.FilePreviewW,
+                    filePreviewH = entity.FilePreviewH,
+                    repliedTo = entity.RepliedTo
+                };
+                //  1 to 1 chat
+                var query = $"INSERT INTO [dbo].[Message] " +
+                    $"VALUES (@Id,@senderUsername, @receiverUsername,@content, @filePath,@fileType," +
+                    $"@filePreviewW,@filePreviewH , CURRENT_TIMESTAMP, NULL, 'FALSE',@repliedTo )";
 
-            query += $"BEGIN DECLARE @i INT; " +
-                $"SELECT @i = COUNT(*) FROM dbo.ChatCard " +
-                $"WHERE dbo.ChatCard.SenderUserName = senderUsername AND dbo.ChatCard.ReceiverUserName = @receiverUsername " +
-                $"SELECT @i; IF @i> 0 BEGIN UPDATE dbo.ChatCard " +
-                $"SET Content = @content, FilePath = @filePath, FileType = @fileType,isSend = 1,isDeleted = 0 WHERE SenderUserName = @senderUsername AND ReceiverUserName = @receiverUsername; " +
-                $"UPDATE dbo.ChatCard " +
-                $"SET Content = @content, FilePath = @filePath, FileType = @fileType,isSend = 0,isDeleted = 0 WHERE SenderUserName = @receiverUsername AND ReceiverUserName = @senderUsername; " +
-                $"END ELSE BEGIN " +
-                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), @senderUsername,@receiverUsername,@content, @filePath, @fileType, 1,0); " +
-                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), @receiverUsername,@senderUsername,@content, @filePath, @fileType,0,0); END END; ";
-
-            await _service.GetDataAsync(query, arr);
+                await _service.GetDataAsync(query, obj);
+            }
         }
         public async Task PutMessage(Message entity)
         {
@@ -117,13 +103,13 @@ namespace SignalRHubs.Services
             var response = await _service.GetDataAsync(query, new {Id = id});
         }
 
-        public async Task<IEnumerable<ChatCardModel>> GetChatCards(string username)
+        public async Task<IEnumerable<ChatCardViewModel>> GetChatCards(string username)
         {
             var query = $"SELECT dbo.ChatCard.SenderUserName,dbo.ChatCard.ReceiverUserName,dbo.ChatCard.Content, dbo.ChatCard.FilePath, dbo.ChatCard.FileType ,dbo.ChatCard.isSend,dbo.Users.NickName,dbo.Users.Avatar " +
                 $"FROM dbo.ChatCard INNER JOIN dbo.Users ON dbo.ChatCard.ReceiverUserName =dbo.Users.UserName " +
                 $"WHERE dbo.ChatCard.SenderUserName= @user AND isDeleted = 0";
 
-            var result = await _service.GetDataAsync<ChatCardModel>(query, new {user=username});
+            var result = await _service.GetDataAsync<ChatCardViewModel>(query, new {user=username});
             return result.ToList();
         }
         public async Task<IEnumerable<ChatModel>> GetChatHistory(ChatHistoryBindingModel model, int offset)
@@ -158,32 +144,36 @@ namespace SignalRHubs.Services
             return "Deleted chat card";
         }
 
-        public async Task RefreshChatCard(string sender, string receiver)
+        public async Task RefreshChatCard(string sender, string receiver, Message message)
         {
-            var query = $"SELECT TOP 1 * FROM dbo.Message " +
-                $"WHERE dbo.Message.SenderUserName =@s AND " +
-                $"dbo.Message.ReceiverUserName =@r AND " +
-                $"dbo.Message.isDeleted =0 " +
-                $"ORDER BY dbo.Message.CreatedAt DESC";
-
-            var response = await _service.GetDataAsync(query, new { s = sender, r=receiver});
-
-            if (response.Count==0) query = $"UPDATE dbo.ChatCard SET Content=NULL WHERE (SenderUserName=@s AND ReceiverUserName=@r) OR (SenderUserName=@r AND ReceiverUserName=@s)";
-            else query = $"UPDATE dbo.ChatCard SET Content=@content, FilePath = @filePath, FileType = @fileType " +
-                    $" WHERE (SenderUserName=@s AND ReceiverUserName=@r) OR (SenderUserName=@r AND ReceiverUserName=@s)";
-
+            var query =$"BEGIN " +
+                $"DECLARE @i INT; " +
+                $"SELECT @i = COUNT(* ) " +
+                $"FROM dbo.ChatCard " +
+                $"WHERE dbo.ChatCard.SenderUserName = @s AND dbo.ChatCard.ReceiverUserName = @r " +
+                $"SELECT @i;" +
+                $"IF @i > 0 " +
+                $"BEGIN UPDATE dbo.ChatCard " +
+                $"SET Content = @content, FilePath = @filePath, FileType = @fileType " +
+                $"WHERE (SenderUserName=@s AND ReceiverUserName=@r) OR (SenderUserName=@r AND ReceiverUserName=@s);" +
+                $"END " +
+                $"ELSE " +
+                $"BEGIN INSERT INTO dbo.ChatCard VALUES(NEWID(), @s, @r, @content,@filePath, @fileType, 1, 0); " +
+                $"INSERT INTO dbo.ChatCard VALUES(NEWID(), @r, @s, @content,@filePath, @fileType, 0, 0); " +
+                $"END " +
+                $"END";
             var obj = new
             {
                 s = sender,
                 r = receiver,
-                content = response[0].Content,
-                filePath = response[0].FilePath,
-                fileType = response[0].FileType
+                content = message.Content,
+                filePath = message.FilePath,
+                fileType = message.FileType
             };
             await _service.GetDataAsync(query, obj);
         }
 
-        public async Task<ChannelMessage> GetChannelMessageById(Guid id)
+        public async Task<ChannelMessage> GetChannelMessageById(Guid? id)
         {
             var query = $"SELECT * FROM dbo.ChannelMessage WHERE Id = @Id;";
             var res = await _service.GetDataAsync<ChannelMessage>(query, new {Id=id});
@@ -216,22 +206,12 @@ namespace SignalRHubs.Services
         public async Task SaveChannelMessage(ChannelMessage message)
         {
             // Channel Chat
-            var query = $"INSERT INTO [dbo].[ChannelMessage] VALUES(NEWID(), @sname, @content";
-            if (message.FilePath != null) query += $", @filePath";
-            else query += $", NULL";
-            if (message.FileType != null) query += $", @fileType";
-            else query += $", NULL";
-            if (message.FilePreviewW != null) query += $", @fileW";
-            else query += $", NULL";
-            if (message.FilePreviewH != null) query += $", @fileH";
-            else query += $", NULL";
-
-            query += $", @channelID, CURRENT_TIMESTAMP, NULL, 0, ";
-            if (message.RepliedTo != null) query += $"@repliedTo);";
-            else query += $"NULL);";
+            var query = $"INSERT INTO [dbo].[ChannelMessage] VALUES(@Id, @sname, @content, @filePath," +
+                $" @fileType, @fileW, @fileH, @channelID, CURRENT_TIMESTAMP, NULL, 0,@repliedTo);";
 
             var obj = new
             {
+                Id = message.Id,
                 sname = message.SenderUserName, 
                 content = message.Content,
                 filePath = message.FilePath,

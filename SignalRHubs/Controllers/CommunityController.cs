@@ -1,11 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Distributed;
 using SignalRHubs.Entities;
-using SignalRHubs.Hubs;
 using SignalRHubs.Interfaces.Services;
-using SignalRHubs.Lib;
 using SignalRHubs.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -16,18 +13,13 @@ namespace SignalRHubs.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IHomeService _homeService;
-        private readonly IHubContext<ChatHub> _hubContext;
-        private readonly IConfiguration _iconfiguration;
         private readonly IDistributedCache _cache;
         private readonly DistributedCacheEntryOptions expiration;
 
-        public CommunityController(IHomeService service, IUserService userService, IMapper mapper, IHubContext<ChatHub> hubContext, 
-            IConfiguration iconfiguration, IDistributedCache cache) : base(userService)
+        public CommunityController(IHomeService service, IUserService userService, IMapper mapper, IDistributedCache cache) : base(userService)
         {
             _homeService = service;
             _mapper = mapper;
-            _hubContext = hubContext;
-            _iconfiguration = iconfiguration;
             _cache = cache;
             expiration = new DistributedCacheEntryOptions()
             {

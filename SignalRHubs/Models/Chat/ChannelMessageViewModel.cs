@@ -2,6 +2,7 @@
 {
     public class ChannelMessageViewModel
     {
+        public Guid Id { get; set; }
         public string SenderUserName { get; set; }
         public string Content { get; set; }
         public string? FilePath { get; set; }
