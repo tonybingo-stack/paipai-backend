@@ -96,7 +96,9 @@ namespace SignalRHubs.Services
         public async Task<User> GetUserByUserName(string name)
         {
             var query = $"SELECT * FROM Users WHERE UserName=@username";
-            return await _userService.GetFirstOrDefaultAsync<User>(query, new {username=name});
+            var res = await _userService.GetDataAsync<User>(query, new {username=name});
+            if (res.Count == 0) return null;
+            return res[0];
         }
         public async Task<List<User>> GetUsers()
         {

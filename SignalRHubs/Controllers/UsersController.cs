@@ -10,10 +10,10 @@ namespace SignalRHubs.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
-        private readonly IConfiguration iconfiguration;
-        public UsersController(IUserService userService) : base(userService)
+        public UsersController(IUserService userService, IMapper mapper) : base(userService)
         {
             _userService = userService;
+            _mapper = mapper;
         }
         /// <summary>
         /// Get all available users for chat
@@ -38,7 +38,7 @@ namespace SignalRHubs.Controllers
         public async Task<ActionResult<UserViewModel>> GetCustomerSummaryById([FromRoute] string username)
         {
             var user = await _userService.GetUserByUserName(username);
-            var userSummary = _mapper.Map<UserViewModel>(user);
+            UserViewModel userSummary = _mapper.Map<UserViewModel>(user);
             return Ok(userSummary);
         }
         /// <summary>
