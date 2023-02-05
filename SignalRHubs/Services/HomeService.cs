@@ -11,16 +11,9 @@ namespace SignalRHubs.Services
     public class HomeService:IHomeService
     {
         private readonly IDapperService<Community> _service;
-        private readonly SqlConnection _connection;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="repository"></param>
         public HomeService(IDapperService<Community> dapperService)
         {
             _service = dapperService;
-            _connection = dapperService.Connection;
         }
 
         public async Task<Guid> CreateChannel(Channel entity)

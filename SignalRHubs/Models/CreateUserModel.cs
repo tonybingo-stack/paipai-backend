@@ -21,5 +21,6 @@ namespace SignalRHubs.Models
         public string? Gender { get; set; }
         public string? Avatar { get; set; }
         public string? Background { get; set; }
+        public string? UserBio { get; set; }
     }
 }

@@ -70,7 +70,7 @@ namespace SignalRHubs.Services
                 //  1 to 1 chat
                 var query = $"INSERT INTO [dbo].[Message] " +
                     $"VALUES (@Id,@senderUsername, @receiverUsername,@content, @filePath,@fileType," +
-                    $"@filePreviewW,@filePreviewH , CURRENT_TIMESTAMP, NULL, 'FALSE',@repliedTo )";
+                    $"@filePreviewW,@filePreviewH , CURRENT_TIMESTAMP, NULL, 0,@repliedTo )";
 
                 await _service.GetDataAsync(query, obj);
             }
@@ -115,7 +115,7 @@ namespace SignalRHubs.Services
         public async Task<IEnumerable<ChatModel>> GetChatHistory(ChatHistoryBindingModel model, int offset)
         {
             var query = $"SELECT " +
-                $"A.SenderUserName,A.Content,A.FilePath, A.FileType, A.FilePreviewW, A.FilePreviewH, A.CreatedAt,A.RepliedTo," +
+                $"A.ID, A.SenderUserName,A.Content,A.FilePath, A.FileType, A.FilePreviewW, A.FilePreviewH, A.CreatedAt,A.RepliedTo," +
                 $"B.SenderUserName AS RepliedUserName,B.Content AS RepliedContent,B.CreatedAt AS RepliedMsgCreatedAt " +
                 $"FROM dbo.Message AS A LEFT JOIN dbo.Message AS B ON A.RepliedTo =B.ID " +
                 $"WHERE (A.SenderUserName =@sender AND A.ReceiverUserName =@receiver) " +

@@ -37,32 +37,7 @@ namespace SignalRHubs.Controllers.Chat
                 SlidingExpiration = TimeSpan.FromDays(100)
             };
         }
-        /// <summary>
-        /// Get all available users for chat
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("/users")]
-        [ProducesResponseType(typeof(IEnumerable<UserViewModel>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<IEnumerable<UserViewModel>>> GetCustomersSummary()
-        {
-            var users = await _userService.GetUsers();
-            var usersSummary = _mapper.Map<IEnumerable<UserViewModel>>(users);
-            return Ok(usersSummary);
-        }
-        /// <summary>
-        /// Get User by UserName
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("/user/{username}")]
-        [ProducesResponseType(typeof(UserViewModel), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<UserViewModel>> GetCustomerSummaryById([FromRoute] string username)
-        {
-            var user = await _userService.GetUserByUserName(username);
-            var userSummary = _mapper.Map<UserViewModel>(user);
-            return Ok(userSummary);
-        }
+    
         /// <summary>
         /// Get Chat History of channel between offset*10 ~ (offset+1)*10 messages
         /// </summary>
@@ -270,20 +245,23 @@ namespace SignalRHubs.Controllers.Chat
         [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<ChatModel>>> GetChatHistory([FromQuery][Required] string receivername, [FromQuery][Required] int offset)
         {
-            List<Message> data = new List<Message>();
-            List<Message> data_new = new List<Message>();
+            List<Message>? data = new List<Message>();
+            List<Message>? data_new = new List<Message>();
             List<ChatModel> results = new List<ChatModel>();
 
-            if (offset<5)
+            string? serializedData = null;
+            var dataAsByteArray = await _cache.GetAsync($"Message:{UserName}:{receivername}");
+            if ((dataAsByteArray?.Count() ?? 0) > 0)
             {
-                string? serializedData = null;
-                var dataAsByteArray = await _cache.GetAsync($"Message:{UserName}:{receivername}");
-                if ((dataAsByteArray?.Count() ?? 0) > 0)
-                {
-                    serializedData = Encoding.UTF8.GetString(dataAsByteArray);
-                    data = JsonConvert.DeserializeObject<List<Message>>(serializedData);
-                }
-                data_new = data.GetRange(offset * 10, 10>(data.Count-offset*10)? (data.Count - offset * 10): 10 );
+                serializedData = Encoding.UTF8.GetString(dataAsByteArray);
+                data = JsonConvert.DeserializeObject<List<Message>>(serializedData);
+            }
+
+            if ((data.Count - offset * 10)>0)
+            {
+
+
+                data_new = data?.GetRange(offset * 10, 10>(data.Count-offset*10)? (data.Count - offset * 10) : 10 );
                 foreach (var item in data_new)
                 {
                     ChatModel chatModel = _mapper.Map<ChatModel>(item);
@@ -316,8 +294,8 @@ namespace SignalRHubs.Controllers.Chat
                 ChatHistoryBindingModel model = new ChatHistoryBindingModel();
                 model.ReceiverUserName = receivername;
                 model.SenderUserName = UserName;
-                
-                return Ok(await _service.GetChatHistory(model, offset-5));
+
+                return Ok(await _service.GetChatHistory(model, Convert.ToInt32((offset * 10 - data.Count) / 10)));
             }
         }
         /// <summary>
@@ -346,6 +324,7 @@ namespace SignalRHubs.Controllers.Chat
             message.isDeleted = false;
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////
             // save message to cache first 
+            // save cache of s->r
             List<Message> data = new List<Message>();
             string? serializedData = null;
             var dataAsByteArray = await _cache.GetAsync($"Message:{UserName}:{model.ReceiverUserName}");
@@ -354,7 +333,8 @@ namespace SignalRHubs.Controllers.Chat
                 serializedData = Encoding.UTF8.GetString(dataAsByteArray);
                 data = JsonConvert.DeserializeObject<List<Message>>(serializedData);
             }
-            if (data.Count == 50)
+
+            if (data.Count >= 50)
             {
                 // Move data to DB
                 await _service.SaveMessage(data);
@@ -365,6 +345,19 @@ namespace SignalRHubs.Controllers.Chat
             serializedData = JsonConvert.SerializeObject(data);
             dataAsByteArray = Encoding.UTF8.GetBytes(serializedData);
             await _cache.SetAsync($"Message:{UserName}:{model.ReceiverUserName}", dataAsByteArray);
+
+            // save cache of r->s
+            serializedData = null;
+            dataAsByteArray = await _cache.GetAsync($"Message:{model.ReceiverUserName}:{UserName}");
+            if ((dataAsByteArray?.Count() ?? 0) > 0)
+            {
+                serializedData = Encoding.UTF8.GetString(dataAsByteArray);
+                data = JsonConvert.DeserializeObject<List<Message>>(serializedData);
+            }
+            data.Insert(0, message);
+            serializedData = JsonConvert.SerializeObject(data);
+            dataAsByteArray = Encoding.UTF8.GetBytes(serializedData);
+            await _cache.SetAsync($"Message:{model.ReceiverUserName}:{UserName}", dataAsByteArray);
             // Update chatcard cache
             await _service.RefreshChatCard(UserName, model.ReceiverUserName, message);
 

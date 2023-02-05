@@ -53,6 +53,7 @@ namespace SignalRHubs.Services
                 $"CURRENT_TIMESTAMP, " +
                 $"@eAvatar, " +
                 $"@eBack" +
+                $"@eBio" +
                 $")";
             var obj = new
             {
@@ -66,7 +67,8 @@ namespace SignalRHubs.Services
                 ePhone = entity.Phone,
                 eGender = entity.Gender,
                 eAvatar = entity.Avatar,
-                eBack = entity.Background
+                eBack = entity.Background,
+                eBio = entity.UserBio
             };
             await _userService.GetDataAsync(query, obj);
 
@@ -157,6 +159,34 @@ namespace SignalRHubs.Services
                 $"WHERE (UserOne=@user1 AND UserTwo=@user2) OR (UserOne=@user2 AND UserTwo=@user1);";
             await _userService.GetDataAsync(query, new { user1=userName, user2=username });
             return $"{username} blocked by {userName}!";
+        }
+
+        public async Task<string> EditUserProfile(EditUserModel model)
+        {
+            var query = $"UPDATE dbo.Users " +
+                $"SET ";
+            if(model.NickName!=null) query += "NickName=@uNick, ";
+            if(model.Phone!=null) query += "NickName=@uPhone, ";
+            if(model.Email!=null) query += "NickName=@uEmail, ";
+            if(model.Gender!=null) query += "NickName=@uGender, ";
+            if(model.Avatar!=null) query += "NickName=@uAvatar, ";
+            if(model.Background!=null) query += "NickName=@uBack, ";
+            if(model.UserBio!=null) query += "NickName=@uBio ";
+
+            query += "WHERE ID = @uId;";
+            var param = new
+            {
+                uId = model.Id,
+                uNick = model.NickName,
+                uPhone = model.Phone,
+                uEmail = model.Email,
+                uGender = model.Gender,
+                uAvatar = model.Avatar,
+                uBack = model.Background,
+                uBio = model.UserBio
+            };
+            await _userService.GetDataAsync(query, param);
+            return "Updated User Profile.";
         }
     }
 }

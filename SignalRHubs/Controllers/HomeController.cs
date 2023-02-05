@@ -10,14 +10,14 @@ using System.Text;
 
 namespace SignalRHubs.Controllers
 {
-    public class UserController : Controller
+    public class HomeController : Controller
     {
         private static readonly JwtSecurityTokenHandler JwtTokenHandler = new JwtSecurityTokenHandler();
 
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
         private readonly IConfiguration iconfiguration;
-        public UserController(IUserService service, IMapper mapper, IConfiguration iconfiguration)
+        public HomeController(IUserService service, IMapper mapper, IConfiguration iconfiguration)
         {
             this._userService = service;
             _mapper = mapper;

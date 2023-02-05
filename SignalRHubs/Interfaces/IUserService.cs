@@ -17,5 +17,6 @@ namespace SignalRHubs.Interfaces.Services
         Task<List<UserViewModel>> GetAllFriends(string userName);
         Task<string> RemoveUserFromFriend(string userName, string username);
         Task<string> BlockUser(string userName, string username);
+        Task<string> EditUserProfile(EditUserModel model);
     }
 }
