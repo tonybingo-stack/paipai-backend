@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SignalRHubs.Interfaces.Services;
 using SignalRHubs.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace SignalRHubs.Controllers
 {
@@ -47,9 +48,10 @@ namespace SignalRHubs.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [HttpPost("/edit")]
-        public async Task<IActionResult> EditUserProfile(EditUserModel model)
+        public async Task<IActionResult> EditUserProfile([FromForm] EditUserModel model)
         {
-            var response = await _userService.EditUserProfile(model);
+            if (model.NickName == null && model.Email == null && model.Avatar == null && model.Phone == null && model.Gender == null && model.Background == null && model.UserBio == null) return BadRequest("At least one field is required");
+            var response = await _userService.EditUserProfile(UserName, model);
             return Ok(response);
         }
     }

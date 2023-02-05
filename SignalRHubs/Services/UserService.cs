@@ -52,7 +52,7 @@ namespace SignalRHubs.Services
                 $"@eGender, " +
                 $"CURRENT_TIMESTAMP, " +
                 $"@eAvatar, " +
-                $"@eBack" +
+                $"@eBack, " +
                 $"@eBio" +
                 $")";
             var obj = new
@@ -161,22 +161,56 @@ namespace SignalRHubs.Services
             return $"{username} blocked by {userName}!";
         }
 
-        public async Task<string> EditUserProfile(EditUserModel model)
+        public async Task<string> EditUserProfile(string username, EditUserModel model)
         {
             var query = $"UPDATE dbo.Users " +
                 $"SET ";
-            if(model.NickName!=null) query += "NickName=@uNick, ";
-            if(model.Phone!=null) query += "NickName=@uPhone, ";
-            if(model.Email!=null) query += "NickName=@uEmail, ";
-            if(model.Gender!=null) query += "NickName=@uGender, ";
-            if(model.Avatar!=null) query += "NickName=@uAvatar, ";
-            if(model.Background!=null) query += "NickName=@uBack, ";
-            if(model.UserBio!=null) query += "NickName=@uBio ";
+            bool flag = false;
+            if(model.NickName!=null)
+            {
+                query += "NickName=@uNick";
+                flag = true;
+            }
+            if(model.Phone!=null)
+            {
+                if (flag) query += ", ";
+                query += "Phone=@uPhone ";
+                flag = true;
+            }
+            if(model.Email!=null)
+            {
+                if (flag) query += ", ";
+                query += " Email=@uEmail ";
+                flag = true;
+            }
+            if (model.Gender!=null)
+            {
+                if (flag) query += ", ";
+                query += " Gender=@uGender ";
+                flag = true;
+            }
+            if (model.Avatar!=null)
+            {
+                if (flag) query += ", ";
+                query += " Avatar=@uAvatar ";
+                flag = true;
+            }
+            if (model.Background!=null)
+            {
+                if (flag) query += ", ";
+                query += " Background=@uBack ";
+                flag = true;
+            }
+            if (model.UserBio!=null)
+            {
+                if (flag) query += ", ";
+                query += " UserBio=@uBio ";
+            }
 
-            query += "WHERE ID = @uId;";
+            query += "WHERE UserName = @uName;";
             var param = new
             {
-                uId = model.Id,
+                uName = username,
                 uNick = model.NickName,
                 uPhone = model.Phone,
                 uEmail = model.Email,
@@ -185,6 +219,7 @@ namespace SignalRHubs.Services
                 uBack = model.Background,
                 uBio = model.UserBio
             };
+            Console.WriteLine("user name:" + username+":"+param.ToString()+":"+query);
             await _userService.GetDataAsync(query, param);
             return "Updated User Profile.";
         }
