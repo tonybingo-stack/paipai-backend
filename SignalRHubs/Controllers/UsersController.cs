@@ -47,7 +47,7 @@ namespace SignalRHubs.Controllers
         /// <returns></returns>
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        [HttpPost("/edit")]
+        [HttpPost("/user/edit")]
         public async Task<IActionResult> EditUserProfile([FromForm] EditUserModel model)
         {
             if (model.NickName == null && model.Email == null && model.Avatar == null && model.Phone == null && model.Gender == null && model.Background == null && model.UserBio == null) return BadRequest("At least one field is required");
