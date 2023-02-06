@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using SignalRHubs.Entities;
 using SignalRHubs.Hubs;
 using SignalRHubs.Interfaces.Services;
+using SignalRHubs.Lib;
 using SignalRHubs.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -37,7 +38,7 @@ namespace SignalRHubs.Controllers.Chat
                 SlidingExpiration = TimeSpan.FromDays(100)
             };
         }
-    
+
         /// <summary>
         /// Get Chat History of channel between offset*10 ~ (offset+1)*10 messages
         /// </summary>
@@ -248,9 +249,10 @@ namespace SignalRHubs.Controllers.Chat
             List<Message>? data = new List<Message>();
             List<Message>? data_new = new List<Message>();
             List<ChatModel> results = new List<ChatModel>();
+            string encode = Utils.Base64Encode(UserName, receivername);
 
             string? serializedData = null;
-            var dataAsByteArray = await _cache.GetAsync($"Message:{UserName}:{receivername}");
+            var dataAsByteArray = await _cache.GetAsync($"Message:"+encode);
             if ((dataAsByteArray?.Count() ?? 0) > 0)
             {
                 serializedData = Encoding.UTF8.GetString(dataAsByteArray);
@@ -259,8 +261,6 @@ namespace SignalRHubs.Controllers.Chat
 
             if ((data.Count - offset * 10)>0)
             {
-
-
                 data_new = data?.GetRange(offset * 10, 10>(data.Count-offset*10)? (data.Count - offset * 10) : 10 );
                 foreach (var item in data_new)
                 {
@@ -312,11 +312,11 @@ namespace SignalRHubs.Controllers.Chat
             if (model.ReceiverUserName == null) return BadRequest("Receiver Name is required!");
             // is friend? is blocked?
             int _check = await _service.CheckUserFriendShip(UserName, model.ReceiverUserName);
-            if (_check == 0) return BadRequest($"{model.ReceiverUserName} is not your friend now.");
-            if (_check == 1) return BadRequest($"You can't send message to blocked user");
+            if (_check == 0) return BadRequest($"You can't send message until you accept invitation.");
+            if (_check == 1) return BadRequest($"You are blocked by this user.");
             // Send message to receiver
             await _hubContext.Clients.User(model.ReceiverUserName).SendAsync("echo", UserName, model.Content);
-
+            string encode = Utils.Base64Encode(UserName, model.ReceiverUserName);
             // Save message
             Message message = _mapper.Map<Message>(model);
             message.Id = Guid.NewGuid();
@@ -327,7 +327,7 @@ namespace SignalRHubs.Controllers.Chat
             // save cache of s->r
             List<Message> data = new List<Message>();
             string? serializedData = null;
-            var dataAsByteArray = await _cache.GetAsync($"Message:{UserName}:{model.ReceiverUserName}");
+            var dataAsByteArray = await _cache.GetAsync($"Message:"+encode);
             if ((dataAsByteArray?.Count() ?? 0) > 0)
             {
                 serializedData = Encoding.UTF8.GetString(dataAsByteArray);
@@ -344,20 +344,9 @@ namespace SignalRHubs.Controllers.Chat
             data.Insert(0, message);
             serializedData = JsonConvert.SerializeObject(data);
             dataAsByteArray = Encoding.UTF8.GetBytes(serializedData);
-            await _cache.SetAsync($"Message:{UserName}:{model.ReceiverUserName}", dataAsByteArray);
+            await _cache.SetAsync($"Message:"+encode, dataAsByteArray);
 
-            // save cache of r->s
-            serializedData = null;
-            dataAsByteArray = await _cache.GetAsync($"Message:{model.ReceiverUserName}:{UserName}");
-            if ((dataAsByteArray?.Count() ?? 0) > 0)
-            {
-                serializedData = Encoding.UTF8.GetString(dataAsByteArray);
-                data = JsonConvert.DeserializeObject<List<Message>>(serializedData);
-            }
-            data.Insert(0, message);
-            serializedData = JsonConvert.SerializeObject(data);
-            dataAsByteArray = Encoding.UTF8.GetBytes(serializedData);
-            await _cache.SetAsync($"Message:{model.ReceiverUserName}:{UserName}", dataAsByteArray);
+ 
             // Update chatcard cache
             await _service.RefreshChatCard(UserName, model.ReceiverUserName, message);
 
@@ -380,8 +369,10 @@ namespace SignalRHubs.Controllers.Chat
             if (model.FilePath != null && (model.FileType == null || model.FilePreviewW == null || model.FilePreviewH == null)) return BadRequest("Bad request");
             // Get message from Cache
             List<Message>? data = new List<Message>();
+            string encode = Utils.Base64Encode(UserName, model.ReceiverUserName);
+
             string? serializedData = null;
-            var dataAsByteArray = await _cache.GetAsync($"Message:{UserName}:{model.ReceiverUserName}");
+            var dataAsByteArray = await _cache.GetAsync($"Message:"+encode);
             if ((dataAsByteArray?.Count() ?? 0) > 0)
             {
                 serializedData = Encoding.UTF8.GetString(dataAsByteArray);
@@ -403,7 +394,7 @@ namespace SignalRHubs.Controllers.Chat
                 // Reset to Cache
                 serializedData = JsonConvert.SerializeObject(data);
                 dataAsByteArray = Encoding.UTF8.GetBytes(serializedData);
-                await _cache.SetAsync($"Message:{UserName}:{model.ReceiverUserName}", dataAsByteArray);
+                await _cache.SetAsync($"Message:" + encode, dataAsByteArray);
                 
                 if(index ==0) await _service.RefreshChatCard(UserName, model.ReceiverUserName, message);
             }
@@ -439,8 +430,10 @@ namespace SignalRHubs.Controllers.Chat
         {
             // Get message from Cache
             List<Message>? data = new List<Message>();
+            string encode = Utils.Base64Encode(UserName, receiverUserName);
+
             string? serializedData = null;
-            var dataAsByteArray = await _cache.GetAsync($"Message:{UserName}:{receiverUserName}");
+            var dataAsByteArray = await _cache.GetAsync($"Message:" + encode);
             if ((dataAsByteArray?.Count() ?? 0) > 0)
             {
                 serializedData = Encoding.UTF8.GetString(dataAsByteArray);
@@ -456,7 +449,7 @@ namespace SignalRHubs.Controllers.Chat
                 // Reset to Cache
                 serializedData = JsonConvert.SerializeObject(data);
                 dataAsByteArray = Encoding.UTF8.GetBytes(serializedData);
-                await _cache.SetAsync($"Message:{UserName}:{receiverUserName}", dataAsByteArray);
+                await _cache.SetAsync($"Message:" + encode, dataAsByteArray);
             }
             else
             {

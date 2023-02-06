@@ -132,8 +132,7 @@ namespace SignalRHubs.Services
 
         public async Task<string> AddUserToFriendList(string userName, string username)
         {
-            var query = $"INSERT INTO [dbo].[FriendList] VALUES(NEWID(), @user1, @user2, 0);" +
-                $"INSERT INTO [dbo].[FriendList] VALUES(NEWID(), @user2, @user1, 0);";
+            var query = $"INSERT INTO [dbo].[FriendList] VALUES(NEWID(), @user1, @user2, 0);";
             await _userService.GetDataAsync(query, new { user1=userName, user2=username });
             return "Successfully added friend list.";
         }
@@ -158,7 +157,7 @@ namespace SignalRHubs.Services
         public async Task<string> BlockUser(string userName, string username)
         {
             var query = $"UPDATE dbo.FriendList SET isBlocked=1 " +
-                $"WHERE (UserOne=@user1 AND UserTwo=@user2) OR (UserOne=@user2 AND UserTwo=@user1);";
+                $"WHERE UserOne=@user2 AND UserTwo=@user1;";
             await _userService.GetDataAsync(query, new { user1=userName, user2=username });
             return $"{username} blocked by {userName}!";
         }
@@ -170,7 +169,7 @@ namespace SignalRHubs.Services
             bool flag = false;
             if(model.NickName!=null)
             {
-                query += "NickName=@uNick";
+                query += "NickName=@uNick ";
                 flag = true;
             }
             if(model.Phone!=null)
