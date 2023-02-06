@@ -23,6 +23,28 @@ namespace SignalRHubs.Controllers
             _mapper = mapper;
             this.iconfiguration = iconfiguration;
         }
+        private string TokenGenerator(string name)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, name),
+                new Claim(ClaimTypes.Role, "admin")
+            };
+            SecurityKey SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(iconfiguration["Jwt:Key"]));
+            SigningCredentials SigningCreds = new SigningCredentials(SigningKey, SecurityAlgorithms.HmacSha256);
+
+            var claimsIdentity = new ClaimsIdentity(claims);
+
+            var token = JwtTokenHandler.CreateJwtSecurityToken(
+                issuer: iconfiguration["Jwt:Issuer"],
+                audience: iconfiguration["Jwt:Audience"],
+                subject: claimsIdentity,
+                expires: DateTime.UtcNow.AddMinutes(65),
+                signingCredentials: SigningCreds
+            );
+            var userToken = JwtTokenHandler.WriteToken(token);
+            return userToken;
+        }
         /// <summary>
         /// Create New User
         /// </summary>
@@ -58,31 +80,15 @@ namespace SignalRHubs.Controllers
             {
                 return Unauthorized();
             }
-
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.UserName),
-                new Claim(ClaimTypes.Role, "admin")
-            };
-            SecurityKey SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(iconfiguration["Jwt:Key"]));
-            SigningCredentials SigningCreds = new SigningCredentials(SigningKey, SecurityAlgorithms.HmacSha256);
-            
-            var claimsIdentity = new ClaimsIdentity(claims);
-
-            var token = JwtTokenHandler.CreateJwtSecurityToken(
-                issuer: iconfiguration["Jwt:Issuer"],
-                audience: iconfiguration["Jwt:Audience"],
-                subject: claimsIdentity,
-                expires: DateTime.UtcNow.AddDays(1),
-                signingCredentials: SigningCreds
-            );
-            JwtTokenHandler.WriteToken(token);
+            // Generate Token
+            var userToken = TokenGenerator(user.UserName);
 
             var response = await _userService.GetUserByUserName(user.UserName);
 
             UserSignupModel res = _mapper.Map<UserSignupModel>(response);
-            res.Token = JwtTokenHandler.WriteToken(token);
+            res.Token = userToken;
 
+            //return Ok(userToken);
             return Ok(res);
         }
 
