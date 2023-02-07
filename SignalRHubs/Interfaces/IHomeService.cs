@@ -6,7 +6,7 @@ namespace SignalRHubs.Interfaces.Services
     /// <summary>
     /// 
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name=""></typeparam>
     public interface IHomeService
     {
         Task<Guid> CreateCommunity(Community entity);

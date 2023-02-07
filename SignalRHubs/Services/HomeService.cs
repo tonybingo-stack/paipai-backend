@@ -48,7 +48,7 @@ namespace SignalRHubs.Services
         /// <summary>
         /// Create new community
         /// </summary>
-        /// <param name="community"></param>
+        /// <param name=""></param>
         /// <returns></returns>
         public async Task<Guid> CreateCommunity(Community entity)
         {

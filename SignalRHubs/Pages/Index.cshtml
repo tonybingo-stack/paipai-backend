@@ -36,8 +36,11 @@
                    placeholder="Type user name, if send to users, separate with comma">
             <button class="btn-success" id="senduser">Send to User</button>
             <button class="btn-success" id="sendusers">Send to Users</button>
+
             <button class="btn-success" id="sendstream">SendStream</button>
             <button class="btn-success" id="sendinvite">Send invitation</button>
+            <button class="btn-success" id="starttyping">Start Typing</button>
+            <button class="btn-success" id="stoptyping">Stop Typing</button>
         </div>
     </div>
 
@@ -161,10 +164,16 @@ import { parseJSON } from "jquery";
                     console.log(`${name} sent invitation to you`);
                     appendMessage(name, name+" want to be a friend");
                 }
+                var typingCallback = function(name, isTyping){
+                    console.log(name+":"+ isTyping);
+                    if(isTyping) appendMessage(name, name+" start typing...");
+                    else appendMessage(name, name+" stop typing.");
+                }
                 // Create a function that the hub can call to broadcast messages.
                 connection.on('broadcastMessage', messageCallback);
                 connection.on('echo', messageCallback);
                 connection.on('invite', inviteCallback);
+                connection.on('typing', typingCallback);
  
                 connection.onclose(onConnectionError);
             }
@@ -305,6 +314,19 @@ import { parseJSON } from "jquery";
                     }
                     event.preventDefault();
                 });
+                // Start Typing
+                document.getElementById('starttyping').addEventListener('click', function (event) {
+                    console.log("I start typing");
+                    connection.send('Typing', username,userInput.value, true);
+                    event.preventDefault();
+                });
+                // Stop Typing
+                document.getElementById('stoptyping').addEventListener('click', function (event) {
+                    console.log("I stop typing");
+                    connection.send('Typing', username,userInput.value,false);
+                    event.preventDefault();
+                });
+ 
             }
 
             function onConnectionError(error) {

@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using SignalRHubs.Entities;
 using SignalRHubs.Hubs;
 using SignalRHubs.Interfaces.Services;
-using SignalRHubs.Lib;
 using SignalRHubs.Models;
 using System.ComponentModel.DataAnnotations;
 

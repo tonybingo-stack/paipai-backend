@@ -29,7 +29,7 @@ namespace SignalRHubs.Controllers
         /// Get all friends
         /// </summary>
         /// <returns></returns>
-        [ProducesResponseType(typeof(List<UserViewModel>), 200)]
+        [ProducesResponseType(typeof(List<FriendViewModel>), 200)]
         [ProducesResponseType(400)]
         [HttpGet("/friend/friends")]
         public async Task<IActionResult> GetAllFriends()
@@ -37,18 +37,22 @@ namespace SignalRHubs.Controllers
             return Ok(await _userService.GetAllFriends(UserName));
         }
         /// <summary>
-        /// Add user to friend list
+        /// Accept user's invitation
         /// </summary>
         /// <returns></returns>
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        [HttpPost("/friend/add")]
-        public async Task<IActionResult> AddUserToFriendList([Required][FromForm]string username)
+        [HttpPost("/friend/accept")]
+        public async Task<IActionResult> AcceptUserInvite([Required][FromForm]string username)
         {
-            return Ok(await _userService.AddUserToFriendList(UserName, username));
+            // Check if invitation exists.
+            var result = await _chatService.CheckUserFriendShip(username, UserName);
+            if (result != "pending") return BadRequest("No pending invitation exists.");
+
+            return Ok(await _userService.AcceptUserInvite(UserName, username));
         }
         /// <summary>
-        /// Send Friend invite to user
+        /// Send invitation
         /// </summary>
         /// <returns></returns>
         [ProducesResponseType(200)]
@@ -57,33 +61,8 @@ namespace SignalRHubs.Controllers
         public async Task<IActionResult> SendInvitation([Required][FromForm] string username)
         {
             await _hubContext.Clients.User(username).SendAsync("invite", UserName);
-            //await _hubContext.Clients.User(username).SendAsync("echo", UserName, Emoji.GrinningFace);
             // add username to my friend list
-            await _userService.AddUserToFriendList(UserName, username);
-            // save message to cache
-            //string encode = Utils.Base64Encode(UserName, username);
-
-            //Message message = new Message();
-            //message.Id = Guid.NewGuid();
-            //message.SenderUserName = UserName;
-            //message.ReceiverUserName = username;
-            //message.Content = Emoji.GrinningFace;
-            //message.isDeleted = false;
-            //message.CreatedAt = DateTime.Now;
-
-            //List<Message> data = new List<Message>();
-            //string? serializedData = null;
-
-            //data.Insert(0, message);
-            //serializedData = JsonConvert.SerializeObject(data);
-            //var dataAsByteArray = Encoding.UTF8.GetBytes(serializedData);
-            //await _cache.SetAsync($"Message:" + encode, dataAsByteArray);
-
-            // create chat card for this 2 user
-            //await _chatService.RefreshChatCard(UserName, username, message);
-
-            return Ok("ok");
-
+            return Ok(await _userService.SendInvitation(UserName, username));
         }
         /// <summary>
         /// Remove user From friend list

@@ -5,6 +5,6 @@
         public Guid Id { get; set; }
         public string UserOne { get; set; }
         public string UserTwo { get; set; }
-        public bool isBlocked { get; set; }
+        public string Status { get; set; }
     }
 }

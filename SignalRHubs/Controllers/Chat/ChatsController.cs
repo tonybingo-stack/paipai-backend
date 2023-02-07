@@ -34,8 +34,8 @@ namespace SignalRHubs.Controllers.Chat
             _cache = cache;
             expiration = new DistributedCacheEntryOptions()
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(100000000),
-                SlidingExpiration = TimeSpan.FromDays(500)
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1000),
+                SlidingExpiration = TimeSpan.FromDays(100)
             };
         }
 
@@ -311,9 +311,9 @@ namespace SignalRHubs.Controllers.Chat
             if (model.Content == null && model.FilePath == null) return BadRequest("You can not send an empty message.");
             if (model.ReceiverUserName == null) return BadRequest("Receiver Name is required!");
             // is friend? is blocked?
-            int _check = await _service.CheckUserFriendShip(UserName, model.ReceiverUserName);
-            if (_check == 0) return BadRequest($"You can't send message until you accept invitation.");
-            if (_check == 1) return BadRequest($"You are blocked by this user.");
+            string _status = await _service.CheckUserFriendShip(UserName, model.ReceiverUserName);
+            if (_status == null) return BadRequest($"You can't send message until you accept invitation.");
+            if (_status == "blocked") return BadRequest($"You are blocked by this user.");
             // Send message to receiver
             await _hubContext.Clients.User(model.ReceiverUserName).SendAsync("echo", UserName, model.Content);
             string encode = Utils.Base64Encode(UserName, model.ReceiverUserName);
@@ -500,6 +500,22 @@ namespace SignalRHubs.Controllers.Chat
 
             var res = await _service.DeleteChatCardByID(chatCardID);
             return Ok("success");
+        }
+        /// <summary>
+        /// User Typing
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost("/type")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<string>> Type([FromForm][Required]string username, [FromForm][Required] bool isTyping)
+        {
+            string _status = await _service.CheckUserFriendShip(UserName, username);
+            if (_status == null) return BadRequest($"You can't send message until you accept invitation.");
+            if (_status == "blocked") return BadRequest($"You are blocked by this user.");
+
+            await _hubContext.Clients.User(username).SendAsync("Typing", UserName, username, isTyping);
+            return Ok("success"); 
         }
     }
 }

@@ -37,11 +37,7 @@ namespace SignalRHubs.Hubs
                 await Task.Delay(delay, cancellationToken);
             }
         }
-        public void Invite(string name, string username)
-        {
-            Console.WriteLine($"{name} send invitation to {username}");
-            Clients.User(username).SendAsync("invite", name);
-        }
+
         public void BroadcastMessage(string name, string message)
         {
             Clients.All.SendAsync("broadcastMessage", name, message);
@@ -88,6 +84,15 @@ namespace SignalRHubs.Hubs
         public void SendUsers(string name, IReadOnlyList<string> userIds, string message)
         {
             Clients.Users(userIds).SendAsync("echo", name, message);
+        }
+        public void Invite(string name, string username)
+        {
+            Console.WriteLine($"{name} send invitation to {username}");
+            Clients.User(username).SendAsync("invite", name);
+        }
+        public void Typing(string name,string username, bool isTyping)
+        {
+            Clients.User(username).SendAsync("typing", name, isTyping);
         }
     }
 }

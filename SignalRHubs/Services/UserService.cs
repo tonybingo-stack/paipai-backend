@@ -13,7 +13,7 @@ namespace SignalRHubs.Services
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="repository"></param>
+        /// <param name=""></param>
         public UserService(IDapperService<User> dapperService)
         {
             _userService = dapperService;
@@ -129,23 +129,33 @@ namespace SignalRHubs.Services
             if (result.Count == 0) return true;
             else return false;
         }
-
-        public async Task<string> AddUserToFriendList(string userName, string username)
+        public async Task<List<FriendViewModel>> GetAllFriends(string userName)
         {
-            var query = $"INSERT INTO [dbo].[FriendList] VALUES(NEWID(), @user1, @user2, 0);";
-            await _userService.GetDataAsync(query, new { user1=userName, user2=username });
-            return "Successfully added friend list.";
-        }
-
-        public async Task<List<UserViewModel>> GetAllFriends(string userName)
-        {
-            var query = $"SELECT * FROM dbo.FriendList " +
+            var query = $"SELECT " +
+                $"dbo.Users.ID,dbo.Users.FirstName,dbo.Users.LastName,dbo.Users.UserName,dbo.Users.NickName," +
+                $"dbo.Users.Email,dbo.Users.Password,dbo.Users.Phone,dbo.Users.Gender,dbo.Users.RegisterTime," +
+                $"dbo.Users.Avatar,dbo.Users.Background,dbo.Users.UserBio,dbo.FriendList.Status " +
+                $"FROM dbo.FriendList " +
                 $"INNER JOIN dbo.Users ON dbo.FriendList.UserTwo =dbo.Users.UserName " +
-                $"WHERE dbo.FriendList.UserOne=@user AND dbo.FriendList.isBlocked=0";
-            var response=await _userService.GetDataAsync<UserViewModel>(query, new { user=userName });
+                $"WHERE dbo.FriendList.UserOne=@user AND (dbo.FriendList.Status = 'accepted' OR dbo.FriendList.Status = 'pending');";
+            var response=await _userService.GetDataAsync<FriendViewModel>(query, new { user=userName });
             return response.ToList();
         }
+        public async Task<string> AcceptUserInvite(string userName, string username)
+        {
+            var query = $"INSERT INTO [dbo].[FriendList] VALUES(NEWID(), @user1, @user2, 'accepted');" +
+                $"UPDATE [dbo].[Friendlist] SET Status='accepted' WHERE UserOne = @user2 AND UserTwo = @user1;";
 
+            await _userService.GetDataAsync(query, new { user1=userName, user2=username });
+            return "Invitation accepted.";
+        }
+        public async Task<string> SendInvitation(string userName, string username)
+        {
+            var query = $"INSERT INTO [dbo].[FriendList] VALUES(NEWID(), @user1, @user2, 'pending');";
+
+            await _userService.GetDataAsync(query, new { user1 = userName, user2 = username });
+            return "Invitation sent.";
+        }
         public async Task<string> RemoveUserFromFriend(string userName, string username)
         {
             var query = $"DELETE FROM dbo.FriendList " +
@@ -156,8 +166,8 @@ namespace SignalRHubs.Services
 
         public async Task<string> BlockUser(string userName, string username)
         {
-            var query = $"UPDATE dbo.FriendList SET isBlocked=1 " +
-                $"WHERE UserOne=@user2 AND UserTwo=@user1;";
+            var query = $"UPDATE dbo.FriendList SET Status = 'blocked' " +
+                $"WHERE (UserOne=@user1 AND UserTwo=@user2) OR (UserOne=@user2 AND UserTwo=@user1);";
             await _userService.GetDataAsync(query, new { user1=userName, user2=username });
             return $"{username} blocked by {userName}!";
         }
