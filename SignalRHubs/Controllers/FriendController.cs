@@ -56,30 +56,31 @@ namespace SignalRHubs.Controllers
         [HttpPost("/friend/invite")]
         public async Task<IActionResult> SendInvitation([Required][FromForm] string username)
         {
-            await _hubContext.Clients.User(username).SendAsync("echo", UserName, Emoji.GrinningFace);
+            await _hubContext.Clients.User(username).SendAsync("invite", UserName);
+            //await _hubContext.Clients.User(username).SendAsync("echo", UserName, Emoji.GrinningFace);
             // add username to my friend list
             await _userService.AddUserToFriendList(UserName, username);
             // save message to cache
-            string encode = Utils.Base64Encode(UserName, username);
+            //string encode = Utils.Base64Encode(UserName, username);
 
-            Message message = new Message();
-            message.Id = Guid.NewGuid();
-            message.SenderUserName = UserName;
-            message.ReceiverUserName = username;
-            message.Content = Emoji.GrinningFace;
-            message.isDeleted = false;
-            message.CreatedAt = DateTime.Now;
+            //Message message = new Message();
+            //message.Id = Guid.NewGuid();
+            //message.SenderUserName = UserName;
+            //message.ReceiverUserName = username;
+            //message.Content = Emoji.GrinningFace;
+            //message.isDeleted = false;
+            //message.CreatedAt = DateTime.Now;
 
-            List<Message> data = new List<Message>();
-            string? serializedData = null;
+            //List<Message> data = new List<Message>();
+            //string? serializedData = null;
 
-            data.Insert(0, message);
-            serializedData = JsonConvert.SerializeObject(data);
-            var dataAsByteArray = Encoding.UTF8.GetBytes(serializedData);
-            await _cache.SetAsync($"Message:" + encode, dataAsByteArray);
+            //data.Insert(0, message);
+            //serializedData = JsonConvert.SerializeObject(data);
+            //var dataAsByteArray = Encoding.UTF8.GetBytes(serializedData);
+            //await _cache.SetAsync($"Message:" + encode, dataAsByteArray);
 
-            // Update chatcard cache
-            await _chatService.RefreshChatCard(UserName, username, message);
+            // create chat card for this 2 user
+            //await _chatService.RefreshChatCard(UserName, username, message);
 
             return Ok("ok");
 

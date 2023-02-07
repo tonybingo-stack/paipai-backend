@@ -66,7 +66,7 @@ namespace SignalRHubs.Controllers
         /// User Login
         /// </summary>
         /// <returns></returns>
-        [ProducesResponseType(typeof(UserSignupModel) ,200)]
+        [ProducesResponseType(typeof(UserSignupModel), 200)]
         [ProducesResponseType(400)]
         [HttpPost("/signin")]
         public async Task<IActionResult> Login([FromForm] UserSigninModel user)
@@ -87,8 +87,11 @@ namespace SignalRHubs.Controllers
 
             UserSignupModel res = _mapper.Map<UserSignupModel>(response);
             res.Token = userToken;
-
-            //return Ok(userToken);
+            //var o = new
+            //{
+            //    token = userToken
+            //};
+            //return Ok(o);
             return Ok(res);
         }
 

@@ -35,7 +35,7 @@ namespace SignalRHubs.Controllers.Chat
             expiration = new DistributedCacheEntryOptions()
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(100000000),
-                SlidingExpiration = TimeSpan.FromDays(1000000000)
+                SlidingExpiration = TimeSpan.FromDays(500)
             };
         }
 

@@ -37,6 +37,7 @@
             <button class="btn-success" id="senduser">Send to User</button>
             <button class="btn-success" id="sendusers">Send to Users</button>
             <button class="btn-success" id="sendstream">SendStream</button>
+            <button class="btn-success" id="sendinvite">Send invitation</button>
         </div>
     </div>
 
@@ -156,9 +157,14 @@ import { parseJSON } from "jquery";
                     var encodedMsg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     appendMessage(encodedName, encodedMsg);
                 };
+                var inviteCallback = function(name){
+                    console.log(`${name} sent invitation to you`);
+                    appendMessage(name, name+" want to be a friend");
+                }
                 // Create a function that the hub can call to broadcast messages.
                 connection.on('broadcastMessage', messageCallback);
                 connection.on('echo', messageCallback);
+                connection.on('invite', inviteCallback);
  
                 connection.onclose(onConnectionError);
             }
@@ -291,6 +297,13 @@ import { parseJSON } from "jquery";
                     }, 500);
                     event.preventDefault();
 
+                });
+                // Send invitation
+                document.getElementById('sendinvite').addEventListener('click', function (event) {
+                    if (userInput.value) {
+                        connection.send('Invite', username, userInput.value);
+                    }
+                    event.preventDefault();
                 });
             }
 
