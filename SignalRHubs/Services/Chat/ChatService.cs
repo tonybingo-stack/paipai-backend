@@ -203,25 +203,28 @@ namespace SignalRHubs.Services
             await _service.GetDataAsync(query, new {ID=messageId});
         }
 
-        public async Task SaveChannelMessage(ChannelMessage message)
+        public async Task SaveChannelMessage(List<ChannelMessage> data)
         {
             // Channel Chat
-            var query = $"INSERT INTO [dbo].[ChannelMessage] VALUES(@Id, @sname, @content, @filePath," +
+            foreach(var message in data)
+            {
+                var query = $"INSERT INTO [dbo].[ChannelMessage] VALUES(@Id, @sname, @content, @filePath," +
                 $" @fileType, @fileW, @fileH, @channelID, CURRENT_TIMESTAMP, NULL, 0,@repliedTo);";
 
-            var obj = new
-            {
-                Id = message.Id,
-                sname = message.SenderUserName, 
-                content = message.Content,
-                filePath = message.FilePath,
-                fileType = message.FileType,
-                fileW = message.FilePreviewW,
-                fileH = message.FilePreviewH,
-                channelID=message.ChannelId,
-                repliedTo=message.RepliedTo
-            };
-            await _service.GetDataAsync(query, obj);
+                var obj = new
+                {
+                    Id = message.Id,
+                    sname = message.SenderUserName,
+                    content = message.Content,
+                    filePath = message.FilePath,
+                    fileType = message.FileType,
+                    fileW = message.FilePreviewW,
+                    fileH = message.FilePreviewH,
+                    channelID = message.ChannelId,
+                    repliedTo = message.RepliedTo
+                };
+                await _service.GetDataAsync(query, obj);
+            }
         }
 
         public async Task<string> CheckUserFriendShip(string userName, string receiverUserName)

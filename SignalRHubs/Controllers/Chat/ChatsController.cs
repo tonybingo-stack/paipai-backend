@@ -39,6 +39,50 @@ namespace SignalRHubs.Controllers.Chat
             };
         }
 
+        private async Task<ChannelMessageViewModel> GetChannelMessageByMessageId(Guid channelId,Guid id)
+        {
+            List<ChannelMessage> data = new List<ChannelMessage>();
+            ChannelMessageViewModel result = new ChannelMessageViewModel();
+
+            string? serializedData = null;
+            var dataAsByteArray = await _cache.GetAsync($"ChannelMessage:{channelId.ToString().Replace("-", "")}");
+            if ((dataAsByteArray?.Count() ?? 0) > 0)
+            {
+                serializedData = Encoding.UTF8.GetString(dataAsByteArray);
+                data = JsonConvert.DeserializeObject<List<ChannelMessage>>(serializedData);
+            }
+            ChannelMessage cm = data.Find(x => x.Id == id);
+            if (cm == null)
+            {
+                // Fetch from db
+                cm = await _service.GetChannelMessageById(id);
+
+            }
+            if (cm == null) return null;
+
+            result = _mapper.Map<ChannelMessageViewModel>(cm);
+            // if Replied message, we have to know about the user
+            if (result.RepliedTo != null)
+            {
+                // find being replied message.
+                ChannelMessage? m = data.Find(x => x.Id == result.RepliedTo);
+                if (m == null)
+                {
+                    // if not exist in cache, we have to fetch from DB
+                    m = await _service.GetChannelMessageById(result.RepliedTo);
+                }
+                result.RepliedContent = m.Content;
+                result.RepliedUserName = m.SenderUserName;
+                result.RepliedMsgCreatedAt = m.CreatedAt;
+                // User Avatar
+                User u = await _userService.GetUserByUserName(m.SenderUserName);
+                result.RepliedUserAvatar = u.Avatar;
+            }
+
+            return result;
+
+        }
+
         /// <summary>
         /// Get Chat History of channel between offset*10 ~ (offset+1)*10 messages
         /// </summary>
@@ -103,9 +147,8 @@ namespace SignalRHubs.Controllers.Chat
         public async Task<IActionResult> SendMessageToChannel([FromForm] ChannelSendMessageModel model)
         {
             if (model.Content == null && model.FilePath == null) return BadRequest("You can not send an empty message.");
-
-            // Send message to receiver
-            await _hubContext.Clients.Group(model.ChannelId.ToString()).SendAsync("echo", UserName, model.Content);
+            if (model.Content != null && model.FilePath != null) return BadRequest("You can't send message and file at samee time");
+            //if (!((model.FilePath == null) ^ (model.FileType == null) ^ (model.FilePreviewW == null) ^ (model.FilePreviewH == null))) return BadRequest("Bad Request");
 
             ChannelMessage message = new ChannelMessage();
             message.Id = Guid.NewGuid();
@@ -130,13 +173,10 @@ namespace SignalRHubs.Controllers.Chat
                 serializedData = Encoding.UTF8.GetString(dataAsByteArray);
                 data = JsonConvert.DeserializeObject<List<ChannelMessage>>(serializedData);
             }
-            if(data.Count ==50)
+            if(data.Count >=50)
             {
                 // Move data to DB
-                foreach(ChannelMessage m in data)
-                {
-                    await _service.SaveChannelMessage(message);
-                }
+                await _service.SaveChannelMessage(data);
                 // Init data
                 data.Clear();
             }
@@ -144,9 +184,14 @@ namespace SignalRHubs.Controllers.Chat
             serializedData = JsonConvert.SerializeObject(data);
             dataAsByteArray = Encoding.UTF8.GetBytes(serializedData);
             await _cache.SetAsync($"ChannelMessage:{model.ChannelId.ToString().Replace("-", "")}", dataAsByteArray);
-            
-            //await _service.SaveChannelMessage(message);
 
+            // Send message to receiver
+            ChannelMessageViewModel? m = await GetChannelMessageByMessageId(message.ChannelId, message.Id);
+            if (m== null) return BadRequest("Something went wrong!");
+
+            string content = JsonConvert.SerializeObject(m);
+            Console.WriteLine("channel message: " + content);
+            await _hubContext.Clients.Group(model.ChannelId.ToString()).SendAsync("echo", UserName, content);
             return Ok(message.Id);
         }
         /// <summary>
@@ -237,6 +282,49 @@ namespace SignalRHubs.Controllers.Chat
 
             return Ok("Message deleted successfully");
         }
+        
+        private async Task<ChatModel> GetMessageById(Guid Id, string receivername)
+        {
+            List<Message>? data = new List<Message>();
+            ChatModel result = new ChatModel();
+
+            string encode = Utils.Base64Encode(UserName, receivername);
+
+            string? serializedData = null;
+            var dataAsByteArray = await _cache.GetAsync($"Message:" + encode);
+            if ((dataAsByteArray?.Count() ?? 0) > 0)
+            {
+                serializedData = Encoding.UTF8.GetString(dataAsByteArray);
+                data = JsonConvert.DeserializeObject<List<Message>>(serializedData);
+            }
+            Message? message = data.Find(x => x.Id == Id);
+
+            if (message == null)
+            {
+                // Have to fetch from sql db
+                message = await _service.GetMessage(Id);
+            }
+            if (message == null) return null;
+
+            result = _mapper.Map<ChatModel>(message);
+            if (result.RepliedTo != null)
+            {
+                // find being replied message.
+                Message? m = data.Find(x => x.Id == result.RepliedTo);
+                if (m == null)
+                {
+                    // if not exist in cache, we have to fetch from DB
+                    m = await _service.GetMessage(result.RepliedTo);
+                }
+                result.RepliedContent = m.Content;
+                result.RepliedUserName = m.SenderUserName;
+                result.RepliedMsgCreatedAt = m.CreatedAt;
+                // User Avatar
+                User u = await _userService.GetUserByUserName(m.SenderUserName);
+                result.RepliedUserAvatar = u.Avatar;
+            }
+            return result;
+        }
         /// <summary>
         /// Get Chat History of user between offset*10 ~ (offset+1)*10 messages
         /// </summary>
@@ -310,21 +398,20 @@ namespace SignalRHubs.Controllers.Chat
         {
             if (model.Content == null && model.FilePath == null) return BadRequest("You can not send an empty message.");
             if (model.ReceiverUserName == null) return BadRequest("Receiver Name is required!");
+            if (model.Content != null && model.FilePath != null) return BadRequest("You can't send message and file at same time");
+            //if (!((model.FilePath == null) ^ (model.FileType == null) ^ (model.FilePreviewW == null) ^ (model.FilePreviewH == null))) return BadRequest("Bad Request");
             // is friend? is blocked?
             string _status = await _service.CheckUserFriendShip(UserName, model.ReceiverUserName);
             if (_status == null) return BadRequest($"You can't send message until you accept invitation.");
             if (_status == "blocked") return BadRequest($"You are blocked by this user.");
-            // Send message to receiver
-            await _hubContext.Clients.User(model.ReceiverUserName).SendAsync("echo", UserName, model.Content);
-            string encode = Utils.Base64Encode(UserName, model.ReceiverUserName);
-            // Save message
+
+            // create message
             Message message = _mapper.Map<Message>(model);
             message.Id = Guid.NewGuid();
             message.SenderUserName = UserName;
             message.isDeleted = false;
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+            string encode = Utils.Base64Encode(UserName, model.ReceiverUserName);
             // save message to cache first 
-            // save cache of s->r
             List<Message> data = new List<Message>();
             string? serializedData = null;
             var dataAsByteArray = await _cache.GetAsync($"Message:"+encode);
@@ -346,9 +433,16 @@ namespace SignalRHubs.Controllers.Chat
             dataAsByteArray = Encoding.UTF8.GetBytes(serializedData);
             await _cache.SetAsync($"Message:"+encode, dataAsByteArray);
 
- 
             // Update chatcard cache
             await _service.RefreshChatCard(UserName, model.ReceiverUserName, message);
+            // Send message to  receiver
+            ChatModel? c = await GetMessageById(message.Id, model.ReceiverUserName);
+
+            if (c == null) return BadRequest("Something went wrong!");
+
+            string content = JsonConvert.SerializeObject(c);
+            Console.WriteLine("DM: "+content);
+            await _hubContext.Clients.User(model.ReceiverUserName).SendAsync("echo", UserName, content);
 
             return Ok(message.Id);
         }

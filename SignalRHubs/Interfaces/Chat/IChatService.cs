@@ -19,7 +19,7 @@ namespace SignalRHubs.Interfaces.Services
         Task<ChannelMessage> GetChannelMessageById(Guid? id);
         Task UpdateChannelMessage(ChannelMessage m);
         Task DeleteChannelMessageById(Guid messageId);
-        Task SaveChannelMessage(ChannelMessage message);
+        Task SaveChannelMessage(List<ChannelMessage> data);
         Task<string> CheckUserFriendShip(string userName, string receiverUserName);
     }
 }

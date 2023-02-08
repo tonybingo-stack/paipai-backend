@@ -12,7 +12,7 @@ namespace SignalRHubs.Entities
         public string? FileType { get; set; }
         public int? FilePreviewW { get; set; }
         public int? FilePreviewH { get; set; }
-        public Guid? ChannelId { get; set; }
+        public Guid ChannelId { get; set; }
         public bool? isDeleted { get; set; }
         public Guid? RepliedTo { get; set; }
     }
