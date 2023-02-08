@@ -1,19 +1,42 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using SignalRHubs.Lib;
 using System.Runtime.CompilerServices;
+using DotNetPusher.Pushers;
+using DotNetPusher.Encoders;
+using DotNetPusher.VideoPackets;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace SignalRHubs.Hubs
 {
     public class ChatHub : Hub
     {
+        //private string pushUrl = "rtmp://test-voicems-usea.channel.media.azure.net:1935/live/cd10160b1de44287bf459e0446cd7546/what";
+        private string pushUrl = "rtmp://localhost:1935";
+         
+        //Push frame rate.
+        private int frameRate = 15;
+        private Pusher pusher;
         public async Task UploadStream(IAsyncEnumerable<string> stream, string name)
+        //public async Task UploadStream(byte[] stream, string name)
         {
             Console.WriteLine("Video Stream incomming...");
-            
-            await foreach (var item in stream)
+            pusher = new Pusher();
+            pusher.StartPush(pushUrl, 1280, 768, frameRate);
+            // Convert to VideoPacket.
+
+            await foreach (var packet in stream)
             {
-                _ = Task.Run(() => new StreamThread().CreateDnsThreadAsync(name, item));
+                //_ = Task.Run(() => new StreamThread().CreateDnsThreadAsync(name, packet));
                 // Wanna directly send to Azure inputUrl
+                //byte[] bytes = Encoding.UTF8.GetBytes(packet);
+                Console.WriteLine(packet);
+                //GCHandle pinnedArray = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+                //IntPtr pointer = pinnedArray.AddrOfPinnedObject();
+                //// Do your stuff...
+                //var videoPacket = new VideoPacket(pointer);
+                //pusher.PushPacket(videoPacket);
+                //pinnedArray.Free();
             }
         }
         public async IAsyncEnumerable<int> Counter(

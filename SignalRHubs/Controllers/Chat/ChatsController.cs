@@ -510,11 +510,7 @@ namespace SignalRHubs.Controllers.Chat
         [ProducesResponseType(typeof(NotFoundResult), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<string>> Type([FromForm][Required]string username, [FromForm][Required] bool isTyping)
         {
-            string _status = await _service.CheckUserFriendShip(UserName, username);
-            if (_status == null) return BadRequest($"You can't send message until you accept invitation.");
-            if (_status == "blocked") return BadRequest($"You are blocked by this user.");
-
-            await _hubContext.Clients.User(username).SendAsync("Typing", UserName, username, isTyping);
+            await _hubContext.Clients.User(username).SendAsync("Typing", UserName, isTyping);
             return Ok("success"); 
         }
     }

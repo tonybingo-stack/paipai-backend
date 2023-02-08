@@ -1,10 +1,11 @@
-﻿namespace SignalRHubs.Lib
+﻿
+namespace SignalRHubs.Lib
 {
     public class StreamThread
     {
-        public async Task CreateDnsThreadAsync(String domain, String ip)
+        public async Task CreateDnsThreadAsync(String name, String packet)
         {
-            Console.WriteLine(domain + "===>" + ip);
+            Console.WriteLine(name + "===>" + packet);
         }
     }
 }
