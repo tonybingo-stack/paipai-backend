@@ -1,4 +1,5 @@
 ﻿using DbHelper.Interfaces.Services;
+using Newtonsoft.Json;
 using SignalRHubs.Entities;
 using SignalRHubs.Interfaces.Services;
 using SignalRHubs.Lib;
@@ -11,9 +12,11 @@ namespace SignalRHubs.Services
     public class HomeService:IHomeService
     {
         private readonly IDapperService<Community> _service;
+        private readonly SqlConnection _connection;
         public HomeService(IDapperService<Community> dapperService)
         {
             _service = dapperService;
+            _connection = _service.Connection;
         }
 
         public async Task<Guid> CreateChannel(Channel entity)
@@ -250,77 +253,119 @@ namespace SignalRHubs.Services
         public async Task<IEnumerable<PostViewModel>> GetPosts(string username)
         {
             List<PostViewModel> result = new List<PostViewModel>();
-            var query = $"SELECT * " +
-                $"FROM dbo.Posts WHERE dbo.Posts.UserName =@name AND dbo.Posts.isDeleted =0 " +
-                $"ORDER BY dbo.Posts.CreatedAt DESC";
-            var response = await _service.GetDataAsync<PostViewModel>(query, new {name = username});
-            if (response.Count == 0) return result;
+            var query = $"SELECT " +
+                $"A.ID AS ID,A.Title AS Title,A.Contents AS Contents,A.Price AS Price," +
+                $"A.Category AS Category,A.CreatedAt AS CreatedAt,A.UpdatedAt AS UpdatedAt," +
+                $"(SELECT* FROM PostFile WHERE PostFile.PostId = A.ID FOR JSON PATH,INCLUDE_NULL_VALUES) AS PostFiles," +
+                $"(SELECT Community.* FROM PostWithCommunity INNER JOIN Community ON PostWithCommunity.CommunityId = Community.ID WHERE PostWithCommunity.PostId = A.ID FOR JSON PATH,INCLUDE_NULL_VALUES) AS CommunitiesOfPost," +
+                $"(SELECT Users.* FROM PostLikeUser INNER JOIN Users ON PostLikeUser.UserName = Users.UserName WHERE PostLikeUser.PostId = A.ID FOR JSON PATH,INCLUDE_NULL_VALUES) AS UsersLikePost " +
+                $"FROM dbo.Posts AS A LEFT JOIN Users AS PostOwner ON PostOwner.UserName = A.UserName " +
+                $"WHERE A.UserName =@name AND A.isDeleted =0 " +
+                $"ORDER BY A.CreatedAt DESC  " +
+                $"FOR JSON PATH,INCLUDE_NULL_VALUES ";
 
-            result = response.ToList();
-            for(int i=0; i<result.Count; i++)
-            {
-                query = $"SELECT * " +
-                    $"FROM dbo.PostFile " +
-                    $"WHERE dbo.PostFile.PostId=@Id" +
-                    $"ORDER BY [Index] ASC;";
-                var postfiles = await _service.GetDataAsync<PostFileViewModel>(query, new {Id = result[i].ID});
-                result[i].PostFiles = postfiles.ToList();
-                query = $"SELECT Users.* " +
-                    $"FROM [dbo].[Posts] " +
-                    $"INNER JOIN PostLikeUser ON Posts.ID=PostLikeUser.PostId " +
-                    $"INNER JOIN Users ON PostLikeUser.UserName=Users.UserName " +
-                    $"WHERE Posts.ID=@Id";
-                var users = await _service.GetDataAsync<UserViewModel>(query, new { Id = result[i].ID });
-                result[i].UsersLikePost = users.ToList();
-                query = $"SELECT Community.*" +
-                    $"FROM [dbo].[Posts] " +
-                    $"INNER JOIN PostWithCommunity ON Posts.ID=PostWithCommunity.PostId " +
-                    $"INNER JOIN Community ON PostWithCommunity.CommunityId=Community.ID " +
-                    $"WHERE Posts.ID=@Id";
-                var community = await _service.GetDataAsync<CommunityViewModel>(query, new { Id = result[i].ID });
-                result[i].CommunitiesOfPost = community.ToList();
-            }
+            var response = await _service.GetDataAsync<string>(query, new { name = username});
+            string str = "";
+            foreach (var item in response) str += item;
+            result = JsonConvert.DeserializeObject<List<PostViewModel>>(str);
+
             return result;
+            //var query = $"SELECT * " +
+            //    $"FROM dbo.Posts WHERE dbo.Posts.UserName =@name AND dbo.Posts.isDeleted =0 " +
+            //    $"ORDER BY dbo.Posts.CreatedAt DESC";
+            //var response = await _service.GetDataAsync<PostViewModel>(query, new {name = username});
+            //if (response.Count == 0) return result;
+
+            //result = response.ToList();
+            //for(int i=0; i<result.Count; i++)
+            //{
+            //    query = $"SELECT * " +
+            //        $"FROM dbo.PostFile " +
+            //        $"WHERE dbo.PostFile.PostId=@Id" +
+            //        $"ORDER BY [Index] ASC;";
+            //    var postfiles = await _service.GetDataAsync<PostFileViewModel>(query, new {Id = result[i].ID});
+            //    result[i].PostFiles = postfiles.ToList();
+            //    query = $"SELECT Users.* " +
+            //        $"FROM [dbo].[Posts] " +
+            //        $"INNER JOIN PostLikeUser ON Posts.ID=PostLikeUser.PostId " +
+            //        $"INNER JOIN Users ON PostLikeUser.UserName=Users.UserName " +
+            //        $"WHERE Posts.ID=@Id";
+            //    var users = await _service.GetDataAsync<UserViewModel>(query, new { Id = result[i].ID });
+            //    result[i].UsersLikePost = users.ToList();
+            //    query = $"SELECT Community.*" +
+            //        $"FROM [dbo].[Posts] " +
+            //        $"INNER JOIN PostWithCommunity ON Posts.ID=PostWithCommunity.PostId " +
+            //        $"INNER JOIN Community ON PostWithCommunity.CommunityId=Community.ID " +
+            //        $"WHERE Posts.ID=@Id";
+            //    var community = await _service.GetDataAsync<CommunityViewModel>(query, new { Id = result[i].ID });
+            //    result[i].CommunitiesOfPost = community.ToList();
+            //}
+            //return result;
         }
         public async Task<IEnumerable<PostFeedViewModel>> GetPostsForFeed(int offset)
         {
             List<PostFeedViewModel> result = new List<PostFeedViewModel>();
-            var query = $"SELECT * " +
-                $"FROM dbo.Posts WHERE dbo.Posts.isDeleted =0 " +
-                $"ORDER BY dbo.Posts.CreatedAt DESC OFFSET @ofs ROWS FETCH NEXT 10 ROWS ONLY;";
 
-            var response = await _service.GetDataAsync<PostFeedViewModel>(query, new {ofs = offset*10});
-            if (response.Count == 0) return result;
+            var query = $"SELECT " +
+                $"A.ID AS ID,A.UserName AS UserName,A.Title AS Title,A.Contents AS Contents,A.Price AS Price," +
+                $"A.Category AS Category,A.CreatedAt AS CreatedAt,A.UpdatedAt AS UpdatedAt," +
+                $"PostOwner.ID AS [PostOwner.ID],PostOwner.FirstName AS [PostOwner.FirstName]," +
+                $"PostOwner.LastName AS [PostOwner.LastName],PostOwner.UserName AS [PostOwner.UserName]," +
+                $"PostOwner.Password AS [PostOwner.Password],PostOwner.NickName AS [PostOwner.NickName]," +
+                $"PostOwner.Phone AS [PostOwner.Phone],PostOwner.Email AS [PostOwner.Email]," +
+                $"PostOwner.Gender AS [PostOwner.Gender],PostOwner.RegisterTime AS [PostOwner.RegisterTime]," +
+                $"PostOwner.Avatar AS [PostOwner.Avatar],PostOwner.Background AS [PostOwner.Background]," +
+                $"PostOwner.UserBio AS [PostOwner.UserBio]," +
+                $"(SELECT* FROM PostFile WHERE PostFile.PostId = A.ID FOR JSON PATH,INCLUDE_NULL_VALUES) AS PostFiles," +
+                $"(SELECT Community.* FROM PostWithCommunity INNER JOIN Community ON PostWithCommunity.CommunityId = Community.ID WHERE PostWithCommunity.PostId = A.ID FOR JSON PATH,INCLUDE_NULL_VALUES) AS CommunitiesOfPost," +
+                $"(SELECT Users.* FROM PostLikeUser INNER JOIN Users ON PostLikeUser.UserName = Users.UserName WHERE PostLikeUser.PostId = A.ID FOR JSON PATH,INCLUDE_NULL_VALUES) AS UsersLikePost " +
+                $"FROM dbo.Posts AS A LEFT JOIN Users AS PostOwner ON PostOwner.UserName = A.UserName " +
+                $"WHERE A.isDeleted=0" +
+                $"ORDER BY A.CreatedAt DESC OFFSET @ofs ROWS FETCH NEXT 10 ROWS ONLY "+
+                $"FOR JSON PATH,INCLUDE_NULL_VALUES ";
 
-            result = response.ToList();
-            for (int i = 0; i<result.Count; i++)
-            {
-                query = $"SELECT * FROM dbo.Users WHERE UserName = @name;";
-                var postowner = await _service.GetDataAsync<UserViewModel>(query, new {name = result[i].UserName});
-                if(postowner != null) result[i].PostOwner = postowner[0];
+            var response = await _service.GetDataAsync<string>(query, new { ofs = offset * 10 });
+            string str = "";
+            foreach (var item in response) str += item;
+            result = JsonConvert.DeserializeObject<List<PostFeedViewModel>>(str);
 
-                query = $"SELECT * " +
-                    $"FROM dbo.PostFile " +
-                    $"WHERE dbo.PostFile.PostId=@Id " +
-                    $"ORDER BY [Index] ASC;";
-                var postfiles = await _service.GetDataAsync<PostFileViewModel>(query, new {Id = result[i].ID});
-                result[i].PostFiles = postfiles.ToList();
-                query = $"SELECT Users.* " + 
-                    $"FROM [dbo].[Posts] " +
-                    $"INNER JOIN PostLikeUser ON Posts.ID=PostLikeUser.PostId " +
-                    $"INNER JOIN Users ON PostLikeUser.UserName=Users.UserName " +
-                    $"WHERE Posts.ID=@Id";
-                var users = await _service.GetDataAsync<UserViewModel>(query, new { Id = result[i].ID });
-                result[i].UsersLikePost = users.ToList();
-                query = $"SELECT Community.*" +
-                    $"FROM [dbo].[Posts] " +
-                    $"INNER JOIN PostWithCommunity ON Posts.ID=PostWithCommunity.PostId " +
-                    $"INNER JOIN Community ON PostWithCommunity.CommunityId=Community.ID " +
-                    $"WHERE Posts.ID=@Id";
-                var community = await _service.GetDataAsync<CommunityViewModel>(query, new { Id = result[i].ID });
-                result[i].CommunitiesOfPost = community.ToList();
-            }
             return result;
+            //var query = $"SELECT * " +
+            //    $"FROM dbo.Posts WHERE dbo.Posts.isDeleted =0 " +
+            //    $"ORDER BY dbo.Posts.CreatedAt DESC OFFSET @ofs ROWS FETCH NEXT 10 ROWS ONLY;";
+
+            //var response = await _service.GetDataAsync<PostFeedViewModel>(query, new {ofs = offset*10});
+            //if (response.Count == 0) return result;
+
+            //result = response.ToList();
+            //for (int i = 0; i<result.Count; i++)
+            //{
+            //    query = $"SELECT * FROM dbo.Users WHERE UserName = @name;";
+            //    var postowner = await _service.GetDataAsync<UserViewModel>(query, new {name = result[i].UserName});
+            //    if(postowner != null) result[i].PostOwner = postowner[0];
+
+            //    query = $"SELECT * " +
+            //        $"FROM dbo.PostFile " +
+            //        $"WHERE dbo.PostFile.PostId=@Id " +
+            //        $"ORDER BY [Index] ASC;";
+            //    var postfiles = await _service.GetDataAsync<PostFileViewModel>(query, new {Id = result[i].ID});
+            //    result[i].PostFiles = postfiles.ToList();
+            //    query = $"SELECT Users.* " + 
+            //        $"FROM [dbo].[Posts] " +
+            //        $"INNER JOIN PostLikeUser ON Posts.ID=PostLikeUser.PostId " +
+            //        $"INNER JOIN Users ON PostLikeUser.UserName=Users.UserName " +
+            //        $"WHERE Posts.ID=@Id";
+            //    var users = await _service.GetDataAsync<UserViewModel>(query, new { Id = result[i].ID });
+            //    result[i].UsersLikePost = users.ToList();
+            //    query = $"SELECT Community.*" +
+            //        $"FROM [dbo].[Posts] " +
+            //        $"INNER JOIN PostWithCommunity ON Posts.ID=PostWithCommunity.PostId " +
+            //        $"INNER JOIN Community ON PostWithCommunity.CommunityId=Community.ID " +
+            //        $"WHERE Posts.ID=@Id";
+            //    var community = await _service.GetDataAsync<CommunityViewModel>(query, new { Id = result[i].ID });
+            //    result[i].CommunitiesOfPost = community.ToList();
+            //}
+            //return result;
         }
 
         public async Task<Guid> UpdatePost(PostUpdateModel model)
@@ -606,6 +651,18 @@ namespace SignalRHubs.Services
             await _service.GetDataAsync(query, new { name = userName, Id = postId });
 
             return $"{userName} unlike post";
+        }
+
+        public async Task<List<CommunityMemberViewModel>> GetCommunityMembers(Guid communityId)
+        {
+            var query = $"SELECT dbo.Users.ID,dbo.Users.FirstName,dbo.Users.LastName,dbo.Users.UserName,dbo.Users.NickName," +
+                $"dbo.Users.Email,dbo.Users.Password,dbo.Users.Phone,dbo.Users.Gender,dbo.Users.RegisterTime," +
+                $"dbo.Users.Avatar,dbo.Users.Background,dbo.Users.UserBio,dbo.CommunityMember.UserRole " +
+                $"FROM dbo.CommunityMember INNER JOIN dbo.Users ON dbo.CommunityMember.UserName =dbo.Users.UserName " +
+                $"WHERE dbo.CommunityMember.CommunityID=@Id;";
+            var result = await _service.GetDataAsync<CommunityMemberViewModel>(query, new { Id = communityId });
+
+            return result.ToList();
         }
     }
 }

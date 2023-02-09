@@ -4,6 +4,22 @@
     ViewData["Title"] = "Home Page";
 }
     <h2 class="text-center" style="margin-top: 0; padding-top: 30px; padding-bottom: 30px;">Azure SignalR Group Chat</h2>
+    <div style="width: 100%; max-width: 500px;  background-color:orange; margin: auto;">
+        <div class="left">
+          <div id="startButton" class="button">Start Recording</div>
+          <h2>Preview</h2>
+          <video id="preview" width="160" height="120" autoplay muted></video>
+        </div>
+        <div class="right">
+          <div id="stopButton" class="button">Stop Recording</div>
+          <h2>Recording</h2>
+          <video id="recording" width="160" height="120" controls></video>
+          <a id="downloadButton" class="button"> Download </a>
+        </div>
+        <div class="bottom">
+          <pre id="log"></pre>
+        </div>
+    </div>
 
     <div class="container" style="height: calc(100% - 110px);">
         <div id="messages" style="background-color: whitesmoke; "></div>
@@ -57,11 +73,31 @@
 
     <!--Reference the SignalR library. -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js">
-import { parseJSON } from "jquery";
-</script>
+        import { parseJSON } from "jquery";
+    </script>
+   
+
     <!--Add script to update the page and send messages.-->
     <script type="text/javascript">
+
         document.addEventListener('DOMContentLoaded', function () {
+            
+            let preview = document.getElementById("preview");
+            let recording = document.getElementById("recording");
+            let startButton = document.getElementById("startButton");
+            let stopButton = document.getElementById("stopButton");
+            let downloadButton = document.getElementById("downloadButton");
+            let logElement = document.getElementById("log");
+
+            let recordingTimeMS = 5000;
+            function log(msg) {
+              logElement.innerHTML += `${msg}\n`;
+              console.log("BINGO:"+msg);
+            }
+            function wait(delayInMS) {
+              return new Promise((resolve) => setTimeout(resolve, delayInMS));
+            }
+
             function getToken(url, username, password) {
                 return new Promise((resolve, reject) => {
                     var xhr = new XMLHttpRequest();
@@ -178,9 +214,100 @@ import { parseJSON } from "jquery";
                 connection.onclose(onConnectionError);
             }
 
+            function startRecording(stream, lengthInMS, connection) {
+              let recorder = new MediaRecorder(stream);
+              let data = [];
+
+              recorder.ondataavailable =async (event) => {
+                  data.push(event.data);
+                  
+                  const subject = new signalR.Subject();
+                  console.log("start video stream");
+                  connection.send("UploadStream", subject, username);
+                  //console.log(event.data);
+                  //console.log(data);
+                  //const stream = event.data.stream();
+                  const buffer = await event.data.arrayBuffer();
+                  //console.log(buffer);
+                  const view = new Uint8Array(buffer);
+
+                  //console.log(view);
+                  //var rb = stream.getReader();
+                  //console.log(stream);
+                  //rb.read().then(function myFunc({value, done}) {
+                  //    if(done) {
+                  //        console.log("stream complete");
+                  //        subject.complete();
+                  //        return;
+                  //    }
+                  //    subject.next(value);
+                  //    console.log(value);
+                  //    return rb.read().then(myFunc);
+                  //});
+                  [...view].map((n) => subject.next(n.toString()));
+                  subject.complete();
+                  log(`pushed to data ${event.data.size}`);
+              }
+              recorder.start();
+              log(`${recorder.state} for ${lengthInMS / 1000} seconds…`);
+
+              let stopped = new Promise((resolve, reject) => {
+                recorder.onstop = resolve;
+                recorder.onerror = (event) => reject(event.name);
+              });
+
+              let recorded = wait(lengthInMS).then(
+                () => {
+                  if (recorder.state === "recording") {
+                    recorder.stop();
+                  }
+                },
+              );
+
+              return Promise.all([
+                stopped,
+                recorded
+              ])
+              .then(() => data);
+            }
+            function stop(stream) {
+              stream.getTracks().forEach((track) => track.stop());
+            }     
+
             async function onConnected(connection) {
                 console.log('connection started');
                 await connection.send('broadcastMessage', '_SYSTEM_', username + ' JOINED');
+           
+                startButton.addEventListener("click", () => {
+                  navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                  }).then((stream) => {
+                    preview.srcObject = stream;
+                    downloadButton.href = stream;
+                    preview.captureStream = preview.captureStream || preview.mozCaptureStream;
+                    return new Promise((resolve) => preview.onplaying = resolve);
+                  }).then(() => startRecording(preview.captureStream(), recordingTimeMS, connection))
+                  .then ((recordedChunks) => {
+                    let recordedBlob = new Blob(recordedChunks, { type: "video/webm" });
+                    recording.src = URL.createObjectURL(recordedBlob);
+                    downloadButton.href = recording.src;
+                    downloadButton.download = "RecordedVideo.webm";
+
+                    log(`Successfully recorded ${recordedBlob.size} bytes of ${recordedBlob.type} media.`);
+                  })
+                  .catch((error) => {
+                    if (error.name === "NotFoundError") {
+                      log("Camera or microphone not found. Can't record.");
+                    } else {
+                      log(error);
+                    }
+                  });
+                }, false);
+                stopButton.addEventListener("click", () => {
+                  stop(preview.srcObject);
+                }, false);
+
                 //connection.stream("Counter", 10, 500)
                 //    .subscribe({
                 //        next: (item) => {

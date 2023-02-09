@@ -235,7 +235,17 @@ namespace SignalRHubs.Controllers
 
             return Ok(await _homeService.RemoveAdmin(username, communityId));
         }
-    
- 
+        /// <summary>
+        /// Get the community Members
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(List<CommunityMemberViewModel>), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 400)]
+        [HttpGet("/community/members")]
+        public async Task<IActionResult> GetCommunityMembers([FromQuery][Required] Guid communityId)
+        {
+            return Ok(await _homeService.GetCommunityMembers(communityId));
+        }
+
     }
 }

@@ -44,5 +44,6 @@ namespace SignalRHubs.Interfaces.Services
         Task UpdateUserNumberOfCommunity(int v, Guid communityId);
         Task<string> LikePost(string userName, Guid postId);
         Task<string> UnLikePost(string userName, Guid postId);
+        Task<List<CommunityMemberViewModel>> GetCommunityMembers(Guid communityId);
     }
 }

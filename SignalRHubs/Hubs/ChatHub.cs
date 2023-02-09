@@ -21,8 +21,8 @@ namespace SignalRHubs.Hubs
         //public async Task UploadStream(byte[] stream, string name)
         {
             Console.WriteLine("Video Stream incomming...");
-            pusher = new Pusher();
-            pusher.StartPush(pushUrl, 1280, 768, frameRate);
+            //pusher = new Pusher();
+            //pusher.StartPush(pushUrl, 1280, 768, 15);
             // Convert to VideoPacket.
 
             await foreach (var packet in stream)

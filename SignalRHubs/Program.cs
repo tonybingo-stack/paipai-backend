@@ -133,9 +133,9 @@ app.MapHub<ChatHub>("/chathub", options =>
     options.ApplicationMaxBufferSize = 65_536;
     options.TransportMaxBufferSize = 65_536;
     options.MinimumProtocolVersion = 0;
-    options.TransportSendTimeout = TimeSpan.FromSeconds(60);
-    options.WebSockets.CloseTimeout = TimeSpan.FromSeconds(60);
-    options.LongPolling.PollTimeout = TimeSpan.FromSeconds(60);
+    options.TransportSendTimeout = TimeSpan.FromSeconds(10);
+    options.WebSockets.CloseTimeout = TimeSpan.FromSeconds(10);
+    options.LongPolling.PollTimeout = TimeSpan.FromSeconds(10);
 
     Console.WriteLine($"Authorization data items: {options.AuthorizationData.Count}");
 });
